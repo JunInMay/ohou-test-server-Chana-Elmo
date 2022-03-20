@@ -4,7 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9e9abe9-d1f9-490f-bdd2-06de34da295b" name="Changes" comment="프로젝트 생성" />
+    <list default="true" id="b9e9abe9-d1f9-490f-bdd2-06de34da295b" name="Changes" comment="프로젝트 생성">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/DemoApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/DemoApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/config/BaseException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/config/BaseException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/config/BaseResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/config/BaseResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/config/BaseResponseStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/config/BaseResponseStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/config/Constant.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/config/Constant.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/WebSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/WebSecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/test/TestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/test/TestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/UserDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/UserDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/UserProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/UserProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/GetUserRes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/GetUserRes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/PatchUserReq.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/PatchUserReq.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/PostLoginReq.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/PostLoginReq.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/PostLoginRes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/PostLoginRes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/PostUserReq.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/PostUserReq.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/PostUserRes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/PostUserRes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/src/user/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/src/user/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/utils/JwtService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/utils/JwtService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/utils/SHA256.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/utils/SHA256.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/demo/utils/ValidationRegex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/shop/ozip/dev/utils/ValidationRegex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/example/demo/DemoApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/shop/ozip/dev/DemoApplicationTests.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,6 +38,18 @@
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand />
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -65,6 +101,7 @@
       <workItem from="1647775438843" duration="3541000" />
       <workItem from="1647779622641" duration="616000" />
       <workItem from="1647780625388" duration="508000" />
+      <workItem from="1647782084761" duration="371000" />
     </task>
     <task id="LOCAL-00001" summary="프로젝트 생성">
       <created>1647779981065</created>
