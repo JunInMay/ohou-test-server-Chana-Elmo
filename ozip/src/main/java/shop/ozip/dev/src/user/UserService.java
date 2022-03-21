@@ -44,6 +44,7 @@ public class UserService {
 
     //POST
     public PostUsersRes createUser(PostUsersReq postUsersReq) throws BaseException {
+        // 카카오 유저 회원가입일 경우
         if (postUsersReq.getProvider().equals("kakao")) {
             try {
                 HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
@@ -95,6 +96,8 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+    
+    // 카카오 액세스 토큰 받기
     public String getKakaoAccessToken (String code) throws IOException {
         String access_Token = "";
         String refresh_Token = "";
@@ -142,6 +145,8 @@ public class UserService {
 
         return access_Token;
     }
+
+    // 카카오 : 액세스토큰으로 카카오 유저정보 받기
     //https://kauth.kakao.com/oauth/authorize?client_id=333c74b180fcfd54b8e90b3a2232a8b2&redirect_uri=http://localhost:9000/app/users/kakao&response_type=code
     public KakaoUserRes getKakaoUser(String token) throws BaseException, IOException {
 
