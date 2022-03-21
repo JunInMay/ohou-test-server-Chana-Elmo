@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import com.example.demo.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -120,6 +119,21 @@ public class UserController {
         }
     }
 
+    /*
+     * 카카오 로그인 : code 획득용 콜백 메소드
+     * [GET] /app/user/kakao
+     * */
+    @ResponseBody
+    @GetMapping("/kakao")
+    public void kakaoCallback(@RequestParam String code) {
+        try {
+            System.out.println("[UserController:kakaoCallback] code : " + code);
+            String accessToken = userService.getKakaoAccessToken(code);
+            userService.getKakaoUser(accessToken);
+        }catch(Exception exception){
+            exception.printStackTrace();
+        }
+    }
     /**
      * 유저정보변경 API
      * [PATCH] /users/:userIdx

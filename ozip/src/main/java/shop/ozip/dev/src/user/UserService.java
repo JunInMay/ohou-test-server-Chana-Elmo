@@ -4,6 +4,8 @@ package shop.ozip.dev.src.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import shop.ozip.dev.config.BaseException;
+
+import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
 import org.slf4j.Logger;
@@ -11,13 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseResponseStatus;
-import shop.ozip.dev.src.user.model.PatchUserReq;
-import shop.ozip.dev.src.user.model.PostUserReq;
-import shop.ozip.dev.src.user.model.PostUserRes;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import shop.ozip.dev.config.secret.Secret;
 
 // Service Create, Update, Delete 의 로직 처리
 @Service
@@ -90,8 +91,8 @@ public class UserService {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
         StringBuilder sb = new StringBuilder();
         sb.append("grant_type=authorization_code");
-        sb.append("&client_id="+Secret.USER_OAUTH_KAKAO_REST_API_KEY); // TODO REST_API_KEY 입력
-        sb.append("&redirect_uri=http://localhost:9000/app/user/kakao"); // TODO 인가코드 받은 redirect_uri 입력
+        sb.append("&client_id="+ Secret.USER_OAUTH_KAKAO_REST_API_KEY); // TODO REST_API_KEY 입력
+        sb.append("&redirect_uri=http://localhost:9000/app/users/kakao"); // TODO 인가코드 받은 redirect_uri 입력
         sb.append("&code=" + code);
         bw.write(sb.toString());
         bw.flush();
@@ -121,7 +122,7 @@ public class UserService {
 
         return access_Token;
     }
-
+//https://kauth.kakao.com/oauth/authorize?client_id=333c74b180fcfd54b8e90b3a2232a8b2&redirect_uri=http://localhost:9000/app/users/kakao&response_type=code
     public String getKakaoUser(String token) throws BaseException, IOException {
 
         String reqURL = "https://kapi.kakao.com/v2/user/me";
@@ -152,7 +153,8 @@ public class UserService {
 
         KakaoUserRes kakaoUserRes = objectMapper.readValue(result, KakaoUserRes.class);
         System.out.println("카카오 유저 Idx : "+ kakaoUserRes.getId());
-        System.out.println("카카오 유저 닉넴 : "+ kakaoUserRes.getProperties().getNickname());
+        System.out.println("카카오 유저 프로필 이미지 : "+ kakaoUserRes.getProperties().getProfileImage());
+        System.out.println("카카오 유저 연결시간 : "+ kakaoUserRes.getConnected_at());
         kakaoId = kakaoUserRes.getId().toString();
 
         br.close();
