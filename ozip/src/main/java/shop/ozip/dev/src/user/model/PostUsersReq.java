@@ -8,7 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PostUserRes {
-    private String jwt;
-    private Long userId;
+public class PostUsersReq {
+    private String email;
+    private String password;
+    private String nickname;
+    private String provider;
 }

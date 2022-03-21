@@ -97,4 +97,15 @@ public class UserProvider {
 
     }
 
+    public PostLoginRes loginKakaoUser(String kakaoId) throws BaseException{
+        try {
+            User user = userDao.retrieveUser(kakaoId);
+            String jwt = jwtService.createJwt(user.getId());
+            return new PostLoginRes(user.getId(), jwt);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+
+    }
 }

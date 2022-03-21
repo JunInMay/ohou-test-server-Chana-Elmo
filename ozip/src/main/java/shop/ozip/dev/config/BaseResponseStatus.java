@@ -33,6 +33,10 @@ public enum BaseResponseStatus {
     POST_USERS_EXISTS_NICKNAME(false, 2018, "중복된 닉네임입니다."),
 
 
+    // [GET] /app/users/kakao
+    KAKAO_LOGIN_FAIL(false, 2050, "카카오 로그인에 실패했습니다."),
+    KAKAO_EMPTY_ACCESS_TOKEN(false, 2051, "카카오 액세스 토큰이 없습니다."),
+
 
     /**
      * 3000 : Response 오류
@@ -43,6 +47,7 @@ public enum BaseResponseStatus {
     // [POST] /users
     DUPLICATED_EMAIL(false, 3013, "중복된 이메일입니다."),
     FAILED_TO_LOGIN(false,3014,"없는 이메일이거나 비밀번호가 틀렸습니다."),
+    KAKAO_INVALID_ACCESS_TOKEN(false,3015,"유효하지 않은 카카오 액세스 토큰입니다."),
 
 
 
