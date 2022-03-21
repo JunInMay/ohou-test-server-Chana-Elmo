@@ -5,13 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class GetUserRes {
-    private int userIdx;
-    private String userName;
-    private String ID;
+    private Long userId;
     private String email;
-    private String password;
+    private String nickname;
+    private String description;
+    private int point;
 }

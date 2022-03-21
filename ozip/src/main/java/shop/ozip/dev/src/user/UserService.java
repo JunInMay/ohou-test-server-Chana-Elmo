@@ -3,7 +3,6 @@ package shop.ozip.dev.src.user;
 
 
 import shop.ozip.dev.config.BaseException;
-import com.example.demo.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
 import org.slf4j.Logger;
@@ -40,6 +39,10 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_EMAIL);
         }
 
+        if(userProvider.checkNickname(postUserReq.getNickname()) == 1) {
+            throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_NICKNAME);
+        }
+
         String pwd;
         try{
             //암호화
@@ -50,10 +53,10 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
-            int userIdx = userDao.createUser(postUserReq);
+            Long userId = userDao.createUser(postUserReq);
             //jwt 발급.
-            String jwt = jwtService.createJwt(userIdx);
-            return new PostUserRes(jwt,userIdx);
+            String jwt = jwtService.createJwt(userId);
+            return new PostUserRes(jwt, userId);
         } catch (Exception exception) {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
