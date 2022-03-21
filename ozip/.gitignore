@@ -100,4 +100,4 @@ fabric.properties
 secret/
 
 #
-logs/
+.logs
