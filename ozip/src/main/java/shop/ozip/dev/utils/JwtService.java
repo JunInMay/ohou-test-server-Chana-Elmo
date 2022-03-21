@@ -3,7 +3,6 @@ package shop.ozip.dev.utils;
 
 import shop.ozip.dev.config.BaseException;
 // ToDo : confing secret폴더 임포트
-//import com.example.demo.config.secret.Secret;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseResponseStatus;
+import shop.ozip.dev.config.secret.Secret;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
@@ -24,11 +24,11 @@ public class JwtService {
     @param userIdx
     @return String
      */
-    public String createJwt(int userIdx){
+    public String createJwt(Long userId){
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam("type","jwt")
-                .claim("userIdx",userIdx)
+                .claim("userId",userId)
                 .setIssuedAt(now)
                 .setExpiration(new Date(System.currentTimeMillis()+1*(1000*60*60*24*365)))
                 .signWith(SignatureAlgorithm.HS256, Secret.JWT_SECRET_KEY)
@@ -45,7 +45,7 @@ public class JwtService {
     }
 
     /*
-    JWT에서 userIdx 추출
+    JWT에서 userId 추출
     @return int
     @throws BaseException
      */

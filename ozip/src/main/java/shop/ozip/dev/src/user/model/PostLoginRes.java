@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PostLoginRes {
 
-    private int userIdx;
+    private Long userId;
     private String jwt;
 }
