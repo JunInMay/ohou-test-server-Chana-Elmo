@@ -100,4 +100,6 @@ fabric.properties
 secret/
 
 #
-.logs
+logs
+
+src/main/resources/application.yml
