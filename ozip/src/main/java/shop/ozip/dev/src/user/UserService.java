@@ -5,6 +5,7 @@ package shop.ozip.dev.src.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.config.secret.Secret;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
