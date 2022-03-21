@@ -102,4 +102,7 @@ secret/
 #
 logs
 
+#
+build
+
 src/main/resources/application.yml
