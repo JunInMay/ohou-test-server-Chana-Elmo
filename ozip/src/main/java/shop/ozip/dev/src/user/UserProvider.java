@@ -1,18 +1,16 @@
+
 package shop.ozip.dev.src.user;
 
 
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponseStatus;
+import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import shop.ozip.dev.src.user.model.GetUserRes;
-import shop.ozip.dev.src.user.model.PostLoginReq;
-import shop.ozip.dev.src.user.model.PostLoginRes;
-import shop.ozip.dev.src.user.model.User;
 
 import java.util.List;
 
@@ -32,30 +30,30 @@ public class UserProvider {
         this.jwtService = jwtService;
     }
 
-    public List<GetUserRes> getUsers() throws BaseException {
-        try{
-            List<GetUserRes> getUserRes = userDao.getUsers();
-            return getUserRes;
-        }
-        catch (Exception exception) {
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-        }
-    }
+//    public List<GetUserRes> getUsers() throws BaseException {
+//        try{
+//            List<GetUserRes> getUserRes = userDao.getUsers();
+//            return getUserRes;
+//        }
+//        catch (Exception exception) {
+//            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+//        }
+//    }
 
-    public List<GetUserRes> getUsersByEmail(String email) throws BaseException{
-        try{
-            List<GetUserRes> getUsersRes = userDao.getUsersByEmail(email);
-            return getUsersRes;
-        }
-        catch (Exception exception) {
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-        }
-                    }
+//    public List<GetUserRes> getUsersByEmail(String email) throws BaseException{
+//        try{
+//            List<GetUserRes> getUsersRes = userDao.getUsersByEmail(email);
+//            return getUsersRes;
+//        }
+//        catch (Exception exception) {
+//            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+//        }
+//                    }
 
 
-    public GetUserRes getUser(int userIdx) throws BaseException {
+    public GetUserRes getUser(Long userId) throws BaseException {
         try {
-            GetUserRes getUserRes = userDao.getUser(userIdx);
+            GetUserRes getUserRes = userDao.getUser(userId);
             return getUserRes;
         } catch (Exception exception) {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
@@ -70,19 +68,28 @@ public class UserProvider {
         }
     }
 
+    public int checkNickname(String nickname) throws BaseException {
+        try {
+            return userDao.checkNickname(nickname);
+        } catch (Exception exception) {
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
+
     public PostLoginRes logIn(PostLoginReq postLoginReq) throws BaseException{
-        User user = userDao.getPwd(postLoginReq);
+        UserPwd userPwd = userDao.getPwd(postLoginReq);
         String encryptPwd;
+
         try {
             encryptPwd=new SHA256().encrypt(postLoginReq.getPassword());
         } catch (Exception ignored) {
             throw new BaseException(BaseResponseStatus.PASSWORD_DECRYPTION_ERROR);
         }
 
-        if(user.getPassword().equals(encryptPwd)){
-            int userIdx = user.getUserIdx();
-            String jwt = jwtService.createJwt(userIdx);
-            return new PostLoginRes(userIdx,jwt);
+        if(userPwd.getPassword().equals(encryptPwd)){
+            Long userId = userPwd.getUserId();
+            String jwt = jwtService.createJwt(userId);
+            return new PostLoginRes(userId,jwt);
         }
         else{
             throw new BaseException(BaseResponseStatus.FAILED_TO_LOGIN);

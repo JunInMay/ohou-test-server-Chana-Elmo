@@ -1,3 +1,4 @@
+
 package shop.ozip.dev.src.user.model;
 
 import lombok.AllArgsConstructor;
@@ -9,5 +10,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PostUserRes {
     private String jwt;
-    private int userIdx;
+    private Long userId;
 }

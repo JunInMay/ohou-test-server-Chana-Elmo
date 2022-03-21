@@ -96,16 +96,20 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-#
-secret/
+### Example user template template
+### Example user template
 
-#
-logs
-
-#
-build
-
-#
+# IntelliJ project files
 .idea
+*.iml
+out
+gen
+
+logs/
+
+src/main/java/shop/ozip/dev/config/secret/
 
 src/main/resources/application.yml
+
+build/
+>>>>>>> origin/main

@@ -1,10 +1,10 @@
+
 package shop.ozip.dev.src.user;
 
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import shop.ozip.dev.config.BaseException;
-
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -17,8 +17,6 @@ import shop.ozip.dev.config.BaseResponseStatus;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import shop.ozip.dev.config.secret.Secret;
 
 // Service Create, Update, Delete 의 로직 처리
 @Service
@@ -45,6 +43,10 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_EMAIL);
         }
 
+        if(userProvider.checkNickname(postUserReq.getNickname()) == 1) {
+            throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_NICKNAME);
+        }
+
         String pwd;
         try{
             //암호화
@@ -55,10 +57,10 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
-            int userIdx = userDao.createUser(postUserReq);
+            Long userId = userDao.createUser(postUserReq);
             //jwt 발급.
-            String jwt = jwtService.createJwt(userIdx);
-            return new PostUserRes(jwt,userIdx);
+            String jwt = jwtService.createJwt(userId);
+            return new PostUserRes(jwt, userId);
         } catch (Exception exception) {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
@@ -74,7 +76,6 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
-
     public String getKakaoAccessToken (String code) throws IOException {
         String access_Token = "";
         String refresh_Token = "";
@@ -122,7 +123,7 @@ public class UserService {
 
         return access_Token;
     }
-//https://kauth.kakao.com/oauth/authorize?client_id=333c74b180fcfd54b8e90b3a2232a8b2&redirect_uri=http://localhost:9000/app/users/kakao&response_type=code
+    //https://kauth.kakao.com/oauth/authorize?client_id=333c74b180fcfd54b8e90b3a2232a8b2&redirect_uri=http://localhost:9000/app/users/kakao&response_type=code
     public String getKakaoUser(String token) throws BaseException, IOException {
 
         String reqURL = "https://kapi.kakao.com/v2/user/me";
