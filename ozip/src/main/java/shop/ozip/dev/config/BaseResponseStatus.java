@@ -1,3 +1,4 @@
+
 package shop.ozip.dev.config;
 
 import lombok.Getter;

@@ -1,3 +1,4 @@
+
 package shop.ozip.dev.src.user.model;
 
 import lombok.AllArgsConstructor;

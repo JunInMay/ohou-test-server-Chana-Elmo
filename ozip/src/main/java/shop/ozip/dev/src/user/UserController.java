@@ -1,3 +1,4 @@
+
 package shop.ozip.dev.src.user;
 
 import org.slf4j.Logger;
@@ -119,6 +120,21 @@ public class UserController {
         }
     }
 
+    /*
+     * 카카오 로그인 : code 획득용 콜백 메소드
+     * [GET] /app/user/kakao
+     * */
+    @ResponseBody
+    @GetMapping("/kakao")
+    public void kakaoCallback(@RequestParam String code) {
+        try {
+            System.out.println("[UserController:kakaoCallback] code : " + code);
+            String accessToken = userService.getKakaoAccessToken(code);
+            userService.getKakaoUser(accessToken);
+        }catch(Exception exception){
+            exception.printStackTrace();
+        }
+    }
     /**
      * 유저정보변경 API
      * [PATCH] /users/:userIdx
