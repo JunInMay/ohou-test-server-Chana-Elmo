@@ -3,6 +3,8 @@ package shop.ozip.dev.src.user;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.utils.JwtService;
@@ -12,7 +14,10 @@ import shop.ozip.dev.config.BaseResponseStatus;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.ValidationRegex;
 
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+
+import static shop.ozip.dev.config.BaseResponseStatus.*;
 
 @RestController
 @RequestMapping("/app/users")
@@ -77,7 +82,6 @@ public class UserController {
         }
 
     }
-
     /**
      * 회원가입 API
      * [POST] /users
@@ -86,18 +90,20 @@ public class UserController {
     // Body
     @ResponseBody
     @PostMapping("")
-    public BaseResponse<PostUserRes> createUser(@RequestBody PostUserReq postUserReq) {
+    public BaseResponse<PostUsersRes> createUser(@RequestBody PostUsersReq postUsersReq) {
         // TODO: email 관련한 짧은 validation 예시입니다. 그 외 더 부가적으로 추가해주세요!
-        if(postUserReq.getEmail() == null){
-            return new BaseResponse<>(BaseResponseStatus.POST_USERS_EMPTY_EMAIL);
-        }
-        //이메일 정규표현
-        if(!ValidationRegex.isRegexEmail(postUserReq.getEmail())){
-            return new BaseResponse<>(BaseResponseStatus.POST_USERS_INVALID_EMAIL);
+        if (postUsersReq.getProvider() == "local") {
+            if (postUsersReq.getEmail() == null) {
+                return new BaseResponse<>(BaseResponseStatus.POST_USERS_EMPTY_EMAIL);
+            }
+            //이메일 정규표현
+            if (!ValidationRegex.isRegexEmail(postUsersReq.getEmail())) {
+                return new BaseResponse<>(BaseResponseStatus.POST_USERS_INVALID_EMAIL);
+            }
         }
         try{
-            PostUserRes postUserRes = userService.createUser(postUserReq);
-            return new BaseResponse<>(postUserRes);
+            PostUsersRes postUsersRes = userService.createUser(postUsersReq);
+            return new BaseResponse<>(postUsersRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -119,6 +125,27 @@ public class UserController {
             return new BaseResponse<>(exception.getStatus());
         }
     }
+    // 카카오 로그인
+    @ResponseBody
+    @GetMapping("/kakao-login")
+    public BaseResponse<PostLoginRes> getKakaoUserLogin() {
+        try{
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            String accessToken = request.getHeader("Access-Token");
+            if (accessToken == null) {
+                return new BaseResponse<>(KAKAO_EMPTY_ACCESS_TOKEN);
+            }
+            String kakaoId = "kakao_"+userService.getKakaoUser(accessToken).getId().toString();
+            PostLoginRes userLoginRes = userProvider.loginKakaoUser(kakaoId);
+            return new BaseResponse<>(userLoginRes);
+        } catch (IOException ioException) {
+            return new BaseResponse<>(KAKAO_INVALID_ACCESS_TOKEN);
+        }
+        catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+
+    }
 
     /*
      * 카카오 로그인 : code 획득용 콜백 메소드
@@ -126,13 +153,17 @@ public class UserController {
      * */
     @ResponseBody
     @GetMapping("/kakao")
-    public void kakaoCallback(@RequestParam String code) {
+    public BaseResponse<KakaoCallback> kakaoCallback(@RequestParam String code) {
         try {
             System.out.println("[UserController:kakaoCallback] code : " + code);
             String accessToken = userService.getKakaoAccessToken(code);
             userService.getKakaoUser(accessToken);
-        }catch(Exception exception){
-            exception.printStackTrace();
+            KakaoCallback kakaoCallback = new KakaoCallback(accessToken);
+            return new BaseResponse<>(kakaoCallback);
+        }catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        } catch (IOException e) {
+            return new BaseResponse<>(KAKAO_LOGIN_FAIL);
         }
     }
     /**

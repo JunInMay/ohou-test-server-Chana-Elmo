@@ -10,12 +10,13 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class User {
-    private Long userId;
+    private Long id;
     private String email;
     private String password;
     private String nickname;
     private String description;
+    private String provider;
     private int point;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
 }

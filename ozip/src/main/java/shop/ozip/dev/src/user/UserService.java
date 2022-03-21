@@ -4,6 +4,8 @@ package shop.ozip.dev.src.user;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.secret.Secret;
 import shop.ozip.dev.src.user.model.*;
@@ -15,9 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseResponseStatus;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import static shop.ozip.dev.config.BaseResponseStatus.KAKAO_INVALID_ACCESS_TOKEN;
 
 // Service Create, Update, Delete 의 로직 처리
 @Service
@@ -38,31 +43,44 @@ public class UserService {
     }
 
     //POST
-    public PostUserRes createUser(PostUserReq postUserReq) throws BaseException {
+    public PostUsersRes createUser(PostUsersReq postUsersReq) throws BaseException {
+        if (postUsersReq.getProvider().equals("kakao")) {
+            try {
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+                String accessToken = request.getHeader("Access-Token");
+                KakaoUserRes kakaoUserRes = getKakaoUser(accessToken); // 액세스 토큰을 활용해서 카카오 유저의 id 확인
+                String kakaoId = kakaoUserRes.getId().toString();
+                postUsersReq.setEmail("kakao_"+kakaoId); // 로그인 아이디는 kakao_21380328와 같은 형식
+                postUsersReq.setPassword(kakaoId); // 비밀번호는 사실 필요없지만, null값이 들어갈 순 없으므로 일단 kakaoId와 동일하게 세팅
+            } catch (IOException ioException){
+                throw new BaseException(KAKAO_INVALID_ACCESS_TOKEN);
+            }
+        }
+
         //중복
-        if(userProvider.checkEmail(postUserReq.getEmail()) ==1){
+        if (userProvider.checkEmail(postUsersReq.getEmail()) == 1) {
             throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_EMAIL);
         }
 
-        if(userProvider.checkNickname(postUserReq.getNickname()) == 1) {
+        if (userProvider.checkNickname(postUsersReq.getNickname()) == 1) {
             throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_NICKNAME);
         }
 
         String pwd;
         try{
             //암호화
-            pwd = new SHA256().encrypt(postUserReq.getPassword());
-            postUserReq.setPassword(pwd);
+            pwd = new SHA256().encrypt(postUsersReq.getPassword());
+            postUsersReq.setPassword(pwd);
 
         } catch (Exception ignored) {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
-            Long userId = userDao.createUser(postUserReq);
+            Long userId = userDao.createUser(postUsersReq);
             //jwt 발급.
-            String jwt = jwtService.createJwt(userId);
-            return new PostUserRes(jwt, userId);
+            return new PostUsersRes(userId);
         } catch (Exception exception) {
+            exception.printStackTrace();
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
@@ -125,7 +143,7 @@ public class UserService {
         return access_Token;
     }
     //https://kauth.kakao.com/oauth/authorize?client_id=333c74b180fcfd54b8e90b3a2232a8b2&redirect_uri=http://localhost:9000/app/users/kakao&response_type=code
-    public String getKakaoUser(String token) throws BaseException, IOException {
+    public KakaoUserRes getKakaoUser(String token) throws BaseException, IOException {
 
         String reqURL = "https://kapi.kakao.com/v2/user/me";
         String kakaoId;
@@ -161,6 +179,6 @@ public class UserService {
 
         br.close();
 
-        return kakaoId;
+        return kakaoUserRes;
     }
 }
