@@ -77,8 +77,14 @@ public class UserProvider {
     }
 
     public PostLoginRes logIn(PostLoginReq postLoginReq) throws BaseException{
-        UserPwd userPwd = userDao.getPwd(postLoginReq);
+        UserPwd userPwd = null;
         String encryptPwd;
+
+        try {
+            userPwd = userDao.getPwd(postLoginReq);
+        } catch (Exception e) {
+            throw new BaseException(BaseResponseStatus.FAILED_TO_LOGIN);
+        }
 
         try {
             encryptPwd=new SHA256().encrypt(postLoginReq.getPassword());
