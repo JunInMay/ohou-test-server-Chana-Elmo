@@ -50,6 +50,10 @@ public class FeedService {
             if (!feedDao.checkCommentExistById(postFeedsMediaFeedsCommentsReq.getRecommentId())){
                 throw new BaseException(RECOMMENT_NOT_EXIST);
             }
+            Comment recomment = feedDao.getCommentById(postFeedsMediaFeedsCommentsReq.getRecommentId());
+            if (recomment.getFeedId() != postFeedsMediaFeedsCommentsReq.getFeedId()){
+                throw new BaseException(POST_RECOMMENT_FEED_NOT_MATCH);
+            }
         }
         try{
             return feedDao.createMediaFeedComment(postFeedsMediaFeedsCommentsReq, userId);

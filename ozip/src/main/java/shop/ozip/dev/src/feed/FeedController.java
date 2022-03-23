@@ -78,6 +78,12 @@ public class FeedController {
                 return new BaseResponse<>(AMBIGUOUS_RECOMMENT);
             }
         }
+        if (postFeedsMediaFeedsCommentsReq.getContent() == null || postFeedsMediaFeedsCommentsReq.getContent() == "") {
+            return new BaseResponse<>(EMPTY_COMMENT_CONTENT);
+        }
+        if (postFeedsMediaFeedsCommentsReq.getFeedId() == null) {
+            return new BaseResponse<>(EMPTY_COMMENT_FEED_ID);
+        }
 
         try{
             PostFeedsMediaFeedsCommentsRes postFeedsMediaFeedsCommentsRes = feedService.createMediaFeedComment(postFeedsMediaFeedsCommentsReq);
