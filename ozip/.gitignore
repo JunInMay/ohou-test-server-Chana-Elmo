@@ -112,4 +112,5 @@ src/main/java/shop/ozip/dev/config/secret/
 src/main/resources/application.yml
 
 build/
->>>>>>> origin/main
+
+logback-spring.xml

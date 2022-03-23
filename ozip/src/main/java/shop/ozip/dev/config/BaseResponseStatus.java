@@ -23,6 +23,7 @@ public enum BaseResponseStatus {
     INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false,2003,"권한이 없는 유저의 접근입니다."),
 
+
     // users
     USERS_EMPTY_USER_ID(false, 2010, "유저 아이디 값을 확인해주세요."),
 
@@ -37,6 +38,10 @@ public enum BaseResponseStatus {
     KAKAO_LOGIN_FAIL(false, 2050, "카카오 로그인에 실패했습니다."),
     KAKAO_EMPTY_ACCESS_TOKEN(false, 2051, "카카오 액세스 토큰이 없습니다."),
 
+    // 2100 : feeds, comment
+    EMPTY_FEED_ID(false, 2100, "피드 ID를 입력해주세요."),
+
+    AMBIGUOUS_RECOMMENT(false, 2150, "대댓글 여부와 대댓글 ID를 확인해주세요."),
 
     /**
      * 3000 : Response 오류
@@ -49,7 +54,16 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(false,3014,"없는 이메일이거나 비밀번호가 틀렸습니다."),
     KAKAO_INVALID_ACCESS_TOKEN(false,3015,"유효하지 않은 카카오 액세스 토큰입니다."),
 
+    // 3100 : feed, comment
+    FEED_NOT_EXIST(false,3100,"존재하지 않는 피드입니다."),
 
+
+    RECOMMENT_NOT_EXIST(false,3150,"답글을 달 댓글이 존재하지 않습니다."),
+
+    // 3200 : media , media-feed
+    IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
+
+    //
 
     /**
      * 4000 : Database, Server 오류
