@@ -41,7 +41,13 @@ public enum BaseResponseStatus {
     // 2100 : feeds, comment
     EMPTY_FEED_ID(false, 2100, "피드 ID를 입력해주세요."),
 
+
     AMBIGUOUS_RECOMMENT(false, 2150, "대댓글 여부와 대댓글 ID를 확인해주세요."),
+
+    // [POST] 댓글달기
+    EMPTY_COMMENT_CONTENT(false, 2160, "댓글 내용을 입력해주세요."),
+    EMPTY_COMMENT_FEED_ID(false, 2161, "댓글 달 피드의 id를 입력해주세요."),
+
 
     /**
      * 3000 : Response 오류
@@ -58,7 +64,8 @@ public enum BaseResponseStatus {
     FEED_NOT_EXIST(false,3100,"존재하지 않는 피드입니다."),
 
 
-    RECOMMENT_NOT_EXIST(false,3150,"답글을 달 댓글이 존재하지 않습니다."),
+    RECOMMENT_NOT_EXIST(false,3160,"답글을 달 댓글이 존재하지 않습니다."),
+    POST_RECOMMENT_FEED_NOT_MATCH(false,3161,"답글의 피드 idx와 답글을 달 댓글의 피드 idx가 일치하지 않습니다."),
 
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),

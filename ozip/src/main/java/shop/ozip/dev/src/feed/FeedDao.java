@@ -197,6 +197,7 @@ public class FeedDao {
 
         Comment comment = getCommentById(recentId);
         return new PostFeedsMediaFeedsCommentsRes(
+                comment.getId(),
                 comment.getFeedId(),
                 comment.getContent(),
                 comment.getRecommentId(),
