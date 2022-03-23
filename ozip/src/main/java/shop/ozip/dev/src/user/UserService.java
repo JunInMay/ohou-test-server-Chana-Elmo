@@ -115,7 +115,8 @@ public class UserService {
         StringBuilder sb = new StringBuilder();
         sb.append("grant_type=authorization_code");
         sb.append("&client_id="+ Secret.USER_OAUTH_KAKAO_REST_API_KEY); // TODO REST_API_KEY 입력
-        sb.append("&redirect_uri=http://localhost:9000/app/users/kakao"); // TODO 인가코드 받은 redirect_uri 입력
+        sb.append("&redirect_uri="+Secret.KAKAO_REDIRECT_URI); // TODO 인가코드 받은 redirect_uri 입력
+//        sb.append("&redirect_uri=http://localhost:9000/app/users/kakao"); // TODO 인가코드 받은 redirect_uri 입력
         sb.append("&code=" + code);
         bw.write(sb.toString());
         bw.flush();
