@@ -149,7 +149,7 @@ public class UserController {
 
     /*
      * 카카오 로그인 : code 획득용 콜백 메소드
-     * [GET] /app/user/kakao
+     * [GET] /app/users/kakao
      * */
     @ResponseBody
     @GetMapping("/kakao")
