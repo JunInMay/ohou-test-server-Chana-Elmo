@@ -77,6 +77,7 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
+            postUsersReq.checkNullProfileImageUrl();
             Long userId = userDao.createUser(postUsersReq);
             //jwt 발급.
             return new PostUsersRes(userId);
