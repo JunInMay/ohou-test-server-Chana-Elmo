@@ -13,6 +13,6 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoUserResProperties {
     private String nickname;
-    private String profileImage;
-    private String thumbnailImage;
+    private String profile_image;
+    private String thumbnail_image;
 }

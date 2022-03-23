@@ -180,7 +180,7 @@ public class UserService {
 
         KakaoUserRes kakaoUserRes = objectMapper.readValue(result, KakaoUserRes.class);
         System.out.println("카카오 유저 Idx : "+ kakaoUserRes.getId());
-        System.out.println("카카오 유저 프로필 이미지 : "+ kakaoUserRes.getProperties().getProfileImage());
+        System.out.println("카카오 유저 프로필 이미지 : "+ kakaoUserRes.getProperties().getProfile_image());
         System.out.println("카카오 유저 연결시간 : "+ kakaoUserRes.getConnected_at());
         kakaoId = kakaoUserRes.getId().toString();
 
