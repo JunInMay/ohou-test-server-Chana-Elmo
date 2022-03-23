@@ -65,16 +65,16 @@ public class FeedController {
     (POST) 127.0.0.1:9000/app/feeds/media-feeds/comments/{feedId}
     */
     @ResponseBody
-    @PostMapping("app/feeds/media-feeds/comments/{feedId}")
+    @PostMapping("/media-feeds/comments")
     public BaseResponse<PostFeedsMediaFeedsCommentsRes> postFeedsMediaFeedsComments(@RequestBody PostFeedsMediaFeedsCommentsReq postFeedsMediaFeedsCommentsReq) {
         postFeedsMediaFeedsCommentsReq.checkNullIsRecomment();
         // 대댓글 여부와 대댓글 ID 정상 입력 validation
         if (postFeedsMediaFeedsCommentsReq.getIsRecomment() != 0){
-            if (postFeedsMediaFeedsCommentsReq.getRecommentId() == null || postFeedsMediaFeedsCommentsReq.getRecommentId() == 0) {
+            if (postFeedsMediaFeedsCommentsReq.getRecommentId() == null) {
                 return new BaseResponse<>(AMBIGUOUS_RECOMMENT);
             }
         } else{
-            if (postFeedsMediaFeedsCommentsReq.getRecommentId() != null || postFeedsMediaFeedsCommentsReq.getRecommentId() != 0) {
+            if (postFeedsMediaFeedsCommentsReq.getRecommentId() != null) {
                 return new BaseResponse<>(AMBIGUOUS_RECOMMENT);
             }
         }
