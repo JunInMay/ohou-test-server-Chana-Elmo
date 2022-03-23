@@ -120,6 +120,7 @@ public class UserService {
         sb.append("&code=" + code);
         bw.write(sb.toString());
         bw.flush();
+        System.out.println("URI는:"+Secret.KAKAO_REDIRECT_URI);
 
         //결과 코드가 200이라면 성공
         int responseCode = conn.getResponseCode();
