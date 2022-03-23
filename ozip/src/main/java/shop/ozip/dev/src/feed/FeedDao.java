@@ -32,7 +32,7 @@ public class FeedDao {
     public Comment getCommentById(Long id){
         String getFeedByIdQuery = ""
                 + "SELECT * "
-                + "FROM   feed "
+                + "FROM   comment "
                 + "WHERE  id = ?;";
         return this.jdbcTemplate.queryForObject(getFeedByIdQuery,
                 (rs, rowNum) -> new Comment(
