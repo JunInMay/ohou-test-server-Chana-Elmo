@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class PostUsersReq {
-    private String email;
-    private String password;
-    private String nickname;
-    private String provider;
+public class GetFeedsMediaFeedRes {
+    private Long feedId;
+    private List<MediaWithKeyword> medias;
 }

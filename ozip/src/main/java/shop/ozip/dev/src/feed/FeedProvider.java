@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
-import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class FeedProvider {
     }
     
     // 미디어 피드 상세 내용 조회하기
-    public GetFeedMediaFeedRes retrieveMediaFeed(Long feedId) throws BaseException{
+    public GetFeedsMediaFeedRes retrieveMediaFeed(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeed";
         if (!feedDao.checkFeedExistById(feedId)) {
             throw new BaseException(FEED_NOT_EXIST);
@@ -57,7 +56,22 @@ public class FeedProvider {
             }
 
             MediaFeed mediaFeed = feedDao.getMediaFeedByFeedId(feedId);
-            return new GetFeedMediaFeedRes(mediaFeed.getFeedId(), mediaWithKeywordList);
+            return new GetFeedsMediaFeedRes(mediaFeed.getFeedId(), mediaWithKeywordList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 미디어 피드 리스트 조회하기
+    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long lastValue) throws BaseException {
+        String methodName = "retrieveMediaFeedList";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListRes = feedDao.retrieveMediaFeedList(lastValue, userId);
+            return getFeedsMediaFeedsListRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
