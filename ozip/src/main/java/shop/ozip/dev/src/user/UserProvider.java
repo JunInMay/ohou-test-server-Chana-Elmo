@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponseStatus;
 import shop.ozip.dev.src.follow.FollowDao;
-import shop.ozip.dev.src.follow.model.Follow;
+import shop.ozip.dev.src.like.LikeDao;
+import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -23,16 +24,20 @@ public class UserProvider {
     private final JwtService jwtService;
     private final String fileName;
     private final FollowDao followDao;
+    private final LikeDao likeDao;
+    private final ScrapbookDao scrapbookDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public UserProvider(UserDao userDao, JwtService jwtService, FollowDao followDao) {
+    public UserProvider(UserDao userDao, JwtService jwtService, FollowDao followDao, LikeDao likeDao, ScrapbookDao scrapbookDao) {
         this.userDao = userDao;
         this.jwtService = jwtService;
         this.fileName = "UserProvider";
         this.followDao = followDao;
+        this.likeDao = likeDao;
+        this.scrapbookDao = scrapbookDao;
     }
 
 //    public List<GetUserRes> getUsers() throws BaseException {
@@ -130,12 +135,14 @@ public class UserProvider {
 
             return new GetUsersMeRes(
                     user.getId(),
+                    user.getProfileImageUrl(),
                     user.getEmail(),
                     user.getNickname(),
                     user.getDescription(),
-                    user.getPoint(),
                     followDao.getCountFollowerByUserId(userId),
-                    followDao.getCountFolloweeByUserId(userId)
+                    followDao.getCountFollowUserByUserId(userId)+ followDao.getCountFollowKeywordByUserId(userId),
+                    likeDao.getCountLikeFeedByUserId(userId),
+                    scrapbookDao.getCountScrapbookFeedByUserId(userId)
             );
         } catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());

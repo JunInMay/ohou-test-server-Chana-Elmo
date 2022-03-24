@@ -11,10 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class GetUsersMeRes {
     private Long id;
+    private String profileImageUrl;
     private String email;
     private String nickname;
     private String description;
-    private Integer point;
     private Integer follower;
     private Integer followee;
+    private Integer likeFeed;
+    private Integer scrapBookFeeds;
 }

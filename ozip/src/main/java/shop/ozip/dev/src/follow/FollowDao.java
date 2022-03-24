@@ -5,12 +5,8 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import shop.ozip.dev.src.feed.model.MediaFeed;
-import shop.ozip.dev.src.follow.model.*;
-import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
-import java.util.List;
 
 
 @Repository
@@ -41,7 +37,7 @@ public class FollowDao {
     }
 
     // 특정 유저"가 팔로우 한" 사람의 수 가져오기
-    public Integer getCountFolloweeByUserId(Long userId){
+    public Integer getCountFollowUserByUserId(Long userId){
         String getCountFollowerByUserIdQuery = ""
                 + "SELECT Count(*) "
                 + "FROM   follow_user "
@@ -51,6 +47,18 @@ public class FollowDao {
                 Integer.class,
                 userId);
     }
+    // 특정 유저"가 팔로우 한" 사람의 수 가져오기
+    public Integer getCountFollowKeywordByUserId(Long userId){
+        String getCountFollowKeywordByUserIdQuery = ""
+                + "SELECT Count(*) "
+                + "FROM   follow_keyword "
+                + "WHERE  user_id = ?;";
+        return this.jdbcTemplate.queryForObject(
+                getCountFollowKeywordByUserIdQuery,
+                Integer.class,
+                userId);
+    }
+
 
 
 }
