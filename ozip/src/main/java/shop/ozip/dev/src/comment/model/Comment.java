@@ -1,5 +1,5 @@
 
-package shop.ozip.dev.src.feed.model;
+package shop.ozip.dev.src.comment.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
