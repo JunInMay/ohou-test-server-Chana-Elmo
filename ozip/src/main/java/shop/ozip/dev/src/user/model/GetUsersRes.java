@@ -1,5 +1,6 @@
 
-package shop.ozip.dev.src.feed.model;
+package shop.ozip.dev.src.user.model;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,9 +9,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PostUsersReq {
+public class GetUsersRes {
+    private Long userId;
     private String email;
-    private String password;
     private String nickname;
-    private String provider;
+    private String description;
+    private int point;
 }

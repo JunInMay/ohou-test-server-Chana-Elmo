@@ -2,8 +2,12 @@
 package shop.ozip.dev.src.user;
 
 
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponseStatus;
+import shop.ozip.dev.src.follow.FollowDao;
+import shop.ozip.dev.src.like.LikeDao;
+import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -12,22 +16,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 //Provider : Read의 비즈니스 로직 처리
 @Service
 public class UserProvider {
 
     private final UserDao userDao;
     private final JwtService jwtService;
+    private final String fileName;
+    private final FollowDao followDao;
+    private final LikeDao likeDao;
+    private final ScrapbookDao scrapbookDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public UserProvider(UserDao userDao, JwtService jwtService) {
+    public UserProvider(UserDao userDao, JwtService jwtService, FollowDao followDao, LikeDao likeDao, ScrapbookDao scrapbookDao) {
         this.userDao = userDao;
         this.jwtService = jwtService;
+        this.fileName = "UserProvider";
+        this.followDao = followDao;
+        this.likeDao = likeDao;
+        this.scrapbookDao = scrapbookDao;
     }
 
 //    public List<GetUserRes> getUsers() throws BaseException {
@@ -51,10 +61,10 @@ public class UserProvider {
 //                    }
 
 
-    public GetUserRes getUser(Long userId) throws BaseException {
+    public GetUsersRes getUser(Long userId) throws BaseException {
         try {
-            GetUserRes getUserRes = userDao.getUser(userId);
-            return getUserRes;
+            GetUsersRes getUsersRes = userDao.getUsers(userId);
+            return getUsersRes;
         } catch (Exception exception) {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
@@ -103,15 +113,41 @@ public class UserProvider {
 
     }
 
+    // 카카오 로그인
     public PostLoginRes loginKakaoUser(String kakaoId) throws BaseException{
         try {
-            User user = userDao.retrieveUser(kakaoId);
+            User user = userDao.getUserByEmail(kakaoId);
             String jwt = jwtService.createJwt(user.getId());
             return new PostLoginRes(user.getId(), jwt);
         } catch (Exception exception) {
             exception.printStackTrace();
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
+    }
 
+    // 내 정보 가져오기
+    @Transactional
+    public GetUsersMeRes getUsersMe() throws BaseException{
+        String methodName = "getUsersMe";
+        Long userId = jwtService.getUserId();
+        try {
+            User user = userDao.getUserById(userId);
+
+            return new GetUsersMeRes(
+                    user.getId(),
+                    user.getProfileImageUrl(),
+                    user.getEmail(),
+                    user.getNickname(),
+                    user.getDescription(),
+                    followDao.getCountFollowerByUserId(userId),
+                    followDao.getCountFollowUserByUserId(userId)+ followDao.getCountFollowKeywordByUserId(userId),
+                    likeDao.getCountLikeFeedByUserId(userId),
+                    scrapbookDao.getCountScrapbookFeedByUserId(userId)
+            );
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
     }
 }

@@ -32,8 +32,6 @@ public class UserController {
     private final JwtService jwtService;
 
 
-
-
     public UserController(UserProvider userProvider, UserService userService, JwtService jwtService){
         this.userProvider = userProvider;
         this.userService = userService;
@@ -64,6 +62,23 @@ public class UserController {
 //        }
 //    }
 
+
+    /*
+    내 기본 정보 조회 API
+    (GET) 127.0.0.1:9000/app/users/me
+    */
+    @ResponseBody
+    @GetMapping("/me")
+    public BaseResponse<GetUsersMeRes> getUsersMe() {
+        try{
+            GetUsersMeRes getUsersMeRes = userProvider.getUsersMe();
+            return new BaseResponse<>(getUsersMeRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+
+    }
+
     /**
      * 회원 1명 조회 API
      * [GET] /users/:userIdx
@@ -72,11 +87,11 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/{userId}") // (GET) 127.0.0.1:9000/app/users/:userId
-    public BaseResponse<GetUserRes> getUser(@PathVariable("userId") Long userId) {
+    public BaseResponse<GetUsersRes> getUser(@PathVariable("userId") Long userId) {
         // Get Users
         try{
-            GetUserRes getUserRes = userProvider.getUser(userId);
-            return new BaseResponse<>(getUserRes);
+            GetUsersRes getUsersRes = userProvider.getUser(userId);
+            return new BaseResponse<>(getUsersRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

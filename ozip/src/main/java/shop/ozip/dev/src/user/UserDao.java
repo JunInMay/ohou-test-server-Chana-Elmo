@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import shop.ozip.dev.src.user.model.*;
+import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
 import java.text.SimpleDateFormat;
@@ -20,59 +21,72 @@ public class UserDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-//    public List<GetUserRes> getUsers(){
-//        String getUsersQuery = "select * from UserInfo";
-//        return this.jdbcTemplate.query(getUsersQuery,
-//                (rs,rowNum) -> new GetUserRes(
-//                        rs.getInt("userIdx"),
-//                        rs.getString("userName"),
-//                        rs.getString("ID"),
-//                        rs.getString("Email"),
-//                        rs.getString("password"))
-//                );
-//    }
-
-//    public List<GetUserRes> getUsersByEmail(String email){
-//        String getUsersByEmailQuery = "select * from UserInfo where email =?";
-//        String getUsersByEmailParams = email;
-//        return this.jdbcTemplate.query(getUsersByEmailQuery,
-//                (rs, rowNum) -> new GetUserRes(
-//                        rs.getInt("userIdx"),
-//                        rs.getString("userName"),
-//                        rs.getString("ID"),
-//                        rs.getString("Email"),
-//                        rs.getString("password")),
-//                getUsersByEmailParams);
-//    }
-
-    public User retrieveUser(String email){
+    /* 조회하는 메소드명
+    DTO 조회하는 메소드명을 get으로 함
+    존재 여부를 체크하는 메소드명을 check로 함
+    그 외 실제 응답을 만드는 메소드는 retrieve로 함
+    */
+    public User getUserByEmail(String email){
         String retrieveUserQuery = ""
                 + "SELECT * "
                 + "FROM   user "
                 + "WHERE  email = ?;";
         String retrieveUserParams = email;
-        System.out.println(email);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
         return this.jdbcTemplate.queryForObject(retrieveUserQuery,
                 (rs, rowNum) -> new User(
                         rs.getLong("id"),
                         rs.getString("email"),
                         rs.getString("password"),
-                        rs.getString("nickname"),
-                        rs.getString("description"),
                         rs.getString("provider"),
+                        rs.getString("nickname"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("personal_url"),
+                        rs.getString("description"),
                         rs.getInt("point"),
-                        dateFormat.format(rs.getTimestamp("created_at")),
-                        dateFormat.format(rs.getTimestamp("created_at"))),
+                        rs.getInt("is_deleted"),
+                        rs.getInt("is_professional"),
+                        rs.getInt("is_provider"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at"))),
                 retrieveUserParams);
     }
+    public User getUserById(Long id){
+        String retrieveUserQuery = ""
+                + "SELECT * "
+                + "FROM   user "
+                + "WHERE  id = ?;";
 
-    public GetUserRes getUser(Long userId){
+        return this.jdbcTemplate.queryForObject(retrieveUserQuery,
+                (rs, rowNum) -> new User(
+                        rs.getLong("id"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getString("provider"),
+                        rs.getString("nickname"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("personal_url"),
+                        rs.getString("description"),
+                        rs.getInt("point"),
+                        rs.getInt("is_deleted"),
+                        rs.getInt("is_professional"),
+                        rs.getInt("is_provider"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at"))),
+                id);
+    }
+
+
+
+
+
+    // 유저 1명 조회
+    public GetUsersRes getUsers(Long userId){
         String getUserQuery = "select * from user where id = ?";
         Long getUserParams = userId;
         return this.jdbcTemplate.queryForObject(getUserQuery,
-                (rs, rowNum) -> new GetUserRes(
+                (rs, rowNum) -> new GetUsersRes(
                         rs.getLong("id"),
                         rs.getString("email"),
                         rs.getString("nickname"),

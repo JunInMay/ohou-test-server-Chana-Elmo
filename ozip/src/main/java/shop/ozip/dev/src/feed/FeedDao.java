@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
-import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.utils.Common;
 
 
@@ -116,4 +115,52 @@ public class FeedDao {
                 ), feedId);
     }
 
+    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long lastValue, Long userId) {
+        // TODO: 페이지네이션
+        String retrieveMediaFeedListQuery = ""
+                + "SELECT feed.*, "
+                + "       IF((SELECT is_photo "
+                + "           FROM   media_feed "
+                + "           WHERE  media_feed.feed_id = feed.id) = 1, (SELECT url "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "       media.id = (SELECT media_id "
+                + "                   FROM   feed_having_media "
+                + "                   WHERE  feed_having_media.feed_id = feed.id "
+                + "                   ORDER  BY feed_having_media.created_at "
+                + "                   LIMIT  1)), 1)      AS thumbnail, "
+                + "       IF((SELECT is_photo "
+                + "           FROM   media_feed "
+                + "           WHERE  media_feed.feed_id = feed.id) = 1, (SELECT description "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "       media.id = (SELECT media_id "
+                + "                   FROM   feed_having_media "
+                + "                   WHERE  feed_having_media.feed_id = feed.id "
+                + "                   ORDER  BY feed_having_media.created_at "
+                + "                   LIMIT  1)), 1)      AS description, "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   scrapbook_feed "
+                + "                          JOIN scrapbook "
+                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                   WHERE  user_id = ?) AS is_bookmarked "
+                + "FROM   feed "
+                + "WHERE  is_media_feed = 1;";
+
+        return this.jdbcTemplate.query(retrieveMediaFeedListQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedsListRes(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("description"),
+                        rs.getInt("is_bookmarked"),
+                        rs.getInt("is_media_feed"),
+                        rs.getInt("is_photo"),
+                        rs.getInt("is_video"),
+                        rs.getInt("is_homewarming"),
+                        rs.getInt("is_knowhow"),
+                        rs.getInt("is_qna"),
+                        rs.getInt("is_product")
+                ), userId);
+
+    }
 }

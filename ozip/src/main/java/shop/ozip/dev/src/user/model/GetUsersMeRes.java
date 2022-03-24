@@ -6,15 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetUserRes {
-    private Long userId;
+public class GetUsersMeRes {
+    private Long id;
+    private String profileImageUrl;
     private String email;
     private String nickname;
     private String description;
-    private int point;
+    private Integer follower;
+    private Integer followee;
+    private Integer likeFeed;
+    private Integer scrapBookFeeds;
 }
