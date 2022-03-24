@@ -33,35 +33,4 @@ public class FeedService {
 
     }
 
-    // 미디어 피드에 댓글달기
-    public PostFeedsMediaFeedsCommentsRes createMediaFeedComment(PostFeedsMediaFeedsCommentsReq postFeedsMediaFeedsCommentsReq) throws BaseException {
-        String methodName = "createMediaFeedComment";
-        Long userId = jwtService.getUserId();
-        // 댓글 달 미디어 피드 존재 여부
-        if (!feedDao.checkFeedExistById(postFeedsMediaFeedsCommentsReq.getFeedId())) {
-            throw new BaseException(FEED_NOT_EXIST);
-        }
-        Feed feed = feedDao.getFeedById(postFeedsMediaFeedsCommentsReq.getFeedId());
-        if (feed.getIsMediaFeed() != 1) {
-            throw new BaseException(IS_NOT_MEDIA_FEED);
-        }
-        // 답글 달 댓글 존재 여부
-        if (postFeedsMediaFeedsCommentsReq.getIsRecomment() == 1){
-            if (!feedDao.checkCommentExistById(postFeedsMediaFeedsCommentsReq.getRecommentId())){
-                throw new BaseException(RECOMMENT_NOT_EXIST);
-            }
-            Comment recomment = feedDao.getCommentById(postFeedsMediaFeedsCommentsReq.getRecommentId());
-            if (recomment.getFeedId() != postFeedsMediaFeedsCommentsReq.getFeedId()){
-                throw new BaseException(POST_RECOMMENT_FEED_NOT_MATCH);
-            }
-        }
-        try{
-            return feedDao.createMediaFeedComment(postFeedsMediaFeedsCommentsReq, userId);
-        }
-        catch (Exception exception) {
-            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
-            exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
 }
