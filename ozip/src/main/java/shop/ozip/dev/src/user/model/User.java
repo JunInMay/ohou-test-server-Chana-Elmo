@@ -13,10 +13,15 @@ public class User {
     private Long id;
     private String email;
     private String password;
-    private String nickname;
-    private String description;
     private String provider;
-    private int point;
+    private String nickname;
+    private String profileImageUrl;
+    private String personalUrl;
+    private String description;
+    private Integer point;
+    private Integer isDeleted;
+    private Integer isProfessional;
+    private Integer isProvider;
     private String createdAt;
     private String updatedAt;
 }
