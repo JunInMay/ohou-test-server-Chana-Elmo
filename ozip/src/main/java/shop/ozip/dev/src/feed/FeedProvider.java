@@ -8,7 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.model.*;
+import shop.ozip.dev.src.keyword.KeywordDao;
+import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.utils.JwtService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -19,15 +24,17 @@ public class FeedProvider {
     private final FeedDao feedDao;
     private final JwtService jwtService;
     private final String fileName;
+    private final KeywordDao keywordDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public FeedProvider(FeedDao feedDao, JwtService jwtService) {
+    public FeedProvider(FeedDao feedDao, JwtService jwtService, KeywordDao keywordDao) {
         this.feedDao = feedDao;
         this.jwtService = jwtService;
         this.fileName = "FeedProvider";
+        this.keywordDao = keywordDao;
     }
     
     // 미디어 피드 상세 내용 조회하기
@@ -41,7 +48,16 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
-            return feedDao.retrieveMediaFeed(feedId);
+            List<Media> mediaList = feedDao.getMediaListByFeedId(feedId);
+            List<MediaWithKeyword> mediaWithKeywordList = new ArrayList();
+            for (int i = 0; i < mediaList.size(); i++) {
+                Media media = mediaList.get(i);
+                MediaWithKeyword mediaWithKeyword = new MediaWithKeyword(media, keywordDao.getKeywordListByFeedId(media.getFeedId()));
+                mediaWithKeywordList.add(mediaWithKeyword);
+            }
+
+            MediaFeed mediaFeed = feedDao.getMediaFeedByFeedId(feedId);
+            return new GetFeedMediaFeedRes(mediaFeed.getFeedId(), mediaWithKeywordList);
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());

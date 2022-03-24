@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import shop.ozip.dev.src.feed.model.*;
+import shop.ozip.dev.src.keyword.KeywordDao;
+import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.utils.Common;
 
 
@@ -19,7 +21,7 @@ public class FeedDao {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public void setDataSource(DataSource dataSource){
+    public void setDataSource(DataSource dataSource, KeywordDao keywordDao){
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
     /* 조회하는 메소드명
@@ -85,8 +87,8 @@ public class FeedDao {
     }
     
     // 특정 미디어 피드에 담긴 미디어(사진)들 가져오기
-    public List<Media> getMediaListByMediaByFeedId(Long feedId){
-        String getMediaListByMediaFeedIdQuery = ""
+    public List<Media> getMediaListByFeedId(Long feedId){
+        String getMediaListFeedIdQuery = ""
                 + "SELECT media.id                  AS id, "
                 + "       media.feed_id             AS feed_id, "
                 + "       media.description         AS description, "
@@ -100,7 +102,7 @@ public class FeedDao {
                 + "       JOIN feed_having_media "
                 + "         ON id = media_id "
                 + "WHERE  feed_having_media.feed_id = ?;";
-        return this.jdbcTemplate.query(getMediaListByMediaFeedIdQuery,
+        return this.jdbcTemplate.query(getMediaListFeedIdQuery,
                 (rs, rowNum) -> new Media(
                         rs.getLong("id"),
                         rs.getLong("feed_id"),
@@ -112,15 +114,6 @@ public class FeedDao {
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
                 ), feedId);
-    }
-    
-    // 미디어 피드 상세 내용 조회하기
-    public GetFeedMediaFeedRes retrieveMediaFeed(Long feedId) {
-        MediaFeed mf = getMediaFeedByFeedId(feedId);
-
-        return new GetFeedMediaFeedRes(mf.getFeedId(), getMediaListByMediaByFeedId(feedId));
-
-
     }
 
 }
