@@ -113,7 +113,8 @@ public class UserDao {
                 int.class,
                 checkEmailParams);
     }
-
+    
+    // 닉네임 존재하는지 체크
     public int checkNickname(String nickname) {
         String checkNicknameQuery = "select exists(select nickname from user where nickname = ?)";
         String checkNicknameParams = nickname;
@@ -146,39 +147,5 @@ public class UserDao {
     }
 
 
-    public GetUsersMediasNineRes retrieveGetUsersMedias(Long userId, Integer type) {
-        String queryAttachment = "";
-        if (type != 0) {
-            queryAttachment = "       AND media_space_type.id = " + type.toString() + " ";
-        }
 
-        String retrieveGetUsersMediasQuery =""
-                + "SELECT media.url, "
-                + "       media_space_type.name, "
-                + "       user.id, "
-                + "       user.nickname "
-                + "FROM   media "
-                + "       JOIN feed "
-                + "         ON feed.id = media.feed_id "
-                + "       JOIN user "
-                + "         ON feed.user_id = user.id "
-                + "       JOIN media_space_type "
-                + "         ON media.media_space_type_id = media_space_type.id "
-                + "WHERE  user_id = ? "
-                + queryAttachment
-                + "ORDER  BY media.created_at DESC "
-                + "LIMIT  1";
-        String checkGetUsersMediasQuery = "SELECT EXISTS ("+retrieveGetUsersMediasQuery+") AS exist";
-        if (!this.jdbcTemplate.queryForObject(checkGetUsersMediasQuery, boolean.class, userId)){
-            return new GetUsersMediasNineRes(null, null, null, null);
-        }
-        GetUsersMediasNineRes getUsersMediasNineRes = this.jdbcTemplate.queryForObject(retrieveGetUsersMediasQuery,
-                (rs, rowNum) -> new GetUsersMediasNineRes(
-                        rs.getObject("url", String.class),
-                        rs.getObject("name", String.class),
-                        rs.getObject("id", Long.class),
-                        rs.getObject("nickname", String.class)),
-                userId);
-        return getUsersMediasNineRes;
-    }
 }

@@ -154,21 +154,5 @@ public class UserProvider {
         }
     }
 
-    @Transactional
-    public List<GetUsersMediasNineRes> retrieveGetUsersMediasNine(Long userId) throws BaseException{
-        String methodName = "getUsersMe";
-        try {
-            List<GetUsersMediasNineRes> getUsersMediasNineResList = new ArrayList<>();
-            int[] types = {0, 1, 2, 3, 7, 8, 4, 6, 11};
-            for (int i = 0; i < 9; i++) {
-                getUsersMediasNineResList.add(userDao.retrieveGetUsersMedias(userId, types[i]));
-            }
 
-            return getUsersMediasNineResList;
-        } catch (Exception exception) {
-            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
-            exception.printStackTrace();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-        }
-    }
 }

@@ -55,20 +55,7 @@ public class UserController {
         }
 
     }
-    /*
-    9개 공간별 유저가 가장 최근에 업로드한 미디어(사진,동영상) 조회 API
-    (GET) 127.0.0.1:9000/app/users/:userId/medias/nine
-    */
-    @ResponseBody
-    @GetMapping("{userId}/medias/nine")
-    public BaseResponse<List<GetUsersMediasNineRes>> getUsersMediasNine(@PathVariable("userId") Long userId) {
-        try{
-            List<GetUsersMediasNineRes> getUsersMediasNineResList = userProvider.retrieveGetUsersMediasNine(userId);
-            return new BaseResponse<>(getUsersMediasNineResList);
-        } catch(BaseException exception){
-            return new BaseResponse<>((exception.getStatus()));
-        }
-    }
+
 
     /**
      * 회원 1명 조회 API

@@ -1,16 +1,15 @@
 
-package shop.ozip.dev.src.user.model;
+package shop.ozip.dev.src.feed.model;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.lang.Nullable;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetUsersMediasNineRes {
+public class GetFeedsMediasNineRes {
     private String thumbnailUrl;
     private String type;
     private Long userId;

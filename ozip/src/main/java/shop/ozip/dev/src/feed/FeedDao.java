@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
+import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.Common;
 
 
@@ -61,7 +62,7 @@ public class FeedDao {
                 + "               FROM   feed "
                 + "               WHERE  id = ?) AS exist;";
 
-        return this.jdbcTemplate.queryForObject(checkFeedExistByIdQuery, boolean.class, id);
+        return this.jdbcTemplate.queryForObject(checkFeedExistByIdQuery, Boolean.class, id);
     }
 
 
@@ -339,5 +340,52 @@ public class FeedDao {
                         rs.getString("nickname"),
                         rs.getInt("is_bookmarked")
                 ), userId);
+    }
+
+    // 유저별 미디어 9개 조회
+    public GetFeedsMediasNineRes retrieveFeedsMediasForNine(Long userId, Integer type) {
+        String queryAttachment = "";
+        if (type != 0) {
+            queryAttachment = "       AND media_space_type.id = " + type.toString() + " ";
+        }
+        String retrieveFeedsMediasForNineQuery =""
+                + "SELECT IF (media.is_photo = 1, media.url, media.thumbnail_url) AS url, "
+                + "       media_space_type.name, "
+                + "       user.id, "
+                + "       user.nickname "
+                + "FROM   media "
+                + "       JOIN feed "
+                + "         ON feed.id = media.feed_id "
+                + "       JOIN user "
+                + "         ON feed.user_id = user.id "
+                + "       JOIN media_space_type "
+                + "         ON media.media_space_type_id = media_space_type.id "
+                + "WHERE  user_id = ? "
+                + queryAttachment
+                + "ORDER  BY media.created_at DESC "
+                + "LIMIT  1";
+        String checkGetUsersMediasQuery = "SELECT EXISTS ("+retrieveFeedsMediasForNineQuery+") AS exist";
+        if (!this.jdbcTemplate.queryForObject(checkGetUsersMediasQuery, boolean.class, userId)){
+            return new GetFeedsMediasNineRes(null, null, null, null);
+        }
+        GetFeedsMediasNineRes getFeedsMediasNineRes = this.jdbcTemplate.queryForObject(retrieveFeedsMediasForNineQuery,
+                (rs, rowNum) -> new GetFeedsMediasNineRes(
+                        rs.getObject("url", String.class),
+                        rs.getObject("name", String.class),
+                        rs.getObject("id", Long.class),
+                        rs.getObject("nickname", String.class)),
+                userId);
+        return getFeedsMediasNineRes;
+    }
+    
+    // 특정 유저가 업로드한 미디어 개수
+    public Integer retrieveFeedsMediasCount(Long userId) {
+        String retrieveFeedsMediasCountQuery =""
+                + "SELECT Count(*) "
+                + "FROM   media "
+                + "       JOIN feed "
+                + "         ON feed.id = media.feed_id "
+                + "WHERE  feed.user_id = ?";
+        return this.jdbcTemplate.queryForObject(retrieveFeedsMediasCountQuery, Integer.class, userId);
     }
 }

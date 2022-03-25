@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.config.BaseResponseStatus;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
+import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -113,7 +116,8 @@ public class FeedProvider {
         }
 
     }
-
+    
+    // 인기있는 사진 10장
     public List<GetFeedsHotsPhotoRes> retrieveHotsPhotoSection() throws BaseException{
         String methodName = "retrieveHotsPhotoSection";
         Long userId = jwtService.getUserId();
@@ -126,6 +130,36 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+    
+    // 유저별 미디어 9개 조회
+    @Transactional
+    public List<GetFeedsMediasNineRes> retrieveFeedsMediasNine(Long userId) throws BaseException{
+        String methodName = "retrieveFeedsMediasNine";
+        try {
+            List<GetFeedsMediasNineRes> getFeedsMediasNineResList = new ArrayList<>();
+            int[] types = {0, 1, 2, 3, 7, 8, 4, 6, 11};
+            for (int i = 0; i < 9; i++) {
+                getFeedsMediasNineResList.add(feedDao.retrieveFeedsMediasForNine(userId, types[i]));
+            }
 
+            return getFeedsMediasNineResList;
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
+    
+    // 특정 유저가 업로드한 미디어 개수
+    public Integer retrieveFeedsMediasCount(Long userId) throws BaseException{
+        String methodName = "retrieveFeedsMediasCount";
+        try {
+            return feedDao.retrieveFeedsMediasCount(userId);
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
     }
 }
