@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class GetFeedsHotsKeywordResMedia {
-    private Long mediaId;
+    private Long feedId;
     private String thumbnailUrl;
     private String nickname;
     private Integer isBookmmarked;

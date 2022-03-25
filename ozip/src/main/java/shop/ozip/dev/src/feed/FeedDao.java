@@ -261,7 +261,7 @@ public class FeedDao {
     public List<GetFeedsHotsKeywordResMedia> retrieveHotsKeywordMediaList(Long userId) {
         String retrieveHotsKeywordMediaListQuery = ""
                 + "SELECT   media.url, "
-                + "         media.id, "
+                + "         media.feed_id, "
                 + "         user.nickname, "
                 + "         feed.id IN "
                 + "         ( "
@@ -293,7 +293,7 @@ public class FeedDao {
                 + "LIMIT    5;";
         return this.jdbcTemplate.query(retrieveHotsKeywordMediaListQuery,
                 (rs, rowNum) -> new GetFeedsHotsKeywordResMedia(
-                        rs.getLong("id"),
+                        rs.getLong("feed_id"),
                         rs.getString("url"),
                         rs.getString("nickname"),
                         rs.getInt("is_bookmarked")
