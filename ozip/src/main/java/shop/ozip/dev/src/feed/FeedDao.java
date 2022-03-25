@@ -163,4 +163,139 @@ public class FeedDao {
                 ), userId);
 
     }
+    
+    // 인기 섹션 1, 2, 3 구하기
+    public List<GetFeedsHotsRes> retrieveHotsFeedSection(Long userId, Integer i) {
+        String retrieveHotsFeedSectionQuery;
+        Object[] retrieveHotsFeedSectionParams;
+        if (i == 1) {
+            retrieveHotsFeedSectionQuery = ""
+                    + "SELECT feed.id                         AS id, "
+                    + "       feed.thumbnail_url              AS thumbnail_url, "
+                    + "       homewarming_feed.description    AS description, "
+                    + "       homewarming_feed.title          AS title, "
+                    + "       feed.id IN (SELECT feed_id "
+                    + "                   FROM   scrapbook_feed "
+                    + "                          JOIN scrapbook "
+                    + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                    + "                   WHERE  user_id = ?) AS is_bookmarked, "
+                    + "       is_homewarming, "
+                    + "       is_knowhow "
+                    + "FROM   feed "
+                    + "       JOIN homewarming_feed "
+                    + "         ON homewarming_feed.feed_id = feed.id "
+                    + "WHERE  feed.is_homewarming = 1 "
+                    + "LIMIT  4 offset 0;";
+            retrieveHotsFeedSectionParams = new Object[]{userId};
+        }
+        else if (i == 2) {
+            retrieveHotsFeedSectionQuery = ""
+                    + "SELECT feed.id                         AS id, "
+                    + "       feed.thumbnail_url              AS thumbnail_url, "
+                    + "       knowhow_feed.description        AS description, "
+                    + "       knowhow_feed.title              AS title, "
+                    + "       feed.id IN (SELECT feed_id "
+                    + "                   FROM   scrapbook_feed "
+                    + "                          JOIN scrapbook "
+                    + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                    + "                   WHERE  user_id = ?) AS is_bookmarked, "
+                    + "       is_homewarming, "
+                    + "       is_knowhow "
+                    + "FROM   feed "
+                    + "       JOIN knowhow_feed "
+                    + "         ON knowhow_feed.feed_id = feed.id "
+                    + "WHERE  feed.is_knowhow = 1 "
+                    + "LIMIT  4 offset 0;";
+            retrieveHotsFeedSectionParams = new Object[]{userId};
+        }
+        else {
+            retrieveHotsFeedSectionQuery = ""
+                    + "(SELECT feed.id                         AS id, "
+                    + "        feed.thumbnail_url              AS thumbnail_url, "
+                    + "        homewarming_feed.description    AS description, "
+                    + "        homewarming_feed.title          AS title, "
+                    + "        feed.id IN (SELECT feed_id "
+                    + "                    FROM   scrapbook_feed "
+                    + "                           JOIN scrapbook "
+                    + "                             ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                    + "                    WHERE  user_id = ?) AS is_bookmarked, "
+                    + "        is_homewarming, "
+                    + "        is_knowhow "
+                    + " FROM   feed "
+                    + "        JOIN homewarming_feed "
+                    + "          ON homewarming_feed.feed_id = feed.id "
+                    + " WHERE  feed.is_homewarming = 1 "
+                    + " LIMIT  2 offset 4) "
+                    + "UNION "
+                    + "(SELECT feed.id                         AS id, "
+                    + "        feed.thumbnail_url              AS thumbnail_url, "
+                    + "        knowhow_feed.description        AS description, "
+                    + "        knowhow_feed.title              AS title, "
+                    + "        feed.id IN (SELECT feed_id "
+                    + "                    FROM   scrapbook_feed "
+                    + "                           JOIN scrapbook "
+                    + "                             ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                    + "                    WHERE  user_id = ?) AS is_bookmarked, "
+                    + "        is_homewarming, "
+                    + "        is_knowhow "
+                    + " FROM   feed "
+                    + "        JOIN knowhow_feed "
+                    + "          ON knowhow_feed.feed_id = feed.id "
+                    + " WHERE  feed.is_knowhow = 1 "
+                    + " LIMIT  2 offset 4);";
+            retrieveHotsFeedSectionParams = new Object[]{userId, userId};
+        }
+        return this.jdbcTemplate.query(retrieveHotsFeedSectionQuery,
+                (rs, rowNum) -> new GetFeedsHotsRes(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail_url"),
+                        rs.getString("description"),
+                        rs.getString("title"),
+                        rs.getInt("is_bookmarked"),
+                        rs.getInt("is_homewarming"),
+                        rs.getInt("is_knowhow")
+                ), retrieveHotsFeedSectionParams);
+    }
+
+    public List<GetFeedsHotsKeywordResMedia> retrieveHotsKeywordMediaList(Long userId) {
+        String retrieveHotsKeywordMediaListQuery = ""
+                + "SELECT   media.url, "
+                + "         media.id, "
+                + "         user.nickname, "
+                + "         feed.id IN "
+                + "         ( "
+                + "                SELECT feed_id "
+                + "                FROM   scrapbook_feed "
+                + "                JOIN   scrapbook "
+                + "                ON     scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                WHERE  user_id = ?) AS is_bookmarked "
+                + "FROM     feed "
+                + "JOIN "
+                + "         ( "
+                + "                  SELECT   keyword_id, "
+                + "                           Count(*) AS count "
+                + "                  FROM     feed_having_keyword "
+                + "                  JOIN     feed "
+                + "                  ON       feed.id = feed_having_keyword.feed_id "
+                + "                  AND      feed.is_photo = 1 "
+                + "                  GROUP BY keyword_id "
+                + "                  ORDER BY count DESC "
+                + "                  LIMIT    1) a "
+                + "JOIN     feed_having_keyword "
+                + "ON       feed.id = feed_having_keyword.feed_id "
+                + "AND      a.keyword_id = feed_having_keyword.keyword_id "
+                + "JOIN     user "
+                + "ON       feed.user_id = user.id "
+                + "JOIN     media "
+                + "ON       media.feed_id = feed.id "
+                + "order BY view_count DESC "
+                + "LIMIT    5;";
+        return this.jdbcTemplate.query(retrieveHotsKeywordMediaListQuery,
+                (rs, rowNum) -> new GetFeedsHotsKeywordResMedia(
+                        rs.getLong("id"),
+                        rs.getString("url"),
+                        rs.getString("nickname"),
+                        rs.getInt("is_bookmarked")
+                ), userId);
+    }
 }
