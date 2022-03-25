@@ -16,6 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //Provider : Read의 비즈니스 로직 처리
 @Service
 public class UserProvider {
@@ -144,6 +147,24 @@ public class UserProvider {
                     likeDao.getCountLikeFeedByUserId(userId),
                     scrapbookDao.getCountScrapbookFeedByUserId(userId)
             );
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
+
+    @Transactional
+    public List<GetUsersMediasNineRes> retrieveGetUsersMediasNine(Long userId) throws BaseException{
+        String methodName = "getUsersMe";
+        try {
+            List<GetUsersMediasNineRes> getUsersMediasNineResList = new ArrayList<>();
+            int[] types = {0, 1, 2, 3, 7, 8, 4, 6, 11};
+            for (int i = 0; i < 9; i++) {
+                getUsersMediasNineResList.add(userDao.retrieveGetUsersMedias(userId, types[i]));
+            }
+
+            return getUsersMediasNineResList;
         } catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
             exception.printStackTrace();
