@@ -106,6 +106,8 @@ public class FeedDao {
                 (rs, rowNum) -> new Media(
                         rs.getLong("id"),
                         rs.getLong("feed_id"),
+                        rs.getString("thumbnail_url"),
+                        rs.getInt("time"),
                         rs.getString("description"),
                         rs.getString("url"),
                         rs.getLong("media_space_type_id"),
@@ -257,7 +259,8 @@ public class FeedDao {
                         rs.getInt("is_knowhow")
                 ), retrieveHotsFeedSectionParams);
     }
-
+    
+    // 키워드별 핫한 사진 조회
     public List<GetFeedsHotsKeywordResMedia> retrieveHotsKeywordMediaList(Long userId) {
         String retrieveHotsKeywordMediaListQuery = ""
                 + "SELECT   media.url, "
@@ -289,8 +292,9 @@ public class FeedDao {
                 + "ON       feed.user_id = user.id "
                 + "JOIN     media "
                 + "ON       media.feed_id = feed.id "
-                + "order BY view_count DESC "
-                + "LIMIT    5;";
+                + "where    media.is_photo = 1 "
+                + "ORDER BY view_count DESC "
+                + "LIMIT    5";
         return this.jdbcTemplate.query(retrieveHotsKeywordMediaListQuery,
                 (rs, rowNum) -> new GetFeedsHotsKeywordResMedia(
                         rs.getLong("feed_id"),
@@ -299,7 +303,8 @@ public class FeedDao {
                         rs.getInt("is_bookmarked")
                 ), userId);
     }
-
+    
+    // 인기있는 사진 미디어 피드 10장
     public List<GetFeedsHotsPhotoRes> retrieveHotsPhotoSection(Long userId) {
         String retrieveHotsPhotoSectionQuery = ""
                 + "SELECT @rownum := @rownum + 1 AS number, "
@@ -314,14 +319,25 @@ public class FeedDao {
                 + "                           FROM   feed_having_media "
                 + "                           WHERE  feed_having_media.feed_id = feed.id "
                 + "                           ORDER  BY feed_having_media.created_at "
-                + "                           LIMIT  1)), 1)      AS thumbnail, "
+                + "                           LIMIT  1)), (SELECT thumbnail_url "
+                + "                                        FROM   media "
+                + "                                        WHERE "
+                + "               media.id = (SELECT media_id "
+                + "                           FROM   feed_having_media "
+                + "                           WHERE "
+                + "               feed_having_media.feed_id = "
+                + "               feed.id "
+                + "                           ORDER  BY "
+                + "                          feed_having_media.created_at "
+                + "                           LIMIT  1))) AS thumbnail, "
                 + "               user.nickname, "
                 + "               feed.id IN (SELECT feed_id "
                 + "                           FROM   scrapbook_feed "
                 + "                                  JOIN scrapbook "
                 + "                                    ON scrapbook_feed.scrapbook_id = "
                 + "                                       scrapbook.id "
-                + "                           WHERE  user_id = ?) AS is_bookmarked "
+                + "                           WHERE  user_id = ?)                         AS "
+                + "               is_bookmarked "
                 + "        FROM   feed "
                 + "               JOIN media_feed "
                 + "                 ON media_feed.feed_id = feed.id "
@@ -331,9 +347,63 @@ public class FeedDao {
                 + "               AND media_feed.is_photo = 1 "
                 + "        ORDER  BY feed.view_count DESC "
                 + "        LIMIT  10) b "
-                + "WHERE  ( @rownum := 0 ) = 0;";
+                + "WHERE  ( @rownum := 0 ) = 0";
         return this.jdbcTemplate.query(retrieveHotsPhotoSectionQuery,
                 (rs, rowNum) -> new GetFeedsHotsPhotoRes(
+                        rs.getInt("number"),
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("nickname"),
+                        rs.getInt("is_bookmarked")
+                ), userId);
+    }
+
+    // 인기있는 비디오 미디어 피드 10장
+    public List<GetFeedsHotsVideoRes> retrieveHotsVideoSection(Long userId) {
+        String retrieveHotsVideoSectionQuery = ""
+                + "SELECT @rownum := @rownum + 1 AS number, "
+                + "       b.* "
+                + "FROM   (SELECT feed.id, "
+                + "               IF((SELECT is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1, (SELECT url "
+                + "                                                              FROM   media "
+                + "                                                              WHERE "
+                + "               media.id = (SELECT media_id "
+                + "                           FROM   feed_having_media "
+                + "                           WHERE  feed_having_media.feed_id = feed.id "
+                + "                           ORDER  BY feed_having_media.created_at "
+                + "                           LIMIT  1)), (SELECT thumbnail_url "
+                + "                                        FROM   media "
+                + "                                        WHERE "
+                + "               media.id = (SELECT media_id "
+                + "                           FROM   feed_having_media "
+                + "                           WHERE "
+                + "               feed_having_media.feed_id = "
+                + "               feed.id "
+                + "                           ORDER  BY "
+                + "                          feed_having_media.created_at "
+                + "                           LIMIT  1))) AS thumbnail, "
+                + "               user.nickname, "
+                + "               feed.id IN (SELECT feed_id "
+                + "                           FROM   scrapbook_feed "
+                + "                                  JOIN scrapbook "
+                + "                                    ON scrapbook_feed.scrapbook_id = "
+                + "                                       scrapbook.id "
+                + "                           WHERE  user_id = ?)                         AS "
+                + "               is_bookmarked "
+                + "        FROM   feed "
+                + "               JOIN media_feed "
+                + "                 ON media_feed.feed_id = feed.id "
+                + "               JOIN user "
+                + "                 ON feed.user_id = user.id "
+                + "        WHERE  feed.is_media_feed = 1 "
+                + "               AND media_feed.is_video = 1 "
+                + "        ORDER  BY feed.view_count DESC "
+                + "        LIMIT  10) b "
+                + "WHERE  ( @rownum := 0 ) = 0";
+        return this.jdbcTemplate.query(retrieveHotsVideoSectionQuery,
+                (rs, rowNum) -> new GetFeedsHotsVideoRes(
                         rs.getInt("number"),
                         rs.getLong("id"),
                         rs.getString("thumbnail"),
@@ -388,4 +458,6 @@ public class FeedDao {
                 + "WHERE  feed.user_id = ?";
         return this.jdbcTemplate.queryForObject(retrieveFeedsMediasCountQuery, Integer.class, userId);
     }
+
+
 }

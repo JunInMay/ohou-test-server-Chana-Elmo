@@ -11,6 +11,8 @@ import lombok.Setter;
 public class Media {
     private Long id;
     private Long feedId;
+    private String thumbnailUrl;
+    private Integer time;
     private String description;
     private String url;
     private Long mediaSpaceTypeId;
