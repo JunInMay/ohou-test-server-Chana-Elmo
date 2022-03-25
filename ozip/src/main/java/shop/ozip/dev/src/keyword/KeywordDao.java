@@ -49,4 +49,33 @@ public class KeywordDao {
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
                 ), feedId);
     }
+
+    // 사진에 가장 많이 달린 키워드 조회하기(reffered count 안씀)
+    public Keyword getMostRefferedKeywordInPhoto() {
+        String getMostRefferedKeywordInPhoto = ""
+                + "SELECT keyword.id, "
+                + "       keyword.name, "
+                + "       keyword.referred_count, "
+                + "       keyword.created_at, "
+                + "       keyword.updated_at, "
+                + "       Count(*) AS count "
+                + "FROM   feed_having_keyword "
+                + "       JOIN feed "
+                + "         ON feed.id = feed_having_keyword.feed_id "
+                + "            AND feed.is_photo = 1 "
+                + "       JOIN keyword "
+                + "         ON feed_having_keyword.keyword_id = keyword.id "
+                + "GROUP  BY keyword_id "
+                + "ORDER  BY count DESC "
+                + "LIMIT  1;";
+        return this.jdbcTemplate.queryForObject(getMostRefferedKeywordInPhoto,
+                (rs, rowNum) -> new Keyword(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getInt("referred_count"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at"))
+                ));
+    }
+
 }

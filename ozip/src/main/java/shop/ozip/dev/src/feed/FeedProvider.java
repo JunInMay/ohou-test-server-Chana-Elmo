@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
+import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -80,7 +81,7 @@ public class FeedProvider {
         }
     }
 
-    // 인기 섹션 1번 조회
+    // 인기 섹션 번호별 조회
     public List<GetFeedsHotsRes> retrieveHotsFeedSection(Integer i) throws BaseException{
         String methodName = "retrieveHotsFeedSectionOne";
         Long userId = jwtService.getUserId();
@@ -93,5 +94,23 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+
+    // 키워드별 핫한 사진 묶음 조회(조회수 많은)
+    public GetFeedsHotsKeywordRes retrieveHotsKeywordSection() throws BaseException{
+        String methodName = "retrieveHotsKeywordSection";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsHotsKeywordResMedia> getFeedsHotsKeywordResMediaList = feedDao.retrieveHotsKeywordMediaList(userId);
+            Keyword keyword = keywordDao.getMostRefferedKeywordInPhoto();
+            GetFeedsHotsKeywordRes getFeedsHotsKeywordRes = new GetFeedsHotsKeywordRes(keyword.getName(), getFeedsHotsKeywordResMediaList);
+            return getFeedsHotsKeywordRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
     }
 }

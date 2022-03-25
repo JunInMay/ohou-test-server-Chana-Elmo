@@ -163,7 +163,8 @@ public class FeedDao {
                 ), userId);
 
     }
-
+    
+    // 인기 섹션 1, 2, 3 구하기
     public List<GetFeedsHotsRes> retrieveHotsFeedSection(Long userId, Integer i) {
         String retrieveHotsFeedSectionQuery;
         Object[] retrieveHotsFeedSectionParams;
@@ -254,5 +255,47 @@ public class FeedDao {
                         rs.getInt("is_homewarming"),
                         rs.getInt("is_knowhow")
                 ), retrieveHotsFeedSectionParams);
+    }
+
+    public List<GetFeedsHotsKeywordResMedia> retrieveHotsKeywordMediaList(Long userId) {
+        String retrieveHotsKeywordMediaListQuery = ""
+                + "SELECT   media.url, "
+                + "         media.id, "
+                + "         user.nickname, "
+                + "         feed.id IN "
+                + "         ( "
+                + "                SELECT feed_id "
+                + "                FROM   scrapbook_feed "
+                + "                JOIN   scrapbook "
+                + "                ON     scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                WHERE  user_id = ?) AS is_bookmarked "
+                + "FROM     feed "
+                + "JOIN "
+                + "         ( "
+                + "                  SELECT   keyword_id, "
+                + "                           Count(*) AS count "
+                + "                  FROM     feed_having_keyword "
+                + "                  JOIN     feed "
+                + "                  ON       feed.id = feed_having_keyword.feed_id "
+                + "                  AND      feed.is_photo = 1 "
+                + "                  GROUP BY keyword_id "
+                + "                  ORDER BY count DESC "
+                + "                  LIMIT    1) a "
+                + "JOIN     feed_having_keyword "
+                + "ON       feed.id = feed_having_keyword.feed_id "
+                + "AND      a.keyword_id = feed_having_keyword.keyword_id "
+                + "JOIN     user "
+                + "ON       feed.user_id = user.id "
+                + "JOIN     media "
+                + "ON       media.feed_id = feed.id "
+                + "order BY view_count DESC "
+                + "LIMIT    5;";
+        return this.jdbcTemplate.query(retrieveHotsKeywordMediaListQuery,
+                (rs, rowNum) -> new GetFeedsHotsKeywordResMedia(
+                        rs.getLong("id"),
+                        rs.getString("url"),
+                        rs.getString("nickname"),
+                        rs.getInt("is_bookmarked")
+                ), userId);
     }
 }

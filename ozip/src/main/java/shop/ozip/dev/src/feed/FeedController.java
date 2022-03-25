@@ -72,6 +72,23 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
+    TODO: 정렬 및 필터 , 페이지네이션 (5) 작성해야 함
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/{lastValue}?sort=&video=&home-type=&style=&acreage=
+    */
+    @ResponseBody
+    @GetMapping("/hots/keyword")
+    public BaseResponse<GetFeedsHotsKeywordRes> getFeedsHotsKeyword() {
+        try{
+            GetFeedsHotsKeywordRes getFeedsHotsKeywordRes = feedProvider.retrieveHotsKeywordSection();
+            return new BaseResponse<>(getFeedsHotsKeywordRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
 
 
     /*
