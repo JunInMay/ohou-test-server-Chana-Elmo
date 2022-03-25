@@ -79,4 +79,19 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 인기 섹션 1번 조회
+    public List<GetFeedsHotsRes> retrieveHotsFeedSection(Integer i) throws BaseException{
+        String methodName = "retrieveHotsFeedSectionOne";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsHotsRes> getFeedsHotsResList = feedDao.retrieveHotsFeedSection(userId, i);
+            return getFeedsHotsResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }
