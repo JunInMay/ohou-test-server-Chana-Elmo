@@ -131,6 +131,21 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 인기있는 동영상 10개
+    public List<GetFeedsHotsVideoRes> retrieveHotsVideoSection() throws BaseException{
+        String methodName = "retrieveHotsVideoSection";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsHotsVideoRes> getFeedsHotsVideoRes = feedDao.retrieveHotsVideoSection(userId);
+            return getFeedsHotsVideoRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
     
     // 유저별 미디어 9개 조회
     @Transactional
@@ -162,4 +177,6 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+
+
 }

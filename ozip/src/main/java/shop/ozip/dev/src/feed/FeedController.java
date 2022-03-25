@@ -74,7 +74,7 @@ public class FeedController {
         }
     }
     /*
-    홈-인기 인기 사진 TOP 10 API
+    홈-인기 인기 사진 묶음 TOP 10 API
     (GET) 127.0.0.1:9000/app/feeds/hots/photo
     */
     @ResponseBody
@@ -83,6 +83,20 @@ public class FeedController {
         try{
             List<GetFeedsHotsPhotoRes> getFeedsHotsPhotoRes = feedProvider.retrieveHotsPhotoSection();
             return new BaseResponse<>(getFeedsHotsPhotoRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    홈-인기 인기 동영상 피드 TOP 10 API
+    (GET) 127.0.0.1:9000/app/feeds/hots/photo
+    */
+    @ResponseBody
+    @GetMapping("/hots/video")
+    public BaseResponse<List<GetFeedsHotsVideoRes>> getFeedsHotsVideo() {
+        try{
+            List<GetFeedsHotsVideoRes> getFeedsHotsVideoRes = feedProvider.retrieveHotsVideoSection();
+            return new BaseResponse<>(getFeedsHotsVideoRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
