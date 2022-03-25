@@ -56,18 +56,17 @@ public class FeedController {
 
     /*
     미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
-    TODO: 정렬 및 필터 , 페이지네이션 (5) 작성해야 함
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/{lastValue}?sort=&video=&home-type=&style=&acreage=
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/?sort=&video=&home-type=&style=/:lastValue
     */
     @ResponseBody
-    @GetMapping(value = {"/media-feeds/list", "/media-feeds/list/{lastValue}"})
-    public BaseResponse<List<GetFeedsMediaFeedsListRes>> getFeedsMediaFeedsList(@PathVariable(value = "lastValue", required = false) Long lastValue) {
+    @GetMapping(value = {"/media-feeds/list", "/media-feeds/list/{cursor}"})
+    public BaseResponse<List<GetFeedsMediaFeedsListRes>> getFeedsMediaFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="video", required=false, defaultValue="0") Integer video, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="style", required=false, defaultValue="0") Integer style) {
         // 정렬 적용시 주의
-        if (lastValue == null){
-            lastValue = Long.valueOf(0);
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
         }
         try{
-            List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListRes = feedProvider.retrieveMediaFeedList(lastValue);
+            List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListRes = feedProvider.retrieveMediaFeedList(cursor, sort, video, homeType, style);
             return new BaseResponse<>(getFeedsMediaFeedsListRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
