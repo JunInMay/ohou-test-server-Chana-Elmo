@@ -118,52 +118,162 @@ public class FeedDao {
                 ), feedId);
     }
 
-    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long lastValue, Long userId) {
-        // TODO: 페이지네이션
-        String retrieveMediaFeedListQuery = ""
-                + "SELECT feed.*, "
-                + "       IF((SELECT is_photo "
-                + "           FROM   media_feed "
-                + "           WHERE  media_feed.feed_id = feed.id) = 1, (SELECT url "
-                + "                                                      FROM   media "
-                + "                                                      WHERE "
-                + "       media.id = (SELECT media_id "
-                + "                   FROM   feed_having_media "
-                + "                   WHERE  feed_having_media.feed_id = feed.id "
-                + "                   ORDER  BY feed_having_media.created_at "
-                + "                   LIMIT  1)), 1)      AS thumbnail, "
-                + "       IF((SELECT is_photo "
-                + "           FROM   media_feed "
-                + "           WHERE  media_feed.feed_id = feed.id) = 1, (SELECT description "
-                + "                                                      FROM   media "
-                + "                                                      WHERE "
-                + "       media.id = (SELECT media_id "
-                + "                   FROM   feed_having_media "
-                + "                   WHERE  feed_having_media.feed_id = feed.id "
-                + "                   ORDER  BY feed_having_media.created_at "
-                + "                   LIMIT  1)), 1)      AS description, "
-                + "       feed.id IN (SELECT feed_id "
-                + "                   FROM   scrapbook_feed "
-                + "                          JOIN scrapbook "
-                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
-                + "                   WHERE  user_id = ?) AS is_bookmarked "
-                + "FROM   feed "
-                + "WHERE  is_media_feed = 1;";
+    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long cursor, Long userId, Integer sort, Integer video, Integer homeType, Integer style) {
+        // 최근 인기순
+        String sortByBestNewest = "";
+        // 역대 인기순
+        String sortByBest = "";
+        // 최신순
+        String sortByNewest = "";
+        // 팔로우
+        String sortByFollow = "";
 
+        // 가져올 cursor (cursor가 예약어라 standard로 함)
+        String standardColumn = "";
+
+        if (sort == 1){
+            sortByBestNewest = " AND feed.view_count + Round(feed.created_at/10, 0) < ? ORDER BY standard1 DESC ";
+            standardColumn = "standard1";
+        } else if (sort == 2) {
+            sortByBest = " AND Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) < ? ORDER BY standard2 DESC ";
+            standardColumn = "standard2";
+        } else if (sort == 3){
+            sortByNewest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+            standardColumn = "standard3";
+        } else {
+            sortByFollow = ""
+                    + "JOIN     follow_user "
+                    + "ON       feed.user_id = following_id "
+                    + "AND      follow_user.user_id = "+userId.toString()+" ";
+            standardColumn = "standard3";
+            sortByNewest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+        }
+
+        // 동영상만 필터
+        String filterByVideo = "";
+        // 주거형태 필터
+        String filterByHomeType = "";
+        // 스타일 필터
+        String filterByStyle = "";
+
+        if (video != 0) {
+            filterByVideo = "         and media_feed.is_video=1 ";
+        }
+        if (homeType != 0) {
+            filterByHomeType = "          and media_feed_home_type_id="+ homeType.toString() +" ";
+        }
+        if (style != 0) {
+            filterByStyle = "          and media_feed_style_type_id="+ style.toString() +" ";
+        }
+        Object[] retrieveMediaFeedListParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveMediaFeedListQuery = ""
+                + "SELECT   feed.*, "
+                + "         CASE "
+                + "                  WHEN feed.is_media_feed = 1 "
+                + "                  AND "
+                + "                           ( "
+                + "                                  SELECT media_feed.is_photo "
+                + "                                  FROM   media_feed "
+                + "                                  WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                           ( "
+                + "                                  SELECT url "
+                + "                                  FROM   media "
+                + "                                  WHERE  media.id = "
+                + "                                         ( "
+                + "                                                  SELECT   media_id "
+                + "                                                  FROM     feed_having_media "
+                + "                                                  WHERE    feed_having_media.feed_id = feed.id "
+                + "                                                  ORDER BY feed_having_media.created_at "
+                + "                                                  LIMIT    1)) "
+                + "                  WHEN feed.is_media_feed = 1 "
+                + "                  AND "
+                + "                           ( "
+                + "                                  SELECT media_feed.is_video "
+                + "                                  FROM   media_feed "
+                + "                                  WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                           ( "
+                + "                                  SELECT thumbnail_url "
+                + "                                  FROM   media "
+                + "                                  WHERE  media.id = "
+                + "                                         ( "
+                + "                                                SELECT media_id "
+                + "                                                FROM   feed_having_media "
+                + "                                                WHERE  feed_having_media.feed_id = feed.id "
+                + "                                                LIMIT  1)) "
+                + "                  WHEN feed.is_photo = 1 THEN "
+                + "                           ( "
+                + "                                  SELECT url "
+                + "                                  FROM   media "
+                + "                                  WHERE  media.feed_id = feed.id) "
+                + "                  WHEN feed.is_video = 1 THEN "
+                + "                           ( "
+                + "                                  SELECT thumbnail_url "
+                + "                                  FROM   media "
+                + "                                  WHERE  media.feed_id = feed.id) "
+                + "                  WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "                  WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "                  ELSE NULL "
+                + "         end AS thumbnail, "
+                + "         ( "
+                + "                SELECT description "
+                + "                FROM   media "
+                + "                WHERE  media.id = "
+                + "                       ( "
+                + "                                SELECT   media_id "
+                + "                                FROM     feed_having_media "
+                + "                                WHERE    feed_having_media.feed_id = feed.id "
+                + "                                ORDER BY feed_having_media.created_at "
+                + "                                LIMIT    1)) AS description, IF ( "
+                + "                                                                   ( "
+                + "                                                                   SELECT is_video "
+                + "                                                                   FROM   media_feed "
+                + "                                                                   WHERE  media_feed.feed_id = feed.id) = 1, "
+                + "                                                                 ( "
+                + "                                                                        SELECT time "
+                + "                                                                        FROM   media "
+                + "                                                                        WHERE  media.id = "
+                + "                                                                               ( "
+                + "                                                                                      SELECT media_id "
+                + "                                                                                      FROM   feed_having_media "
+                + "                                                                                      WHERE  feed_having_media.feed_id = feed.id "
+                + "                                                                                      LIMIT  1)), NULL ) AS video_time, "
+                + "         feed.id IN "
+                + "         ( "
+                + "                SELECT feed_id "
+                + "                FROM   scrapbook_feed "
+                + "                JOIN   scrapbook "
+                + "                ON     scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                WHERE  user_id = ?)                     AS is_bookmarked, "
+                + "         feed.view_count + Round(feed.created_at/10, 0) AS standard1, "
+                + "Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) AS standard2, "
+                + "      (SELECT CONVERT(feed.created_at, signed INTEGER)) AS standard3 "
+                + "FROM     feed "
+                + "JOIN     media_feed "
+                + "ON       feed.id = media_feed.feed_id "
+                + sortByFollow
+                + "WHERE    is_media_feed = 1 "
+                + filterByVideo
+                + filterByHomeType
+                + filterByStyle
+                + sortByBestNewest
+                + sortByBest
+                + sortByNewest
+                + "LIMIT 5 ";
+
+
+        String finalStandardColumn = standardColumn;
         return this.jdbcTemplate.query(retrieveMediaFeedListQuery,
                 (rs, rowNum) -> new GetFeedsMediaFeedsListRes(
                         rs.getLong("id"),
                         rs.getString("thumbnail"),
                         rs.getString("description"),
+                        rs.getInt("video_time"),
                         rs.getInt("is_bookmarked"),
-                        rs.getInt("is_media_feed"),
-                        rs.getInt("is_photo"),
-                        rs.getInt("is_video"),
-                        rs.getInt("is_homewarming"),
-                        rs.getInt("is_knowhow"),
-                        rs.getInt("is_qna"),
-                        rs.getInt("is_product")
-                ), userId);
+                        rs.getLong(finalStandardColumn),
+                        rs.getInt("is_media_feed")
+                ), retrieveMediaFeedListParams);
 
     }
     

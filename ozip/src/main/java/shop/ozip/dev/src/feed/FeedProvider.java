@@ -70,11 +70,11 @@ public class FeedProvider {
     }
 
     // 미디어 피드 리스트 조회하기
-    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long lastValue) throws BaseException {
+    public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long cursor, Integer sort, Integer video, Integer homeType, Integer style) throws BaseException {
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListRes = feedDao.retrieveMediaFeedList(lastValue, userId);
+            List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListRes = feedDao.retrieveMediaFeedList(cursor, userId, sort, video, homeType, style);
             return getFeedsMediaFeedsListRes;
         }
         catch (Exception exception) {
