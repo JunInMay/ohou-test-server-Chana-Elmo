@@ -73,9 +73,24 @@ public class FeedController {
         }
     }
     /*
-    미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
-    TODO: 정렬 및 필터 , 페이지네이션 (5) 작성해야 함
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/{lastValue}?sort=&video=&home-type=&style=&acreage=
+    홈-인기 인기 사진 TOP 10 API
+    (GET) 127.0.0.1:9000/app/feeds/hots/photo
+    */
+    @ResponseBody
+    @GetMapping("/hots/photo")
+    public BaseResponse<List<GetFeedsHotsPhotoRes>> getFeedsHotsPhoto() {
+        try{
+            List<GetFeedsHotsPhotoRes> getFeedsHotsPhotoRes = feedProvider.retrieveHotsPhotoSection();
+            return new BaseResponse<>(getFeedsHotsPhotoRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
+    홈-인기 키워드별 핫한 사진 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/hots/keyword
     */
     @ResponseBody
     @GetMapping("/hots/keyword")

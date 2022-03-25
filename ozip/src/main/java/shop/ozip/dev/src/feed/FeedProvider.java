@@ -113,4 +113,19 @@ public class FeedProvider {
         }
 
     }
+
+    public List<GetFeedsHotsPhotoRes> retrieveHotsPhotoSection() throws BaseException{
+        String methodName = "retrieveHotsPhotoSection";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsHotsPhotoRes> getFeedsHotsPhotoRes = feedDao.retrieveHotsPhotoSection(userId);
+            return getFeedsHotsPhotoRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
 }

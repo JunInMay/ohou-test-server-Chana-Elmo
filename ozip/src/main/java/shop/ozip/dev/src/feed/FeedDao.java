@@ -298,4 +298,46 @@ public class FeedDao {
                         rs.getInt("is_bookmarked")
                 ), userId);
     }
+
+    public List<GetFeedsHotsPhotoRes> retrieveHotsPhotoSection(Long userId) {
+        String retrieveHotsPhotoSectionQuery = ""
+                + "SELECT @rownum := @rownum + 1 AS number, "
+                + "       b.* "
+                + "FROM   (SELECT feed.id, "
+                + "               IF((SELECT is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1, (SELECT url "
+                + "                                                              FROM   media "
+                + "                                                              WHERE "
+                + "               media.id = (SELECT media_id "
+                + "                           FROM   feed_having_media "
+                + "                           WHERE  feed_having_media.feed_id = feed.id "
+                + "                           ORDER  BY feed_having_media.created_at "
+                + "                           LIMIT  1)), 1)      AS thumbnail, "
+                + "               user.nickname, "
+                + "               feed.id IN (SELECT feed_id "
+                + "                           FROM   scrapbook_feed "
+                + "                                  JOIN scrapbook "
+                + "                                    ON scrapbook_feed.scrapbook_id = "
+                + "                                       scrapbook.id "
+                + "                           WHERE  user_id = ?) AS is_bookmarked "
+                + "        FROM   feed "
+                + "               JOIN media_feed "
+                + "                 ON media_feed.feed_id = feed.id "
+                + "               JOIN user "
+                + "                 ON feed.user_id = user.id "
+                + "        WHERE  feed.is_media_feed = 1 "
+                + "               AND media_feed.is_photo = 1 "
+                + "        ORDER  BY feed.view_count DESC "
+                + "        LIMIT  10) b "
+                + "WHERE  ( @rownum := 0 ) = 0;";
+        return this.jdbcTemplate.query(retrieveHotsPhotoSectionQuery,
+                (rs, rowNum) -> new GetFeedsHotsPhotoRes(
+                        rs.getInt("number"),
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("nickname"),
+                        rs.getInt("is_bookmarked")
+                ), userId);
+    }
 }
