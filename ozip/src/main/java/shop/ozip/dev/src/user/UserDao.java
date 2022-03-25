@@ -113,7 +113,8 @@ public class UserDao {
                 int.class,
                 checkEmailParams);
     }
-
+    
+    // 닉네임 존재하는지 체크
     public int checkNickname(String nickname) {
         String checkNicknameQuery = "select exists(select nickname from user where nickname = ?)";
         String checkNicknameParams = nickname;
@@ -144,5 +145,7 @@ public class UserDao {
                 );
 
     }
+
+
 
 }

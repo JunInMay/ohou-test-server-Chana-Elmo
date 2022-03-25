@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.feed.model.*;
+import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.List;
@@ -73,9 +74,24 @@ public class FeedController {
         }
     }
     /*
-    미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
-    TODO: 정렬 및 필터 , 페이지네이션 (5) 작성해야 함
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/{lastValue}?sort=&video=&home-type=&style=&acreage=
+    홈-인기 인기 사진 TOP 10 API
+    (GET) 127.0.0.1:9000/app/feeds/hots/photo
+    */
+    @ResponseBody
+    @GetMapping("/hots/photo")
+    public BaseResponse<List<GetFeedsHotsPhotoRes>> getFeedsHotsPhoto() {
+        try{
+            List<GetFeedsHotsPhotoRes> getFeedsHotsPhotoRes = feedProvider.retrieveHotsPhotoSection();
+            return new BaseResponse<>(getFeedsHotsPhotoRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
+    홈-인기 키워드별 핫한 사진 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/hots/keyword
     */
     @ResponseBody
     @GetMapping("/hots/keyword")
@@ -129,6 +145,34 @@ public class FeedController {
         try{
             List<GetFeedsHotsRes> getFeedsHotsRes = feedProvider.retrieveHotsFeedSection(3);
             return new BaseResponse<>(getFeedsHotsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    9개 공간별 유저가 가장 최근에 업로드한 미디어(사진,동영상) 조회 API
+    (GET) 127.0.0.1:9000/app/users/:userId/medias/nine
+    */
+    @ResponseBody
+    @GetMapping("/medias/nine/{userId}")
+    public BaseResponse<List<GetFeedsMediasNineRes>> getFeedsMediasNine(@PathVariable("userId") Long userId) {
+        try{
+            List<GetFeedsMediasNineRes> getFeedsMediasNineResList = feedProvider.retrieveFeedsMediasNine(userId);
+            return new BaseResponse<>(getFeedsMediasNineResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    특정 유저가 올린 미디어 개수 조회
+    (GET) 127.0.0.1:9000/app/users/:userId/medias/nine
+    */
+    @ResponseBody
+    @GetMapping("/medias/count/{userId}")
+    public BaseResponse<Integer> getFeedsMediasCount(@PathVariable("userId") Long userId) {
+        try{
+            Integer getFeedsMediasCount = feedProvider.retrieveFeedsMediasCount(userId);
+            return new BaseResponse<>(getFeedsMediasCount);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

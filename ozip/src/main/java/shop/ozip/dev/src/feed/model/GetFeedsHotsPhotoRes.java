@@ -5,12 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsHotsKeywordResMedia {
+public class GetFeedsHotsPhotoRes {
+    private Integer rowNum;
     private Long feedId;
     private String thumbnailUrl;
     private String nickname;
-    private Integer isBookmmarked;
+    private Integer isBookmarked;
 }

@@ -7,6 +7,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
 import shop.ozip.dev.utils.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import shop.ozip.dev.utils.ValidationRegex;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -38,31 +40,6 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-    /**
-     * 회원 조회 API
-     * [GET] /users
-     * 회원 번호 및 이메일 검색 조회 API
-     * [GET] /users? Email=
-     * @return BaseResponse<List<GetUserRes>>
-     */
-    //Query String
-//    @ResponseBody
-//    @GetMapping("") // (GET) 127.0.0.1:9000/app/users
-//    public BaseResponse<List<GetUserRes>> getUsers(@RequestParam(required = false) String Email) {
-//        try{
-//            if(Email == null){
-//                List<GetUserRes> getUsersRes = userProvider.getUsers();
-//                return new BaseResponse<>(getUsersRes);
-//            }
-//            // Get Users
-//            List<GetUserRes> getUsersRes = userProvider.getUsersByEmail(Email);
-//            return new BaseResponse<>(getUsersRes);
-//        } catch(BaseException exception){
-//            return new BaseResponse<>((exception.getStatus()));
-//        }
-//    }
-
-
     /*
     내 기본 정보 조회 API
     (GET) 127.0.0.1:9000/app/users/me
@@ -78,6 +55,7 @@ public class UserController {
         }
 
     }
+
 
     /**
      * 회원 1명 조회 API
