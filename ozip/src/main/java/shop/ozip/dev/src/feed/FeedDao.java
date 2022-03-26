@@ -30,7 +30,6 @@ public class FeedDao {
     그 외 실제 응답을 만드는 메소드는 retrieve로 함
     */
 
-
     // 특정 피드 가져오기
     public Feed getFeedById(Long id){
         String getFeedByIdQuery = ""

@@ -53,6 +53,20 @@ public class UserController {
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
+    }
+    /*
+    해당 피드의 작성자 정보 조회 API
+    (GET) 127.0.0.1:9000/app/users/feeds/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/feeds/{feedId}")
+    public BaseResponse<GetUsersFeedsRes> getUsersFeeds(@PathVariable("feedId") Long feedId) {
+        try{
+            GetUsersFeedsRes getUsersFeedsRes = userProvider.retrieveUsersFeeds(feedId);
+            return new BaseResponse<>(getUsersFeedsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
 
     }
 

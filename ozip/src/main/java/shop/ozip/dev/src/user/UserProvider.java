@@ -5,6 +5,7 @@ package shop.ozip.dev.src.user;
 import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponseStatus;
+import shop.ozip.dev.src.feed.FeedDao;
 import shop.ozip.dev.src.follow.FollowDao;
 import shop.ozip.dev.src.like.LikeDao;
 import shop.ozip.dev.src.scrapbook.ScrapbookDao;
@@ -16,8 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import static shop.ozip.dev.config.BaseResponseStatus.*;
 
 //Provider : Read의 비즈니스 로직 처리
 @Service
@@ -28,15 +28,17 @@ public class UserProvider {
     private final String fileName;
     private final FollowDao followDao;
     private final LikeDao likeDao;
+    private final FeedDao feedDao;
     private final ScrapbookDao scrapbookDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public UserProvider(UserDao userDao, JwtService jwtService, FollowDao followDao, LikeDao likeDao, ScrapbookDao scrapbookDao) {
+    public UserProvider(UserDao userDao, JwtService jwtService, FollowDao followDao, LikeDao likeDao, FeedDao feedDao, ScrapbookDao scrapbookDao) {
         this.userDao = userDao;
         this.jwtService = jwtService;
+        this.feedDao = feedDao;
         this.fileName = "UserProvider";
         this.followDao = followDao;
         this.likeDao = likeDao;
@@ -154,5 +156,20 @@ public class UserProvider {
         }
     }
 
-
+    //해당 피드의 작성자 정보 조회 API
+    public GetUsersFeedsRes retrieveUsersFeeds(Long feedId) throws BaseException{
+        String methodName = "retrieveUsersFeeds";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        try {
+            GetUsersFeedsRes getUsersFeedsRes = userDao.retrieveUsersFeeds(userId, feedId);
+            return getUsersFeedsRes;
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
 }
