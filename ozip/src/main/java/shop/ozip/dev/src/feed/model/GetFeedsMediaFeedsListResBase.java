@@ -15,6 +15,7 @@ public class GetFeedsMediaFeedsListResBase {
     private Integer isFollowed;
     private String userDescription;
     private Integer shareCount;
+    private Integer commentCount;
     private String recentCommentUserProfileImageUrl;
     private String recentCommentUserNickname;
     private String recentCommentContent;
