@@ -84,6 +84,21 @@ public class FeedProvider {
         }
     }
 
+    //팔로우탭 - 유저가 팔로우한 키워드 + 유저들의 피드 리스트 조회 API
+    public List<GetFeedsFollowsListRes> retrieveFeedsFollowsList(Long cursor) throws BaseException{
+        String methodName = "retrieveFeedsFollowsList";
+        Long userId = jwtService.getUserId();
+        try{
+            List<GetFeedsFollowsListRes> getFeedsFollowsListRes = feedDao.retrieveFeedsFollowsList(userId, cursor);
+            return getFeedsFollowsListRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     // 인기 섹션 번호별 조회
     public List<GetFeedsHotsRes> retrieveHotsFeedSection(Integer i) throws BaseException{
         String methodName = "retrieveHotsFeedSectionOne";

@@ -10,7 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsMediaFeedsListRes {
-    private GetFeedsMediaFeedsListResBase baseInformation;
+public class GetFeedsFollowsListRes {
+    private GetFeedsFollowsListResBase baseInformation;
     private List<JustPhotoUrl> photos;
+
 }

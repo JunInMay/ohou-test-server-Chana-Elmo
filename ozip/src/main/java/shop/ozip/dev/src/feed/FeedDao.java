@@ -117,6 +117,54 @@ public class FeedDao {
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
                 ), feedId);
     }
+    
+    // 해당 피드에 담긴 사진들 URL리스트만 가져오기
+    public List<JustPhotoUrl> getJustPhotoUrlByFeedId(Long feedId){
+        String getJustPhotoUrlByFeedIdQuery = ""
+                + "SELECT CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end AS url "
+                + "FROM   feed "
+                + "       LEFT JOIN feed_having_media "
+                + "              ON feed.id = feed_having_media.feed_id "
+                + "       LEFT JOIN media "
+                + "              ON feed_having_media.media_id = media.id "
+                + "WHERE  feed.id = ?";
+        return this.jdbcTemplate.query(getJustPhotoUrlByFeedIdQuery,
+                (rs, rowNum) -> new JustPhotoUrl(
+                        rs.getString("url")
+                ), feedId);
+    }
 
     public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long cursor, Long userId, Integer sort, Integer video, Integer homeType, Integer style) {
         // 최근 인기순
@@ -375,13 +423,10 @@ public class FeedDao {
 
         List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListResList = new ArrayList<>();
         for (int i=0; i<getFeedsMediaFeedsListResBaseList.size();i++ ){
-            List<GetFeedsMediaFeedsListResPhoto> getFeedsMediaFeedsListResPhotoList = this.jdbcTemplate.query(getFeedsMediaFeedsListResPhotoQuery,
-                    (rs, rowNum) -> new GetFeedsMediaFeedsListResPhoto(
-                            rs.getString("url")
-                    ), getFeedsMediaFeedsListResBaseList.get(i).getFeedId());
+            List<JustPhotoUrl> justPhotoUrlList = getJustPhotoUrlByFeedId(getFeedsMediaFeedsListResBaseList.get(i).getFeedId());
             GetFeedsMediaFeedsListRes getFeedsMediaFeedsListRes = new GetFeedsMediaFeedsListRes(
                     getFeedsMediaFeedsListResBaseList.get(i),
-                    getFeedsMediaFeedsListResPhotoList);
+                    justPhotoUrlList);
             getFeedsMediaFeedsListResList.add(getFeedsMediaFeedsListRes);
         }
 
@@ -681,4 +726,237 @@ public class FeedDao {
     }
 
 
+    public List<GetFeedsFollowsListRes> retrieveFeedsFollowsList(Long userId, Long cursor) {
+        Object[] retrieveFeedsFollowsListParams = new Object[]{ userId, userId, userId, cursor};
+        String retrieveFeedsFollowsListQuery = ""
+                + "SELECT   *, "
+                + "                  Concat(Round(a.created_at/10, 0), Lpad(a.id, 5, \"0\")) AS standard, "
+                + "         a.id IN "
+                + "         ( "
+                + "                SELECT feed_id "
+                + "                FROM   scrapbook_feed "
+                + "                JOIN   scrapbook "
+                + "                ON     scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                WHERE  user_id = ?) AS is_bookmarked "
+                + "FROM     ( "
+                + "                   SELECT    main.id, "
+                + "                             main.is_media_feed, "
+                + "                             main.is_photo, "
+                + "                             main.is_video, "
+                + "                             main.is_homewarming, "
+                + "                             main.is_knowhow, "
+                + "                             user.profile_image_url, "
+                + "                             user.nickname, "
+                + "                             ( "
+                + "                                      SELECT   description "
+                + "                                      FROM     media "
+                + "                                      WHERE    media.feed_id = main.id "
+                + "                                      ORDER BY media.created_at DESC "
+                + "                                      LIMIT    1) AS description, keyword.name AS keyword_name, "
+                + "                             CASE "
+                + "                                       WHEN main.is_video = 1 THEN "
+                + "                                                 ( "
+                + "                                                        SELECT time "
+                + "                                                        FROM   media "
+                + "                                                        WHERE  main.id = media.feed_id) "
+                + "                                       ELSE NULL "
+                + "                             end AS video_time , "
+                + "                             CASE "
+                + "                                       WHEN td < 60 THEN Concat(td,\"초 전\") "
+                + "                                       WHEN Round(td/60) < 60 THEN Concat(Round(td/60),\"분 전\") "
+                + "                                       WHEN Round(Round(td/60)/60) < 24 THEN Concat(Round(Round(td/60)/60),\"시간 전\") "
+                + "                                       WHEN Round(Round(Round(td/60)/60)/24) < 7 THEN Concat(Round(Round(Round(td/60)/60)/24),\"일 전\") "
+                + "                                       WHEN Round(Round(Round(Round(td/60)/60)/24)/7) < 5 THEN Concat(Round(Round(Round(Round(td/60)/60)/24)/7),\"주 전\") "
+                + "                                       WHEN Round(Round(Round(Round(td/60)/60)/24)/30) < 12 THEN Concat(Round(Round(Round(Round(td/60)/60)/24)/30),\"개월 전\") "
+                + "                                       ELSE Concat(Round(Round(Round(Round(Round(td/60)/60)/24)/30)/12),\"년 전\") "
+                + "                             end AS uploaded_at, "
+                + "                             main.view_count, "
+                + "                             IF (like_count=NULL, 0, like_count)         AS like_count, "
+                + "                             IF (scrapped_count=NULL, 0, scrapped_count) AS scrapped_count, "
+                + "                             IF (comment_count>0, comment_count, 0)      AS comment_count, "
+                + "                             main.share_count                            AS share_count, "
+                + "                             main.created_at "
+                + "                   FROM      ( "
+                + "                                      SELECT   Row_number() over(partition BY keyword_id ORDER BY feed.created_at DESC) rnum, "
+                + "                                               feed.*, "
+                + "                                               feed_having_keyword.keyword_id "
+                + "                                      FROM     feed "
+                + "                                      JOIN     feed_having_keyword "
+                + "                                      ON       feed.id = feed_having_keyword.feed_id "
+                + "                                      WHERE    feed_having_keyword.keyword_id IN "
+                + "                                               ( "
+                + "                                                      SELECT keyword_id "
+                + "                                                      FROM   follow_keyword "
+                + "                                                      WHERE  user_id = ?) "
+                + "                                      AND      ( "
+                + "                                                        is_photo = 1 "
+                + "                                               OR       is_video = 1)) main "
+                + "                   JOIN      keyword "
+                + "                   ON        keyword.id = main.keyword_id "
+                + "                   JOIN      user "
+                + "                   ON        main.user_id = user.id "
+                + "                   JOIN "
+                + "                             ( "
+                + "                                    SELECT timestampdiff(second, created_at, now()) AS td, "
+                + "                                           id "
+                + "                                    FROM   feed) fortd "
+                + "                   ON        fortd.id = main.id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS like_count, "
+                + "                                               feed_id "
+                + "                                      FROM     like_feed "
+                + "                                      GROUP BY feed_id) forlikecount "
+                + "                   ON        main.id = forlikecount.feed_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS scrapped_count, "
+                + "                                               feed_id "
+                + "                                      FROM     scrapbook_feed "
+                + "                                      GROUP BY feed_id) forscrappedcount "
+                + "                   ON        main.id = forscrappedcount.feed_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS comment_count, "
+                + "                                               feed_id "
+                + "                                      FROM     comment "
+                + "                                      GROUP BY feed_id) forcommentcount "
+                + "                   ON        main.id = forcommentcount.feed_id "
+                + "                   WHERE     rnum = 1 "
+                + "                   UNION "
+                + "                   SELECT    feed.id, "
+                + "                             feed.is_media_feed, "
+                + "                             feed.is_photo, "
+                + "                             feed.is_video, "
+                + "                             feed.is_homewarming, "
+                + "                             feed.is_knowhow, "
+                + "                             user.profile_image_url, "
+                + "                             user.nickname, "
+                + "                             CASE "
+                + "                                       WHEN feed.is_media_feed = 1 THEN "
+                + "                                                 ( "
+                + "                                                        SELECT description "
+                + "                                                        FROM   media "
+                + "                                                        WHERE  media.id = "
+                + "                                                               ( "
+                + "                                                                        SELECT   media_id "
+                + "                                                                        FROM     feed_having_media "
+                + "                                                                        WHERE    feed_having_media.feed_id = feed.id "
+                + "                                                                        ORDER BY feed_having_media.created_at "
+                + "                                                                        LIMIT    1)) "
+                + "                                       WHEN feed.is_photo = 1 "
+                + "                                       OR        feed.is_video THEN "
+                + "                                                 ( "
+                + "                                                        SELECT description "
+                + "                                                        FROM   media "
+                + "                                                        WHERE  media.feed_id = feed.id) "
+                + "                                       WHEN feed.is_homewarming = 1 THEN "
+                + "                                                 ( "
+                + "                                                        SELECT concat(description, title) "
+                + "                                                        FROM   homewarming_feed "
+                + "                                                        WHERE  homewarming_feed.feed_id = feed.id) "
+                + "                                       WHEN feed.is_knowhow = 1 THEN "
+                + "                                                 ( "
+                + "                                                        SELECT concat(description, title) "
+                + "                                                        FROM   knowhow_feed "
+                + "                                                        WHERE  knowhow_feed.feed_id = feed.id) "
+                + "                             end  AS description, "
+                + "                             NULL AS keyword_name, "
+                + "                             CASE "
+                + "                                       WHEN feed.is_video = 1 THEN "
+                + "                                                 ( "
+                + "                                                        SELECT time "
+                + "                                                        FROM   media "
+                + "                                                        WHERE  feed.id = media.feed_id) "
+                + "                                       ELSE NULL "
+                + "                             end AS video_time, "
+                + "                             CASE "
+                + "                                       WHEN td < 60 THEN concat(td,\"초 전\") "
+                + "                                       WHEN round(td/60) < 60 THEN concat(round(td/60),\"분 전\") "
+                + "                                       WHEN round(round(td/60)/60) < 24 THEN concat(round(round(td/60)/60),\"시간 전\") "
+                + "                                       WHEN round(round(round(td/60)/60)/24) < 7 THEN concat(round(round(round(td/60)/60)/24),\"일 전\") "
+                + "                                       WHEN round(round(round(round(td/60)/60)/24)/7) < 5 THEN concat(round(round(round(round(td/60)/60)/24)/7),\"주 전\") "
+                + "                                       WHEN round(round(round(round(td/60)/60)/24)/30) < 12 THEN concat(round(round(round(round(td/60)/60)/24)/30),\"개월 전\") "
+                + "                                       ELSE concat(round(round(round(round(round(td/60)/60)/24)/30)/12),\"년 전\") "
+                + "                             end AS uploaded_at, "
+                + "                             feed.view_count, "
+                + "                             IF (like_count>0, like_count, 0)         AS like_count, "
+                + "                             IF (scrapped_count>0, scrapped_count, 0) AS scrapped_count, "
+                + "                             IF (comment_count>0, comment_count, 0)   AS comment_count, "
+                + "                             share_count, "
+                + "                             feed.created_at "
+                + "                   FROM      feed "
+                + "                   JOIN "
+                + "                             ( "
+                + "                                    SELECT timestampdiff(second, created_at, now()) AS td, "
+                + "                                           id "
+                + "                                    FROM   feed) fortd "
+                + "                   ON        fortd.id = feed.id "
+                + "                   JOIN      user "
+                + "                   ON        user.id = feed.user_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS like_count, "
+                + "                                               feed_id "
+                + "                                      FROM     like_feed "
+                + "                                      GROUP BY feed_id) forlikecount "
+                + "                   ON        feed.id = forlikecount.feed_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS scrapped_count, "
+                + "                                               feed_id "
+                + "                                      FROM     scrapbook_feed "
+                + "                                      GROUP BY feed_id) forscrappedcount "
+                + "                   ON        feed.id = forscrappedcount.feed_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                      SELECT   count(*) AS comment_count, "
+                + "                                               feed_id "
+                + "                                      FROM     comment "
+                + "                                      GROUP BY feed_id) forcommentcount "
+                + "                   ON        feed.id = forcommentcount.feed_id "
+                + "                   WHERE     feed.user_id IN "
+                + "                             ( "
+                + "                                    SELECT following_id "
+                + "                                    FROM   follow_user "
+                + "                                    WHERE  user_id = ?) "
+                + "                   ORDER BY  created_at DESC) a "
+                + "       WHERE    concat(round(a.created_at/10, 0), lpad(a.id, 5, \"0\")) < ? "
+                + "ORDER BY standard DESC"
+                + "       LIMIT    5 ";
+
+
+        List<GetFeedsFollowsListResBase> getFeedsFollowsListResBasesList = this.jdbcTemplate.query(retrieveFeedsFollowsListQuery,
+                (rs, rowNum) -> new GetFeedsFollowsListResBase(
+                        rs.getLong("id"),
+                        rs.getInt("is_media_Feed"),
+                        rs.getInt("is_photo"),
+                        rs.getInt("is_video"),
+                        rs.getInt("is_homewarming"),
+                        rs.getInt("is_knowhow"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("description"),
+                        rs.getString("keyword_name"),
+                        rs.getInt("video_time"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("view_count"),
+                        rs.getInt("like_count"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("share_count"),
+                        rs.getString("created_at"),
+                        rs.getLong("standard"),
+                        rs.getInt("is_bookmarked")
+                ), retrieveFeedsFollowsListParams);
+        List<GetFeedsFollowsListRes> getFeedsFollowsListResList = new ArrayList<>();
+        for (int i = 0; i < getFeedsFollowsListResBasesList.size(); i++){
+            GetFeedsFollowsListRes getFeedsFollowsListRes = new GetFeedsFollowsListRes(
+                    getFeedsFollowsListResBasesList.get(i),
+                    getJustPhotoUrlByFeedId(getFeedsFollowsListResBasesList.get(i).getFeedId())
+            );
+            getFeedsFollowsListResList.add(getFeedsFollowsListRes);
+        }
+        return getFeedsFollowsListResList;
+    }
 }

@@ -73,6 +73,25 @@ public class FeedController {
         }
     }
     /*
+    팔로우탭 - 유저가 팔로우한 키워드 + 유저들의 피드 리스트 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/follows/list
+    */
+    @ResponseBody
+    @GetMapping(value = {"/follows/list", "/follows/list/{cursor}"})
+    public BaseResponse<List<GetFeedsFollowsListRes>> getFeedsFollowsList(@PathVariable(value = "cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            System.out.println("오긴오나?");
+            List<GetFeedsFollowsListRes> getFeedsFollowsListRes = feedProvider.retrieveFeedsFollowsList(cursor);
+            return new BaseResponse<>(getFeedsFollowsListRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     홈-인기 인기 사진 묶음 TOP 10 API
     (GET) 127.0.0.1:9000/app/feeds/hots/photo
     */
