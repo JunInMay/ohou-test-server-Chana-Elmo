@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.FeedDao;
+import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
+import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersRes;
 import shop.ozip.dev.src.user.UserDao;
@@ -59,6 +61,26 @@ public class FollowService {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
 
+    public DeleteFollowsUsersRes deleteFollowsUsers(DeleteFollowsUsersReq deleteFollowsUsersReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        if (!followDao.checkFollowUserExist(userId, deleteFollowsUsersReq.getUserId())){
+            throw new BaseException(DELETE_FOLLOW_NOT_EXIST);
+        }
+        if (!userDao.checkUserExistById(deleteFollowsUsersReq.getUserId())){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+
+        try{
+            int result = followDao.deleteFollowsUsers(userId, deleteFollowsUsersReq);
+            return new DeleteFollowsUsersRes(
+                    deleteFollowsUsersReq.getUserId(),
+                    result
+            );
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
+import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
+import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersRes;
 import shop.ozip.dev.src.user.model.PostUsersReq;
@@ -42,6 +44,21 @@ public class FollowController {
         try{
             PostFollowsUsersRes postFollowsUsersRes = followService.createFollowsUsers(postFollowsUsersReq);
             return new BaseResponse<>(postFollowsUsersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    유저 언팔로우 하기 API
+    (DELETE) 127.0.0.1:9000/app/follows/users
+    */
+    @ResponseBody
+    @DeleteMapping("/users")
+    public BaseResponse<DeleteFollowsUsersRes> deleteFollowsUsers(@RequestBody DeleteFollowsUsersReq deleteFollowsUsersReq) {
+        try{
+            DeleteFollowsUsersRes deleteFollowsUsersRes = followService.deleteFollowsUsers(deleteFollowsUsersReq);
+            return new BaseResponse<>(deleteFollowsUsersRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

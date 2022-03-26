@@ -98,6 +98,21 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+    // 집들이 리스트 조회
+    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject) throws BaseException{
+        String methodName = "retrieveMediaFeedList";
+        Long userId = jwtService.getUserId();
+        try{
+            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject);
+            return getFeedsHomewarmingFeedsListRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
 
     // 인기 섹션 번호별 조회
     public List<GetFeedsHotsRes> retrieveHotsFeedSection(Integer i) throws BaseException{

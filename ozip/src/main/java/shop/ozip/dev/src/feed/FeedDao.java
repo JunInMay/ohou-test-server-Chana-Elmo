@@ -165,7 +165,8 @@ public class FeedDao {
                         rs.getString("url")
                 ), feedId);
     }
-
+    
+    // 미디어피드 리스트 조회
     public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long cursor, Long userId, Integer sort, Integer video, Integer homeType, Integer style) {
         // 최근 인기순
         String sortByBestNewest = "";
@@ -958,5 +959,232 @@ public class FeedDao {
             getFeedsFollowsListResList.add(getFeedsFollowsListRes);
         }
         return getFeedsFollowsListResList;
+    }
+    
+    // 집들이 리스트 조회
+    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long userId, Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject) {
+        // 최근 인기순
+        String sortByBestNewest = "";
+        // 역대 인기순
+        String sortByBest = "";
+        // 최신순
+        String sortByNewest = "";
+        // 팔로우
+        String sortByFollow = "";
+
+        // 가져올 cursor (cursor가 예약어라 standard로 함)
+        String standardColumn = "";
+
+        if (sort == 1){
+            sortByBestNewest = " AND feed.view_count + Round(feed.created_at/10, 0) < ? ORDER BY standard1 DESC ";
+            standardColumn = "standard1";
+        } else if (sort == 2) {
+            sortByBest = " AND Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) < ? ORDER BY standard2 DESC ";
+            standardColumn = "standard2";
+        } else if (sort == 3){
+            sortByNewest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+            standardColumn = "standard3";
+        } else {
+            sortByFollow = ""
+                    + "JOIN     follow_user "
+                    + "ON       feed.user_id = following_id "
+                    + "AND      follow_user.user_id = "+userId.toString()+" ";
+            standardColumn = "standard3";
+            sortByNewest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+        }
+
+        String filterByHomeType = "";
+        String filterByAcreageStart = "";
+        String filterByAcreageEnd = "";
+        String filterByBudgetStart = "";
+        String filterByBudgetEnd = "";
+        String filterByFamily = "";
+        String filterByStyle = "";
+        String filterByAllColor = "";
+        String filterByWallColor = "";
+        String filterByFloorColor = "";
+        String filterByDetail = "";
+        String filterByCategory = "";
+        String filterBySubject = "";
+        int[] budgetList = {0, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 1000000000};
+
+        if (homeType != 0) {
+            filterByHomeType = "         and homewarming_home_type_id="+homeType+" ";
+        }
+
+        filterByAcreageStart = "          and acreage >="+ acreageStart +" ";
+
+        if (acreageEnd != 0) {
+            filterByAcreageEnd = "          and acreage <= "+ acreageEnd +" ";
+        }
+        if (budgetStart > 0 && budgetStart < budgetList.length) {
+            filterByBudgetStart = "          and budget >= "+ budgetList[budgetStart-1] +" ";
+        }
+        if (budgetEnd > 0 && budgetEnd < budgetList.length) {
+            filterByBudgetEnd = "          and budget < "+ budgetList[budgetEnd] +" ";
+        }
+        if (family > 0) {
+            filterByFamily = "         and homewarming_family_type_id="+family+" ";
+        }
+        if (style > 0) {
+            filterByStyle = "         and homewarming_style_type_id="+style+" ";
+        }
+        if (allColor > 0) {
+            filterByAllColor = "         and all_color="+allColor+" ";
+        }
+        if (wallColor > 0) {
+            filterByWallColor = "         and wall_color="+wallColor+" ";
+        }
+        if (floorColor > 0) {
+            filterByFloorColor = "         and floor_color="+floorColor+" ";
+        }
+        if (detail > 0) {
+            filterByDetail = "         and homewarming_detail_type_id="+detail+" ";
+        }
+        if (category > 0) {
+            filterByCategory = "         and homewarming_category_type_id="+category+" ";
+        }
+        if (subject > 0) {
+            filterBySubject = "         and homewarming_subject_type_id="+subject+" ";
+        }
+
+        Object[] retrieveHomewarmingFeedListParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveHomewarmingFeedListQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                                               AS "
+                + "       thumbnail, "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   scrapbook_feed "
+                + "                          JOIN scrapbook "
+                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                   WHERE  user_id = ?)                                   AS "
+                + "       is_bookmarked, "
+                + "       Concat(homewarming_feed.description, \" \", homewarming_feed.title) AS "
+                + "       description, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0)                        AS "
+                + "       scrapped_count, "
+                + "       view_count, "
+                + "         feed.view_count + Round(feed.created_at/10, 0) AS standard1, "
+                + "Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) AS standard2, "
+                + "      (SELECT CONVERT(feed.created_at, signed INTEGER)) AS standard3 "
+                + "FROM     feed "
+                + "JOIN     homewarming_feed "
+                + "ON       feed.id = homewarming_feed.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS like_count, "
+                + "                            feed_id "
+                + "                   FROM     like_feed "
+                + "                   GROUP BY feed_id) forLikeCount "
+                + "ON        feed.id = forLikeCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS scrapped_count, "
+                + "                            feed_id "
+                + "                   FROM     scrapbook_feed "
+                + "                   GROUP BY feed_id) forScrappedCount "
+                + "ON        feed.id = forScrappedCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS comment_count, "
+                + "                            feed_id "
+                + "                   FROM     comment "
+                + "                   GROUP BY feed_id) forCommentCount "
+                + "ON        feed.id = forCommentCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   comment.feed_id , "
+                + "                            user.profile_image_url AS recent_comment_user_profile_image_url, "
+                + "                            user.nickname          AS recent_comment_user_nickname, "
+                + "                            comment.content           recent_comment_content "
+                + "                   FROM     comment "
+                + "                   JOIN     user "
+                + "                   ON       user.id = comment.user_id "
+                + "                   WHERE    is_recomment = 0 "
+                + "                   GROUP BY feed_id "
+                + "                   ORDER BY comment.created_at DESC ) forRecentComment "
+                + "ON        forRecentComment.feed_id = feed.id "
+                + "JOIN      user "
+                + "ON        feed.user_id = user.id "
+                + sortByFollow
+                + "WHERE    is_homewarming = 1 "
+                + filterByHomeType
+                + filterByStyle
+                + filterByHomeType
+                + filterByAcreageStart
+                + filterByAcreageEnd
+                + filterByBudgetStart
+                + filterByBudgetEnd
+                + filterByFamily
+                + filterByStyle
+                + filterByAllColor
+                + filterByWallColor
+                + filterByFloorColor
+                + filterByDetail
+                + filterByCategory
+                + filterBySubject
+
+                + sortByBestNewest
+                + sortByBest
+                + sortByNewest;
+        String forLimitQueryTail = "LIMIT 5 ";
+        String finalStandardColumn = standardColumn;
+        List<GetFeedsHomewarmingFeedsListResFeed> getFeedsHomewarmingFeedsListResFeedList = this.jdbcTemplate.query(retrieveHomewarmingFeedListQuery+forLimitQueryTail,
+                (rs, rowNum) -> new GetFeedsHomewarmingFeedsListResFeed(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getInt("is_bookmarked"),
+                        rs.getString("description"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("view_count"),
+                        rs.getLong(finalStandardColumn)
+                ), retrieveHomewarmingFeedListParams);
+        String forCountQueryHeader = ""
+                + "SELECT Count(*) AS count "
+                + "FROM   (";
+        String forCountQueryTail = ""
+                + ") forCount";
+
+        Integer count = this.jdbcTemplate.queryForObject(forCountQueryHeader+retrieveHomewarmingFeedListQuery+forCountQueryTail, Integer.class, retrieveHomewarmingFeedListParams);
+
+        return new GetFeedsHomewarmingFeedsListRes(count, getFeedsHomewarmingFeedsListResFeedList);
     }
 }

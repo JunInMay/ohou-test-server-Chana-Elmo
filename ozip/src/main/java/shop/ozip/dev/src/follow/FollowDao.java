@@ -5,6 +5,7 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
 
 import javax.sql.DataSource;
@@ -85,5 +86,21 @@ public class FollowDao {
         return this.jdbcTemplate.update(
                 createFollowsUsersQuery,
                 createFollowsUsersParams);
+    }
+
+    // 언팔로우하기
+    public int deleteFollowsUsers(Long userId, DeleteFollowsUsersReq deleteFollowsUsersReq) {
+        String deleteFollowsUsersQuery = ""
+                + "DELETE FROM follow_user "
+                + "WHERE  user_id = ? "
+                + "       AND following_id = ?";
+        Object[] deleteFollowsUsersParams = new Object[]{
+                userId,
+                deleteFollowsUsersReq.getUserId()
+        };
+
+        return this.jdbcTemplate.update(
+                deleteFollowsUsersQuery,
+                deleteFollowsUsersParams);
     }
 }

@@ -76,6 +76,7 @@ public enum BaseResponseStatus {
     // 3300 : follow
 
     POST_FOLLOW_ALREADY_FOLLOW(false,3310,"이미 팔로우한 관계입니다."),
+    DELETE_FOLLOW_NOT_EXIST(false,3320,"팔로우되지 않은 관계입니다."),
 
     /**
      * 4000 : Database, Server 오류
