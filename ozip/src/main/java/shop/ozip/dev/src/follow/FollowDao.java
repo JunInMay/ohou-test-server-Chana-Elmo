@@ -5,6 +5,7 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
 
 import javax.sql.DataSource;
 
@@ -35,7 +36,6 @@ public class FollowDao {
                 Integer.class,
                 userId);
     }
-
     // 특정 유저"가 팔로우 한" 사람의 수 가져오기
     public Integer getCountFollowUserByUserId(Long userId){
         String getCountFollowerByUserIdQuery = ""
@@ -47,7 +47,7 @@ public class FollowDao {
                 Integer.class,
                 userId);
     }
-    // 특정 유저"가 팔로우 한" 사람의 수 가져오기
+    // 특정 유저"가 팔로우 한" 키워드의 수 가져오기
     public Integer getCountFollowKeywordByUserId(Long userId){
         String getCountFollowKeywordByUserIdQuery = ""
                 + "SELECT Count(*) "
@@ -59,6 +59,31 @@ public class FollowDao {
                 userId);
     }
 
+    public Boolean checkFollowUserExist(Long userId, Long followingId){
+        String checkFollowUserExistQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   follow_user "
+                + "               WHERE  user_id = ? and following_id = ?) AS exist;";
+        Object[] checkFollowUserExistParams = new Object[]{userId, followingId};
 
+        return this.jdbcTemplate.queryForObject(checkFollowUserExistQuery, Boolean.class, checkFollowUserExistParams);
+    }
 
+    // 팔로우하기
+    public int createFollowsUsers(Long userId, PostFollowsUsersReq postFollowsUsersReq) {
+        String createFollowsUsersQuery = ""
+                + "INSERT INTO follow_user "
+                + "            (user_id, "
+                + "             following_id) "
+                + "VALUES     (?, "
+                + "            ?)";
+        Object[] createFollowsUsersParams = new Object[]{
+                userId,
+                postFollowsUsersReq.getUserId()
+                };
+
+        return this.jdbcTemplate.update(
+                createFollowsUsersQuery,
+                createFollowsUsersParams);
+    }
 }

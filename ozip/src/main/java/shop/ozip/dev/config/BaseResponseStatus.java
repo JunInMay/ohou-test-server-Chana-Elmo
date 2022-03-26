@@ -27,6 +27,7 @@ public enum BaseResponseStatus {
     // users
     USERS_EMPTY_USER_ID(false, 2010, "유저 아이디 값을 확인해주세요."),
 
+
     // [POST] /users
     POST_USERS_EMPTY_EMAIL(false, 2015, "이메일을 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, 2016, "이메일 형식을 확인해주세요."),
@@ -55,6 +56,8 @@ public enum BaseResponseStatus {
     // Common
     RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
+    USER_NOT_EXIST(false, 3010, "유저가 존재하지 않습니다."),
+
     // [POST] /users
     DUPLICATED_EMAIL(false, 3013, "중복된 이메일입니다."),
     FAILED_TO_LOGIN(false,3014,"없는 이메일이거나 비밀번호가 틀렸습니다."),
@@ -70,7 +73,9 @@ public enum BaseResponseStatus {
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
 
-    //
+    // 3300 : follow
+
+    POST_FOLLOW_ALREADY_FOLLOW(false,3310,"이미 팔로우한 관계입니다."),
 
     /**
      * 4000 : Database, Server 오류
