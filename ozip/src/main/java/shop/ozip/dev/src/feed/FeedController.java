@@ -73,6 +73,27 @@ public class FeedController {
         }
     }
     /*
+    집들이 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/list/:cursor?sort=&home-type=&acreage-start=&acreage-end=&budget-start=&budget-end&family=&style=&all-color=&wall-color=&floor-color=&detail=&category=&subject=
+    */
+    @ResponseBody
+    @GetMapping(value = {"/homewarmings/list", "homewarmings/list/{cursor}"})
+    public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsMediaFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
+        // 정렬 적용시 주의
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedProvider.retrieveHomewarmingFeedList(cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject);
+            return new BaseResponse<>(getFeedsHomewarmingFeedsListRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+
+    /*
     팔로우탭 - 유저가 팔로우한 키워드 + 유저들의 피드 리스트 조회 API
     (GET) 127.0.0.1:9000/app/feeds/follows/list
     */

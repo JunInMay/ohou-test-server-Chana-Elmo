@@ -80,7 +80,15 @@ public class UserDao {
                 id);
     }
 
+    // 유저 idx로 존재 체크
+    public Boolean checkUserExistById(Long userId){
+        String checkUserExistQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   user "
+                + "               WHERE  id = ?) AS exist;";
 
+        return this.jdbcTemplate.queryForObject(checkUserExistQuery, Boolean.class, userId);
+    }
 
 
 
