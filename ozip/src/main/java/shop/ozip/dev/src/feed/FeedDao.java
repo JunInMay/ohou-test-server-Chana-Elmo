@@ -12,6 +12,7 @@ import shop.ozip.dev.utils.Common;
 
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -29,7 +30,6 @@ public class FeedDao {
     존재 여부를 체크하는 메소드명을 check로 함
     그 외 실제 응답을 만드는 메소드는 retrieve로 함
     */
-
 
     // 특정 피드 가져오기
     public Feed getFeedById(Long id){
@@ -166,10 +166,23 @@ public class FeedDao {
             filterByStyle = "          and media_feed_style_type_id="+ style.toString() +" ";
         }
         Object[] retrieveMediaFeedListParams = new Object[]{
-                userId, cursor
+                userId, userId, cursor
         };
         String retrieveMediaFeedListQuery = ""
                 + "SELECT   feed.*, "
+                + "          IF (like_count=NULL, 0, like_count)         AS like_count, "
+                + "          IF (scrapped_count=NULL, 0, scrapped_count) AS scrapped_count, "
+                + "          (EXISTS "
+                + "          ( "
+                + "                 SELECT * "
+                + "                 FROM   follow_user "
+                + "                 WHERE  user_id = ? "
+                + "                 AND    following_id=user.id )) AS is_followed, "
+                + "          user.description as user_description , "
+                + "          share_count, "
+                + "          recent_comment_user_profile_image_url, "
+                + "          recent_comment_user_nickname, "
+                + "          recent_comment_content, "
                 + "         CASE "
                 + "                  WHEN feed.is_media_feed = 1 "
                 + "                  AND "
@@ -252,6 +265,42 @@ public class FeedDao {
                 + "FROM     feed "
                 + "JOIN     media_feed "
                 + "ON       feed.id = media_feed.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS like_count, "
+                + "                            feed_id "
+                + "                   FROM     like_feed "
+                + "                   GROUP BY feed_id) forLikeCount "
+                + "ON        feed.id = forLikeCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS scrapped_count, "
+                + "                            feed_id "
+                + "                   FROM     scrapbook_feed "
+                + "                   GROUP BY feed_id) forScrappedCount "
+                + "ON        feed.id = forScrappedCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS commment_count, "
+                + "                            feed_id "
+                + "                   FROM     comment "
+                + "                   GROUP BY feed_id) forCommentCount "
+                + "ON        feed.id = forCommentCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   comment.feed_id , "
+                + "                            user.profile_image_url AS recent_comment_user_profile_image_url, "
+                + "                            user.nickname          AS recent_comment_user_nickname, "
+                + "                            comment.content           recent_comment_content "
+                + "                   FROM     comment "
+                + "                   JOIN     user "
+                + "                   ON       user.id = comment.user_id "
+                + "                   WHERE    is_recomment = 0 "
+                + "                   GROUP BY feed_id "
+                + "                   ORDER BY comment.created_at DESC ) forRecentComment "
+                + "ON        forRecentComment.feed_id = feed.id "
+                + "JOIN      user "
+                + "ON        feed.user_id = user.id "
                 + sortByFollow
                 + "WHERE    is_media_feed = 1 "
                 + filterByVideo
@@ -261,12 +310,18 @@ public class FeedDao {
                 + sortByBest
                 + sortByNewest
                 + "LIMIT 5 ";
-
-
         String finalStandardColumn = standardColumn;
-        return this.jdbcTemplate.query(retrieveMediaFeedListQuery,
-                (rs, rowNum) -> new GetFeedsMediaFeedsListRes(
+        List<GetFeedsMediaFeedsListResBase> getFeedsMediaFeedsListResBaseList =  this.jdbcTemplate.query(retrieveMediaFeedListQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedsListResBase(
                         rs.getLong("id"),
+                        rs.getInt("like_count"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("is_followed"),
+                        rs.getString("user_description"),
+                        rs.getInt("share_count"),
+                        rs.getString("recent_comment_user_profile_image_url"),
+                        rs.getString("recent_comment_user_nickname"),
+                        rs.getString("recent_comment_content"),
                         rs.getString("thumbnail"),
                         rs.getString("description"),
                         rs.getInt("video_time"),
@@ -274,7 +329,61 @@ public class FeedDao {
                         rs.getLong(finalStandardColumn),
                         rs.getInt("is_media_feed")
                 ), retrieveMediaFeedListParams);
+        String getFeedsMediaFeedsListResPhotoQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end AS url "
+                + "FROM   feed "
+                + "       JOIN feed_having_media "
+                + "         ON feed.id = feed_having_media.feed_id "
+                + "       JOIN media "
+                + "         ON feed_having_media.media_id = media.id "
+                + "WHERE  feed.id = ?";
 
+        List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListResList = new ArrayList<>();
+        for (int i=0; i<getFeedsMediaFeedsListResBaseList.size();i++ ){
+            List<GetFeedsMediaFeedsListResPhoto> getFeedsMediaFeedsListResPhotoList = this.jdbcTemplate.query(getFeedsMediaFeedsListResPhotoQuery,
+                    (rs, rowNum) -> new GetFeedsMediaFeedsListResPhoto(
+                            rs.getString("url")
+                    ), getFeedsMediaFeedsListResBaseList.get(i).getFeedId());
+            GetFeedsMediaFeedsListRes getFeedsMediaFeedsListRes = new GetFeedsMediaFeedsListRes(
+                    getFeedsMediaFeedsListResBaseList.get(i),
+                    getFeedsMediaFeedsListResPhotoList);
+            getFeedsMediaFeedsListResList.add(getFeedsMediaFeedsListRes);
+        }
+
+        return getFeedsMediaFeedsListResList;
     }
     
     // 인기 섹션 1, 2, 3 구하기
