@@ -180,6 +180,7 @@ public class FeedDao {
                 + "                 AND    following_id=user.id )) AS is_followed, "
                 + "          user.description as user_description , "
                 + "          share_count, "
+                + "          IF (comment_count>0, comment_count, 0) AS comment_count, "
                 + "          recent_comment_user_profile_image_url, "
                 + "          recent_comment_user_nickname, "
                 + "          recent_comment_content, "
@@ -281,7 +282,7 @@ public class FeedDao {
                 + "ON        feed.id = forScrappedCount.feed_id "
                 + "LEFT JOIN "
                 + "          ( "
-                + "                   SELECT   Count(*) AS commment_count, "
+                + "                   SELECT   Count(*) AS comment_count, "
                 + "                            feed_id "
                 + "                   FROM     comment "
                 + "                   GROUP BY feed_id) forCommentCount "
@@ -319,6 +320,7 @@ public class FeedDao {
                         rs.getInt("is_followed"),
                         rs.getString("user_description"),
                         rs.getInt("share_count"),
+                        rs.getInt("comment_count"),
                         rs.getString("recent_comment_user_profile_image_url"),
                         rs.getString("recent_comment_user_nickname"),
                         rs.getString("recent_comment_content"),
@@ -365,10 +367,10 @@ public class FeedDao {
                 + "         ELSE NULL "
                 + "       end AS url "
                 + "FROM   feed "
-                + "       JOIN feed_having_media "
-                + "         ON feed.id = feed_having_media.feed_id "
-                + "       JOIN media "
-                + "         ON feed_having_media.media_id = media.id "
+                + "       LEFT JOIN feed_having_media "
+                + "              ON feed.id = feed_having_media.feed_id "
+                + "       LEFT JOIN media "
+                + "              ON feed_having_media.media_id = media.id "
                 + "WHERE  feed.id = ?";
 
         List<GetFeedsMediaFeedsListRes> getFeedsMediaFeedsListResList = new ArrayList<>();
