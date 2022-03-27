@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import shop.ozip.dev.src.global.repository.BaseTimeEntity;
+import shop.ozip.dev.src.user.entity.User;
 
 import javax.persistence.*;
 
@@ -20,6 +21,9 @@ public class Product extends BaseTimeEntity {
 
     @Column(length = 100, nullable = false)
     private String name;
+
+    @Column(length = 100, nullable = false)
+    private String brand;
 
     @Column(nullable = false)
     private Long sellerId;
