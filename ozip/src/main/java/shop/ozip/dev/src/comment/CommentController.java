@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.comment.model.*;
-import shop.ozip.dev.src.feed.model.GetFeedsMediaFeedsOthersRes;
 import shop.ozip.dev.utils.JwtService;
-
-import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -75,13 +72,33 @@ public class CommentController {
     */
     @ResponseBody
     @GetMapping("/part/media-feeds/{feedId}")
-    public BaseResponse<GetCommentsPartMediaFeedsRes> getCommentsPartMediaFeeds(@PathVariable("feedId") Long feedId) {
+    public BaseResponse<GetCommentsPartRes> getCommentsPartMediaFeeds(@PathVariable("feedId") Long feedId) {
         if (feedId == null){
             return new BaseResponse<>(EMPTY_FEED_ID);
         }
         try{
-            GetCommentsPartMediaFeedsRes getCommentsPartMediaFeedsRes = commentProvider.retrieveCommentsPartMediaFeeds(feedId);
-            return new BaseResponse<>(getCommentsPartMediaFeedsRes);
+            GetCommentsPartRes getCommentsPartRes = commentProvider.retrieveCommentsPartMediaFeeds(feedId);
+            return new BaseResponse<>(getCommentsPartRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    미디어 피드 댓글 리스트 조회 API
+    (GET) 127.0.0.1:9000/app/comments/list/media-feeds/:feedId
+    */
+    @ResponseBody
+    @GetMapping(value = {"/list/media-feeds/{feedId}", "/list/media-feeds/{feedId}/{cursor}"})
+    public BaseResponse<GetCommentsListRes> getCommentsListMediaFeeds(@PathVariable("feedId") Long feedId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            GetCommentsListRes getCommentsListRes = commentProvider.retrieveCommentsListMediaFeeds(feedId, cursor);
+            return new BaseResponse<>(getCommentsListRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
