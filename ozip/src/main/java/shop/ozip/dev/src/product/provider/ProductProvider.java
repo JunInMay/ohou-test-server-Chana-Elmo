@@ -1,22 +1,25 @@
 package shop.ozip.dev.src.product.provider;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.product.entity.PopularProduct;
 import shop.ozip.dev.src.product.entity.Product;
+import shop.ozip.dev.src.product.entity.ProductView;
 import shop.ozip.dev.src.product.entity.TodayDeal;
 import shop.ozip.dev.src.product.model.GetPopularProductsRes;
 import shop.ozip.dev.src.product.model.GetTodayDealProductsRes;
+import shop.ozip.dev.src.product.model.GetViewProductRes;
 import shop.ozip.dev.src.product.model.SimpleProductInfoRes;
 import shop.ozip.dev.src.product.repository.PopularProductRepository;
 import shop.ozip.dev.src.product.repository.ProductRepository;
+import shop.ozip.dev.src.product.repository.ProductViewRepository;
 import shop.ozip.dev.src.product.repository.TodayDealRepository;
-import shop.ozip.dev.src.seller.provider.SellerProvider;
+import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -27,6 +30,8 @@ public class ProductProvider {
     private final ProductRepository productRepository;
     private final PopularProductRepository popularProductRepository;
     private final TodayDealRepository todayDealRepository;
+    private final ProductViewRepository productViewRepository;
+    private final JwtService jwtService;
 
     public Product getProduct(Long productId) {
         Product product = productRepository.findById(productId).orElseThrow(()
@@ -35,10 +40,10 @@ public class ProductProvider {
     }
 
     public GetPopularProductsRes retrievePopularProducts() throws BaseException {
-        List<PopularProduct> popularProductIdList = popularProductRepository.findAll();
+        List<PopularProduct> popularProductList = popularProductRepository.findAll();
         List<SimpleProductInfoRes> productList = new ArrayList<>();
 
-        for (PopularProduct pp : popularProductIdList) {
+        for (PopularProduct pp : popularProductList) {
             Product product = getProduct(pp.getId());
             SimpleProductInfoRes simpleProductInfoRes = new SimpleProductInfoRes(product);
 
@@ -54,7 +59,7 @@ public class ProductProvider {
         List<SimpleProductInfoRes> productList = new ArrayList<>();
 
         for (TodayDeal td : todayDealList) {
-            Product product = getProduct(td.getId());
+            Product product = getProduct(td.getProductId());
             SimpleProductInfoRes simpleProductInfoRes = new SimpleProductInfoRes(product);
             simpleProductInfoRes.setLeftTime(td.getLeftTime());
 
@@ -63,6 +68,24 @@ public class ProductProvider {
 
         GetTodayDealProductsRes getTodayDealProductsRes = new GetTodayDealProductsRes(productList);
         return getTodayDealProductsRes;
+    }
+
+    public GetViewProductRes retrieveViewProducts() throws BaseException {
+        Long userId = jwtService.getUserId();
+        // user01 Test
+//        Long userId = 1L;
+        List<ProductView> viewProductList = productViewRepository.findAllByUserId(userId);
+        List<SimpleProductInfoRes> productList = new ArrayList<>();
+
+        for (ProductView pv : viewProductList) {
+            Product product = getProduct(pv.getProductId());
+            SimpleProductInfoRes simpleProductInfoRes = new SimpleProductInfoRes(product);
+
+            productList.add(simpleProductInfoRes);
+        }
+
+        GetViewProductRes getViewProductRes = new GetViewProductRes(productList);
+        return getViewProductRes;
     }
 
 }

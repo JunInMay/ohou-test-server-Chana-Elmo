@@ -9,6 +9,7 @@ import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.product.model.GetPopularProductsRes;
 import shop.ozip.dev.src.product.model.GetTodayDealProductsRes;
+import shop.ozip.dev.src.product.model.GetViewProductRes;
 import shop.ozip.dev.src.product.provider.ProductProvider;
 import shop.ozip.dev.src.product.service.ProductService;
 
@@ -36,6 +37,16 @@ public class ProductController {
         try {
             GetTodayDealProductsRes getTodayDealProductsRes = productProvider.retrieveTodayDealProducts();
             return new BaseResponse<>(getTodayDealProductsRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    @GetMapping("/view-products")
+    public BaseResponse<GetViewProductRes> getViewProducts() {
+        try {
+            GetViewProductRes getViewProductRes = productProvider.retrieveViewProducts();
+            return new BaseResponse<>(getViewProductRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
