@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import shop.ozip.dev.src.comment.model.*;
-import shop.ozip.dev.src.feed.model.GetFeedsMediaFeedsOthersRes;
 import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
@@ -124,24 +123,30 @@ public class CommentDao {
     }
 
     // 특정 피드에 달린 일부 댓글 조회
-    public List<GetCommentsPartMediaFeedsResComment> retrieveCommentsPart(Long userId, Long feedId) {
+    public List<GetCommentsPartResComment> retrieveCommentsPart(Long userId, Long feedId) {
         Object[] retrieveCommentsPartParams = new Object[]{
             userId, userId, feedId
         };
         String retrieveCommentsPartQuery = ""
                 + "SELECT CASE "
-                + "         WHEN EXISTS(SELECT * "
-                + "                     FROM   comment "
-                + "                     WHERE  recomment_id = A.id) THEN 1 "
+                + "         WHEN (SELECT Count(*) "
+                + "               FROM   comment "
+                + "               WHERE  recomment_id = A.id) > 0 THEN (SELECT Count(*) "
+                + "                                                     FROM   comment "
+                + "                                                     WHERE  recomment_id = A.id) "
                 + "         ELSE 0 "
-                + "       end                                      AS "
-                + "       main_comment_does_have_recomment, "
-                + "       A.id                                     AS main_comment_id, "
-                + "       A.user_id                                AS main_comment_user_id, "
-                + "       user.profile_image_url                   AS "
+                + "       end                                                          AS "
+                + "       main_comment_have_recomment, "
+                + "       A.id                                                         AS "
+                + "       main_comment_id, "
+                + "       A.user_id                                                    AS "
+                + "       main_comment_user_id, "
+                + "       user.profile_image_url                                       AS "
                 + "       main_comment_profile_image_url, "
-                + "       user.nickname                            AS main_comment_nickname, "
-                + "       A.content                                AS main_comment_content, "
+                + "       user.nickname                                                AS "
+                + "       main_comment_nickname, "
+                + "       A.content                                                    AS "
+                + "       main_comment_content, "
                 + "       CASE "
                 + "         WHEN td < 60 THEN Concat(td, \"초\") "
                 + "         WHEN Round(td / 60) < 60 THEN Concat(Round(td / 60), \"분\") "
@@ -156,18 +161,30 @@ public class CommentDao {
                 + "         ELSE Concat(Round(Round(Round(Round(Round(td / 60) / 60) / 24) / 30) / "
                 + "                           12), "
                 + "              \"년\") "
-                + "       end                                      AS main_comment_uploaded_at, "
+                + "       end                                                          AS "
+                + "       main_comment_uploaded_at, "
+                + "       IF (main_comment_like_count > 0, main_comment_like_count, 0) AS "
+                + "       main_comment_like_count, "
                 + "       ( EXISTS(SELECT * "
                 + "                FROM   like_comment "
                 + "                WHERE  user_id = ? "
-                + "                       AND comment_id = A.id) ) AS main_comment_is_liked, "
-                + "       B.id                                     AS recomment_id, "
-                + "       B.user_id                                AS recomment_user_id, "
-                + "       B.profile_image_url                      AS recomment_profile_image_url, "
-                + "       B.nickname                               AS recomment_nickname, "
-                + "       B.content                                AS recomment_content, "
-                + "       B.uploaded_at                            AS recomment_uploaded_at, "
-                + "       B.is_liked                               AS recomment_is_liked "
+                + "                       AND comment_id = A.id) )                     AS "
+                + "       main_comment_is_liked, "
+                + "       B.id                                                         AS "
+                + "       recomment_id, "
+                + "       B.user_id                                                    AS "
+                + "       recomment_user_id, "
+                + "       B.profile_image_url                                          AS "
+                + "       recomment_profile_image_url, "
+                + "       B.nickname                                                   AS "
+                + "       recomment_nickname, "
+                + "       B.content                                                    AS "
+                + "       recomment_content, "
+                + "       B.uploaded_at                                                AS "
+                + "       recomment_uploaded_at, "
+                + "       recomment_like_count, "
+                + "       B.is_liked                                                   AS "
+                + "       recomment_is_liked "
                 + "FROM   comment A "
                 + "       LEFT JOIN (SELECT rA.*, "
                 + "                         user.profile_image_url, "
@@ -175,7 +192,9 @@ public class CommentDao {
                 + "                         ( EXISTS(SELECT * "
                 + "                                  FROM   like_comment "
                 + "                                  WHERE  user_id = ? "
-                + "                                         AND comment_id = rA.id) ) AS is_liked, "
+                + "                                         AND comment_id = rA.id) ) "
+                + "                         AS "
+                + "                                          is_liked, "
                 + "                         CASE "
                 + "                           WHEN td < 60 THEN Concat(td, \"초\") "
                 + "                           WHEN Round(td / 60) < 60 THEN "
@@ -203,8 +222,12 @@ public class CommentDao {
                 + "                                                         24) / 30) / "
                 + "                                             12), "
                 + "                                \"년\") "
-                + "                         end                                       AS "
-                + "                         uploaded_at "
+                + "                         end "
+                + "                         AS "
+                + "                                          uploaded_at, "
+                + "                         IF (recomment_like_count > 0, recomment_like_count, 0) "
+                + "                         AS "
+                + "                                                    recomment_like_count "
                 + "                  FROM   comment rA "
                 + "                         JOIN (SELECT Timestampdiff(second, created_at, Now()) "
                 + "                                      AS td, "
@@ -213,6 +236,11 @@ public class CommentDao {
                 + "                           ON forTd.id = rA.id "
                 + "                         JOIN user "
                 + "                           ON user.id = rA.user_id "
+                + "                         LEFT JOIN (SELECT Count(*) AS recomment_like_count, "
+                + "                                           comment_id "
+                + "                                    FROM   like_comment "
+                + "                                    GROUP  BY comment_id) forLikeCount "
+                + "                                ON rA.id = forLikeCount.comment_id "
                 + "                  GROUP  BY rA.recomment_id "
                 + "                  ORDER  BY rA.created_at DESC "
                 + "                  LIMIT  1) B "
@@ -223,13 +251,18 @@ public class CommentDao {
                 + "                    id "
                 + "             FROM   comment) forTd "
                 + "         ON forTd.id = A.id "
+                + "       LEFT JOIN (SELECT Count(*) AS main_comment_like_count, "
+                + "                         comment_id "
+                + "                  FROM   like_comment "
+                + "                  GROUP  BY comment_id) forLikeCount "
+                + "              ON A.id = forLikeCount.comment_id "
                 + "WHERE  A.feed_id = ? "
                 + "       AND A.is_recomment = 0 "
                 + "ORDER  BY A.created_at DESC "
-                + "LIMIT  5 ";
+                + "LIMIT  5;";
         return this.jdbcTemplate.query(retrieveCommentsPartQuery,
-                (rs, rowNum) -> new GetCommentsPartMediaFeedsResComment(
-                        rs.getInt("main_comment_does_have_recomment"),
+                (rs, rowNum) -> new GetCommentsPartResComment(
+                        rs.getInt("main_comment_have_recomment"),
                         rs.getLong("main_comment_id"),
                         rs.getLong("main_comment_user_id"),
                         rs.getString("main_comment_profile_image_url"),
@@ -237,15 +270,151 @@ public class CommentDao {
                         rs.getString("main_comment_content"),
                         rs.getString("main_comment_uploaded_at"),
                         rs.getInt("main_comment_is_liked"),
+                        rs.getInt("main_comment_like_count"),
                         rs.getLong("recomment_id"),
                         rs.getLong("recomment_user_id"),
                         rs.getString("recomment_profile_image_url"),
                         rs.getString("recomment_nickname"),
                         rs.getString("recomment_content"),
                         rs.getString("recomment_uploaded_at"),
+                        rs.getInt("recomment_like_count"),
                         rs.getInt("recomment_is_liked")
                 ), retrieveCommentsPartParams);
 
 
+    }
+
+    // 댓글 리스트 - 메인 댓글 조회
+    public List<GetCommentsListResMainComment> retrieveCommentsListMainComment(Long feedId, Long userId, Long cursor) {
+        Object[] retrieveCommentsListMainCommentParams = new Object[]{
+                userId, feedId, cursor
+        };
+        String retrieveCommentsListMainCommentQuery = ""
+                + "SELECT CASE "
+                + "         WHEN (SELECT Count(*) "
+                + "               FROM   comment "
+                + "               WHERE  recomment_id = A.id) > 0 THEN (SELECT Count(*) "
+                + "                                                     FROM   comment "
+                + "                                                     WHERE  recomment_id = A.id) "
+                + "         ELSE 0 "
+                + "       end                                      AS main_comment_have_recomment, "
+                + "       A.id                                     AS main_comment_id, "
+                + "       A.user_id                                AS main_comment_user_id, "
+                + "       user.profile_image_url                   AS "
+                + "       main_comment_profile_image_url, "
+                + "       user.nickname                            AS main_comment_nickname, "
+                + "       A.content                                AS main_comment_content, "
+                + "       CASE "
+                + "         WHEN td < 60 THEN Concat(td, \"초\") "
+                + "         WHEN Round(td / 60) < 60 THEN Concat(Round(td / 60), \"분\") "
+                + "         WHEN Round(Round(td / 60) / 60) < 24 THEN "
+                + "         Concat(Round(Round(td / 60) / 60), \"시간\") "
+                + "         WHEN Round(Round(Round(td / 60) / 60) / 24) < 7 THEN Concat(Round( "
+                + "         Round(Round(td / 60) / 60) / 24), \"일\") "
+                + "         WHEN Round(Round(Round(Round(td / 60) / 60) / 24) / 7) < 5 THEN "
+                + "         Concat(Round(Round(Round(Round(td / 60) / 60) / 24) / 7), \"주\") "
+                + "         WHEN Round(Round(Round(Round(td / 60) / 60) / 24) / 30) < 12 THEN "
+                + "         Concat(Round(Round(Round(Round(td / 60) / 60) / 24) / 30), \"개월\") "
+                + "         ELSE Concat(Round(Round(Round(Round(Round(td / 60) / 60) / 24) / 30) / "
+                + "                           12), "
+                + "              \"년\") "
+                + "       end                                      AS main_comment_uploaded_at, "
+                + "       IF (like_count > 0, like_count, 0)       AS main_comment_like_count, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   like_comment "
+                + "                WHERE  user_id = ? "
+                + "                       AND comment_id = A.id) ) AS main_comment_is_liked, "
+                + "       ( A.created_at + 0 )                     AS standard "
+                + "FROM   comment A "
+                + "       JOIN user "
+                + "         ON user.id = A.user_id "
+                + "       JOIN (SELECT Timestampdiff(second, created_at, Now()) AS td, "
+                + "                    id "
+                + "             FROM   comment) forTd "
+                + "         ON forTd.id = A.id "
+                + "       LEFT JOIN (SELECT Count(*) AS like_count, "
+                + "                         comment_id "
+                + "                  FROM   like_comment "
+                + "                  GROUP  BY comment_id) forLikeCount "
+                + "              ON A.id = forLikeCount.comment_id "
+                + "WHERE  A.feed_id = ? "
+                + "       AND A.is_recomment = 0 "
+                + "       AND ( A.created_at + 0 ) < ? "
+                + "ORDER  BY ( A.created_at + 0 ) DESC "
+                + "LIMIT  5 ";
+        return this.jdbcTemplate.query(retrieveCommentsListMainCommentQuery,
+                (rs, rowNum) -> new GetCommentsListResMainComment(
+                        rs.getInt("main_comment_have_recomment"),
+                        rs.getLong("main_comment_id"),
+                        rs.getLong("main_comment_user_id"),
+                        rs.getString("main_comment_profile_image_url"),
+                        rs.getString("main_comment_nickname"),
+                        rs.getString("main_comment_content"),
+                        rs.getString("main_comment_uploaded_at"),
+                        rs.getInt("main_comment_like_count"),
+                        rs.getInt("main_comment_is_liked"),
+                        rs.getLong("standard")
+                ), retrieveCommentsListMainCommentParams);
+    }
+
+    // 댓글 리스트 - 대댓글 리스트 조회
+    public List<GetCommentsListResRecomment> retrieveCommentsListRecomment(Long feedId, Long userId, Long recommentId) {
+        Object[] retrieveCommentsListRecommentParams = new Object[]{
+            userId, feedId, recommentId
+        };
+        String retrieveCommentsListRecommentQuery = ""
+                + "SELECT A.id                                     AS recomment_id, "
+                + "       A.user_id                                AS recomment_user_id, "
+                + "       user.profile_image_url                   AS recomment_profile_image_url, "
+                + "       user.nickname                            AS recomment_nickname, "
+                + "       A.content                                AS recomment_content, "
+                + "       CASE "
+                + "         WHEN td < 60 THEN Concat(td, \"초\") "
+                + "         WHEN Round(td / 60) < 60 THEN Concat(Round(td / 60), \"분\") "
+                + "         WHEN Round(Round(td / 60) / 60) < 24 THEN "
+                + "         Concat(Round(Round(td / 60) / 60), \"시간\") "
+                + "         WHEN Round(Round(Round(td / 60) / 60) / 24) < 7 THEN Concat(Round( "
+                + "         Round(Round(td / 60) / 60) / 24), \"일\") "
+                + "         WHEN Round(Round(Round(Round(td / 60) / 60) / 24) / 7) < 5 THEN "
+                + "         Concat(Round(Round(Round(Round(td / 60) / 60) / 24) / 7), \"주\") "
+                + "         WHEN Round(Round(Round(Round(td / 60) / 60) / 24) / 30) < 12 THEN "
+                + "         Concat(Round(Round(Round(Round(td / 60) / 60) / 24) / 30), \"개월\") "
+                + "         ELSE Concat(Round(Round(Round(Round(Round(td / 60) / 60) / 24) / 30) / "
+                + "                           12), "
+                + "              \"년\") "
+                + "       end                                      AS recomment_uploaded_at, "
+                + "       IF (like_count > 0, like_count, 0)       AS recomment_like_count, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   like_comment "
+                + "                WHERE  user_id = ? "
+                + "                       AND comment_id = A.id) ) AS recomment_is_liked "
+                + "FROM   comment A "
+                + "       JOIN user "
+                + "         ON user.id = A.user_id "
+                + "       JOIN (SELECT Timestampdiff(second, created_at, Now()) AS td, "
+                + "                    id "
+                + "             FROM   comment) forTd "
+                + "         ON forTd.id = A.id "
+                + "       LEFT JOIN (SELECT Count(*) AS like_count, "
+                + "                         comment_id "
+                + "                  FROM   like_comment "
+                + "                  GROUP  BY comment_id) forLikeCount "
+                + "              ON A.id = forLikeCount.comment_id "
+                + "WHERE  A.feed_id = ? "
+                + "       AND A.recomment_id = ? "
+                + "       AND A.is_recomment = 1 "
+                + "ORDER  BY A.created_at DESC;";
+
+        return this.jdbcTemplate.query(retrieveCommentsListRecommentQuery,
+                (rs, rowNum) -> new GetCommentsListResRecomment(
+                        rs.getLong("recomment_id"),
+                        rs.getLong("recomment_user_id"),
+                        rs.getString("recomment_profile_image_url"),
+                        rs.getString("recomment_nickname"),
+                        rs.getString("recomment_content"),
+                        rs.getString("recomment_uploaded_at"),
+                        rs.getInt("recomment_like_count"),
+                        rs.getInt("recomment_is_liked")
+                ), retrieveCommentsListRecommentParams);
     }
 }

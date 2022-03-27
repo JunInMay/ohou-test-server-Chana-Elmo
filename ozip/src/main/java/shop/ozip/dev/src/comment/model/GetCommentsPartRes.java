@@ -10,8 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetCommentsPartMediaFeedsRes {
+public class GetCommentsPartRes {
     private Integer allCommentCount;
     private Integer retrievedCommentCount;
-    private List<GetCommentsPartMediaFeedsResComment> commentsWithRecomment;
+    private List<GetCommentsPartResComment> commentsWithRecomment;
 }
