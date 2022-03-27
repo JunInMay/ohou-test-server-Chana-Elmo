@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsMediaFeedResBase {
-    private GetFeedsMediaFeedResMedia media;
+public class GetFeedsMediaFeedsResBase {
+    private GetFeedsMediaFeedsResMedia media;
     private List<Keyword> keywords;
 }
