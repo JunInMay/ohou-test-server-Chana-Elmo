@@ -962,7 +962,7 @@ public class FeedDao {
     }
     
     // 집들이 리스트 조회
-    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long userId, Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject) {
+    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long userId, Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) {
         // 최근 인기순
         String sortByBestNewest = "";
         // 역대 인기순
@@ -975,13 +975,13 @@ public class FeedDao {
         // 가져올 cursor (cursor가 예약어라 standard로 함)
         String standardColumn = "";
 
-        if (sort == 1){
+        if (sort == 2){
             sortByBestNewest = " AND feed.view_count + Round(feed.created_at/10, 0) < ? ORDER BY standard1 DESC ";
             standardColumn = "standard1";
-        } else if (sort == 2) {
+        } else if (sort == 3) {
             sortByBest = " AND Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) < ? ORDER BY standard2 DESC ";
             standardColumn = "standard2";
-        } else if (sort == 3){
+        } else if (sort == 1){
             sortByNewest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
             standardColumn = "standard3";
         } else {
@@ -1006,6 +1006,7 @@ public class FeedDao {
         String filterByDetail = "";
         String filterByCategory = "";
         String filterBySubject = "";
+        String filterByProfessional = "         and homewarming_feed.is_professional != 1 ";
         int[] budgetList = {0, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 1000000000};
 
         if (homeType != 0) {
@@ -1046,6 +1047,9 @@ public class FeedDao {
         }
         if (subject > 0) {
             filterBySubject = "         and homewarming_subject_type_id="+subject+" ";
+        }
+        if (professional > 0){
+            filterByProfessional = "         and homewarming_feed.is_professional = 1 ";
         }
 
         Object[] retrieveHomewarmingFeedListParams = new Object[]{
@@ -1159,7 +1163,7 @@ public class FeedDao {
                 + filterByDetail
                 + filterByCategory
                 + filterBySubject
-
+                + filterByProfessional
                 + sortByBestNewest
                 + sortByBest
                 + sortByNewest;

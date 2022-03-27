@@ -99,11 +99,11 @@ public class FeedProvider {
         }
     }
     // 집들이 리스트 조회
-    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject) throws BaseException{
+    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) throws BaseException{
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject);
+            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
             return getFeedsHomewarmingFeedsListRes;
         }
         catch (Exception exception) {
