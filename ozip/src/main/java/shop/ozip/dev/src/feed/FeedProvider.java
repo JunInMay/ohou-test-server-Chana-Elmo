@@ -39,6 +39,30 @@ public class FeedProvider {
         this.fileName = "FeedProvider";
         this.keywordDao = keywordDao;
     }
+
+
+    // 미디어 피드 상단에 노출되는 메타 데이터 조회하기
+    public GetFeedsMediaFeedMetaRes retrieveMediaFeedMeta(Long feedId) throws BaseException{
+        String methodName = "retrieveMediaFeedMeta";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsMediaFeed() != 1) {
+            throw new BaseException(IS_NOT_MEDIA_FEED);
+        }
+        try{
+            GetFeedsMediaFeedMetaRes getFeedsMediaFeedMetaRes = feedDao.retrieveMediaFeedMeta(feedId);
+            return getFeedsMediaFeedMetaRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
     
     // 미디어 피드 상세 내용 조회하기
     public GetFeedsMediaFeedRes retrieveMediaFeed(Long feedId) throws BaseException{
@@ -69,6 +93,7 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 
     // 미디어 피드 리스트 조회하기
     public List<GetFeedsMediaFeedsListRes> retrieveMediaFeedList(Long cursor, Integer sort, Integer video, Integer homeType, Integer style) throws BaseException {
@@ -221,6 +246,7 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+
 
 
 }

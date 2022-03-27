@@ -1193,6 +1193,7 @@ public class FeedDao {
         return new GetFeedsHomewarmingFeedsListRes(count, getFeedsHomewarmingFeedsListResFeedList);
     }
 
+    // 노하우 피드 리스트 조회
     public GetFeedsKnowhowFeedsListRes retrieveKnowhowFeedList(Long userId, Long cursor, Integer theme, Integer sort) {
         // 최근 인기순
         String sortByBestNewest = "";
@@ -1362,4 +1363,30 @@ public class FeedDao {
 
         return new GetFeedsKnowhowFeedsListRes(count, getFeedsKnowhowFeedsListResFeedList);
     }
+
+    // 미디어 피드 상단에 노출되는 메타데이터
+    public GetFeedsMediaFeedMetaRes retrieveMediaFeedMeta(Long feedId) {
+        String retrieveMediaFeedMetaQuery = ""
+                + "SELECT media_feed.feed_id, "
+                + "       media_feed_acreage_type.name                     AS acreage, "
+                + "       media_feed_home_type.name                        AS home, "
+                + "       Concat(media_feed_style_type.name, \"스타일\") AS style "
+                + "FROM   media_feed "
+                + "       LEFT JOIN media_feed_acreage_type "
+                + "              ON media_feed_acreage_type.id = "
+                + "                 media_feed. media_feed_acreage_type_id "
+                + "       LEFT JOIN media_feed_home_type "
+                + "              ON media_feed_home_type.id = media_feed. media_feed_home_type_id "
+                + "       LEFT JOIN media_feed_style_type "
+                + "              ON media_feed_style_type.id = media_feed. media_feed_style_type_id "
+                + "WHERE  feed_id = ?;";
+        return this.jdbcTemplate.queryForObject(retrieveMediaFeedMetaQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedMetaRes(
+                        rs.getLong("feed_id"),
+                        rs.getString("acreage"),
+                        rs.getString("home"),
+                        rs.getString("style")
+                ), feedId);
+    }
+
 }
