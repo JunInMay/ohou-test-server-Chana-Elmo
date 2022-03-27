@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PostFeedsMediaFeedsCommentsRes {
+public class PostCommentsMediaFeedsRes {
     private Long id;
     private Long feedId;
     private String content;

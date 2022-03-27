@@ -1389,6 +1389,7 @@ public class FeedDao {
                 ), feedId);
     }
 
+    // 미디어 피드 하단에 노출되는 유저 정보 및 좋아요, 댓글 등
     public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long userId, Long feedId) {
         Object[] retrieveMediaFeedBottomParams = new Object[]{
                 userId, feedId
@@ -1439,5 +1440,65 @@ public class FeedDao {
                         rs.getInt("comment_count"),
                         rs.getInt("view_count")
                 ), retrieveMediaFeedBottomParams);
+    }
+
+    // 미디어 피드 하단에 노출되는 해당 미디어 피드를 올린 유저가 올린 다른 미디어 피드
+    public List<GetFeedsMediaFeedsOthersRes> retrieveMediaFeedOthers(Long feedId) {
+        String retrieveMediaFeedOthersQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                 AS thumbnail, "
+                + "       media_feed.is_photo AS is_media_feed_photo, "
+                + "       media_feed.is_video AS is_media_feed_video "
+                + "FROM   feed "
+                + "       JOIN media_feed "
+                + "         ON feed.id = media_feed.feed_id "
+                + "WHERE  user_id = (SELECT user_id "
+                + "                  FROM   feed "
+                + "                  WHERE  feed.id = ?) "
+                + "       AND is_media_feed = 1 "
+                + "       AND feed.id != ?;";
+
+        Object[] retrieveMediaFeedOthersParams = new Object[]{
+                feedId, feedId
+        };
+        return this.jdbcTemplate.query(retrieveMediaFeedOthersQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedsOthersRes(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getInt("is_media_feed_photo"),
+                        rs.getInt("is_media_feed_video")
+                ), retrieveMediaFeedOthersParams);
     }
 }

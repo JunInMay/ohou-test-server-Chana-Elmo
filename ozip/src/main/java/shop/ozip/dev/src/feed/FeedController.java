@@ -87,6 +87,23 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    해당 미디어 피드 작성자가 올린 다른 미디어 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds/:feedId/others
+    */
+    @ResponseBody
+    @GetMapping("/media-feeds/{feedId}/others")
+    public BaseResponse<List<GetFeedsMediaFeedsOthersRes>> getFeedsMediaFeedsOthersRes(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsMediaFeedsOthersRes> getFeedsMediaFeedsOthersRes = feedProvider.retrieveMediaFeedOthers(feedId);
+            return new BaseResponse<>(getFeedsMediaFeedsOthersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
     /*
     미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API

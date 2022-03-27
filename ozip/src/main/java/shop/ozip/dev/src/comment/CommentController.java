@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.comment.model.*;
+import shop.ozip.dev.src.feed.model.GetFeedsMediaFeedsOthersRes;
 import shop.ozip.dev.utils.JwtService;
+
+import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -39,28 +42,46 @@ public class CommentController {
     */
     @ResponseBody
     @PostMapping("/media-feeds")
-    public BaseResponse<PostFeedsMediaFeedsCommentsRes> postFeedsMediaFeedsComments(@RequestBody PostFeedsMediaFeedsCommentsReq postFeedsMediaFeedsCommentsReq) {
-        postFeedsMediaFeedsCommentsReq.checkNullIsRecomment();
+    public BaseResponse<PostCommentsMediaFeedsRes> postFeedsMediaFeedsComments(@RequestBody PostCommentsMediaFeedsReq postCommentsMediaFeedsReq) {
+        postCommentsMediaFeedsReq.checkNullIsRecomment();
         // 대댓글 여부와 대댓글 ID 정상 입력 validation
-        if (postFeedsMediaFeedsCommentsReq.getIsRecomment() != 0){
-            if (postFeedsMediaFeedsCommentsReq.getRecommentId() == null) {
+        if (postCommentsMediaFeedsReq.getIsRecomment() != 0){
+            if (postCommentsMediaFeedsReq.getRecommentId() == null) {
                 return new BaseResponse<>(AMBIGUOUS_RECOMMENT);
             }
         } else{
-            if (postFeedsMediaFeedsCommentsReq.getRecommentId() != null) {
+            if (postCommentsMediaFeedsReq.getRecommentId() != null) {
                 return new BaseResponse<>(AMBIGUOUS_RECOMMENT);
             }
         }
-        if (postFeedsMediaFeedsCommentsReq.getContent() == null || postFeedsMediaFeedsCommentsReq.getContent() == "") {
+        if (postCommentsMediaFeedsReq.getContent() == null || postCommentsMediaFeedsReq.getContent() == "") {
             return new BaseResponse<>(EMPTY_COMMENT_CONTENT);
         }
-        if (postFeedsMediaFeedsCommentsReq.getFeedId() == null) {
+        if (postCommentsMediaFeedsReq.getFeedId() == null) {
             return new BaseResponse<>(EMPTY_COMMENT_FEED_ID);
         }
 
         try{
-            PostFeedsMediaFeedsCommentsRes postFeedsMediaFeedsCommentsRes = commentService.createMediaFeedComment(postFeedsMediaFeedsCommentsReq);
-            return new BaseResponse<>(postFeedsMediaFeedsCommentsRes);
+            PostCommentsMediaFeedsRes postCommentsMediaFeedsRes = commentService.createMediaFeedComment(postCommentsMediaFeedsReq);
+            return new BaseResponse<>(postCommentsMediaFeedsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    미디어 피드 댓글 일부 조회 API
+    (GET) 127.0.0.1:9000/app/comments/part/media-feeds/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/part/media-feeds/{feedId}")
+    public BaseResponse<GetCommentsPartMediaFeedsRes> getCommentsPartMediaFeeds(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetCommentsPartMediaFeedsRes getCommentsPartMediaFeedsRes = commentProvider.retrieveCommentsPartMediaFeeds(feedId);
+            return new BaseResponse<>(getCommentsPartMediaFeedsRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

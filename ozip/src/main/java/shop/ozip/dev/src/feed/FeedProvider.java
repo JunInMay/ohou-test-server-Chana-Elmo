@@ -62,7 +62,7 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-
+    // 미디어 피드 하단에 노출되는 유저 + 좋아요, 스크랩, 댓글, 조회 정보
     public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeedBottom";
         Long userId = jwtService.getUserId();
@@ -82,7 +82,27 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
 
+    // 미디어 피드 하단에 노출되는, 미디어 피드를 유저가 올린 다른 미디어 피드 조회하기
+    public List<GetFeedsMediaFeedsOthersRes> retrieveMediaFeedOthers(Long feedId) throws BaseException{
+        String methodName = "retrieveMediaFeedOthers";
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsMediaFeed() != 1) {
+            throw new BaseException(IS_NOT_MEDIA_FEED);
+        }
+        try{
+            List<GetFeedsMediaFeedsOthersRes> getFeedsMediaFeedsOthersRes = feedDao.retrieveMediaFeedOthers(feedId);
+            return getFeedsMediaFeedsOthersRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
     
     // 미디어 피드 상세 내용 조회하기
@@ -267,6 +287,7 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+
 
 
 }

@@ -37,29 +37,29 @@ public class CommentService {
     }
 
     // 미디어 피드에 댓글달기
-    public PostFeedsMediaFeedsCommentsRes createMediaFeedComment(PostFeedsMediaFeedsCommentsReq postFeedsMediaFeedsCommentsReq) throws BaseException {
+    public PostCommentsMediaFeedsRes createMediaFeedComment(PostCommentsMediaFeedsReq postCommentsMediaFeedsReq) throws BaseException {
         String methodName = "createMediaFeedComment";
         Long userId = jwtService.getUserId();
         // 댓글 달 미디어 피드 존재 여부
-        if (!feedDao.checkFeedExistById(postFeedsMediaFeedsCommentsReq.getFeedId())) {
+        if (!feedDao.checkFeedExistById(postCommentsMediaFeedsReq.getFeedId())) {
             throw new BaseException(FEED_NOT_EXIST);
         }
-        Feed feed = feedDao.getFeedById(postFeedsMediaFeedsCommentsReq.getFeedId());
+        Feed feed = feedDao.getFeedById(postCommentsMediaFeedsReq.getFeedId());
         if (feed.getIsMediaFeed() != 1) {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         // 답글 달 댓글 존재 여부
-        if (postFeedsMediaFeedsCommentsReq.getIsRecomment() == 1){
-            if (!commentDao.checkCommentExistById(postFeedsMediaFeedsCommentsReq.getRecommentId())){
+        if (postCommentsMediaFeedsReq.getIsRecomment() == 1){
+            if (!commentDao.checkCommentExistById(postCommentsMediaFeedsReq.getRecommentId())){
                 throw new BaseException(RECOMMENT_NOT_EXIST);
             }
-            Comment recomment = commentDao.getCommentById(postFeedsMediaFeedsCommentsReq.getRecommentId());
-            if (recomment.getFeedId() != postFeedsMediaFeedsCommentsReq.getFeedId()){
+            Comment recomment = commentDao.getCommentById(postCommentsMediaFeedsReq.getRecommentId());
+            if (recomment.getFeedId() != postCommentsMediaFeedsReq.getFeedId()){
                 throw new BaseException(POST_RECOMMENT_FEED_NOT_MATCH);
             }
         }
         try{
-            return commentDao.createMediaFeedComment(postFeedsMediaFeedsCommentsReq, userId);
+            return commentDao.createMediaFeedComment(postCommentsMediaFeedsReq, userId);
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
