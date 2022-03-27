@@ -114,3 +114,5 @@ src/main/resources/application.yml
 build/
 
 logback-spring.xml
+
+.gradle

@@ -43,6 +43,7 @@ public class FeedProvider {
     // 미디어 피드 상세 내용 조회하기
     public GetFeedsMediaFeedRes retrieveMediaFeed(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeed";
+        Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)) {
             throw new BaseException(FEED_NOT_EXIST);
         }
@@ -51,16 +52,16 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
-            List<Media> mediaList = feedDao.getMediaListByFeedId(feedId);
-            List<MediaWithKeyword> mediaWithKeywordList = new ArrayList();
-            for (int i = 0; i < mediaList.size(); i++) {
-                Media media = mediaList.get(i);
-                MediaWithKeyword mediaWithKeyword = new MediaWithKeyword(media, keywordDao.getKeywordListByFeedId(media.getFeedId()));
-                mediaWithKeywordList.add(mediaWithKeyword);
+            List<GetFeedsMediaFeedResMedia> getFeedsMediaFeedResMediaList = feedDao.retrieveMediaFeedMedias(userId, feedId);
+            List<GetFeedsMediaFeedResBase> getFeedsMediaFeedResBaseList = new ArrayList();
+            for (int i = 0; i < getFeedsMediaFeedResMediaList.size(); i++) {
+                GetFeedsMediaFeedResMedia getFeedsMediaFeedResMedia = getFeedsMediaFeedResMediaList.get(i);
+                GetFeedsMediaFeedResBase getFeedsMediaFeedResBase = new GetFeedsMediaFeedResBase(getFeedsMediaFeedResMedia, keywordDao.getKeywordListByFeedId(getFeedsMediaFeedResMedia.getFeedId()));
+                getFeedsMediaFeedResBaseList.add(getFeedsMediaFeedResBase);
             }
 
             MediaFeed mediaFeed = feedDao.getMediaFeedByFeedId(feedId);
-            return new GetFeedsMediaFeedRes(mediaFeed.getFeedId(), mediaWithKeywordList);
+            return new GetFeedsMediaFeedRes(mediaFeed.getFeedId(), getFeedsMediaFeedResBaseList);
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -111,7 +112,20 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
 
+    public GetFeedsKnowhowFeedsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
+        String methodName = "retrieveMediaFeedList";
+        Long userId = jwtService.getUserId();
+        try{
+            GetFeedsKnowhowFeedsListRes getFeedsKnowhowFeedsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
+            return getFeedsKnowhowFeedsListRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 
     // 인기 섹션 번호별 조회
