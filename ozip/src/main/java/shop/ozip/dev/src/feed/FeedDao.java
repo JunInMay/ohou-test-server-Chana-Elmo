@@ -87,23 +87,23 @@ public class FeedDao {
     }
     
     // 특정 미디어 피드에 담긴 미디어(사진)들 가져오기
-    public List<Media> getMediaListByFeedId(Long feedId){
-        String getMediaListFeedIdQuery = ""
-                + "SELECT media.id                  AS id, "
-                + "       media.feed_id             AS feed_id, "
-                + "       media.description         AS description, "
-                + "       media.url                 AS url, "
-                + "       media.media_space_type_id AS media_space_type_id, "
-                + "       media.is_photo            AS is_photo, "
-                + "       media.is_video            AS is_video, "
-                + "       media.created_at          AS created_at, "
-                + "       media.updated_at          AS updated_at "
+    public List<GetFeedsMediaFeedResMedia> retrieveMediaFeedMedias(Long userId, Long feedId){
+        String retrieveMediaFeedMediasQuery = ""
+                + "SELECT media.*, "
+                + "       media.feed_id IN (SELECT feed_id "
+                + "                         FROM   scrapbook_feed "
+                + "                                JOIN scrapbook "
+                + "                                  ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                         WHERE  user_id = ?) AS is_bookmarked "
                 + "FROM   media "
                 + "       JOIN feed_having_media "
                 + "         ON id = media_id "
                 + "WHERE  feed_having_media.feed_id = ?;";
-        return this.jdbcTemplate.query(getMediaListFeedIdQuery,
-                (rs, rowNum) -> new Media(
+        Object[] retrieveMediaFeedMediasParams = new Object[]{
+                userId, feedId
+        };
+        return this.jdbcTemplate.query(retrieveMediaFeedMediasQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedResMedia(
                         rs.getLong("id"),
                         rs.getLong("feed_id"),
                         rs.getString("thumbnail_url"),
@@ -114,8 +114,9 @@ public class FeedDao {
                         rs.getInt("is_photo"),
                         rs.getInt("is_video"),
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
-                        Common.formatTimeStamp(rs.getTimestamp("updated_at"))
-                ), feedId);
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at")),
+                        rs.getInt("is_bookmarked")
+                ), retrieveMediaFeedMediasParams);
     }
     
     // 해당 피드에 담긴 사진들 URL리스트만 가져오기
@@ -153,7 +154,7 @@ public class FeedDao {
                 + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
                 + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
                 + "         ELSE NULL "
-                + "       end AS url "
+                + "       end AS url, media.id "
                 + "FROM   feed "
                 + "       LEFT JOIN feed_having_media "
                 + "              ON feed.id = feed_having_media.feed_id "
@@ -1186,5 +1187,175 @@ public class FeedDao {
         Integer count = this.jdbcTemplate.queryForObject(forCountQueryHeader+retrieveHomewarmingFeedListQuery+forCountQueryTail, Integer.class, retrieveHomewarmingFeedListParams);
 
         return new GetFeedsHomewarmingFeedsListRes(count, getFeedsHomewarmingFeedsListResFeedList);
+    }
+
+    public GetFeedsKnowhowFeedsListRes retrieveKnowhowFeedList(Long userId, Long cursor, Integer theme, Integer sort) {
+        // 최근 인기순
+        String sortByBestNewest = "";
+        // 역대 인기순
+        String sortByBest = "";
+        // 최신순 / 과거순
+        String sortByNewestAndOldest = "";
+        // 팔로우
+        String sortByFollow = "";
+
+        // 가져올 cursor (cursor가 예약어라 standard로 함)
+        String standardColumn = "";
+
+        if (sort == 1){
+            sortByBestNewest = " AND feed.view_count + Round(feed.created_at/10, 0) < ? ORDER BY standard1 DESC ";
+            standardColumn = "standard1";
+        } else if (sort == 2) {
+            sortByBest = " AND Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) < ? ORDER BY standard2 DESC ";
+            standardColumn = "standard2";
+        } else if (sort == 3){
+            sortByNewestAndOldest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+            standardColumn = "standard3";
+        } else if (sort == 4){
+            if (cursor == Long.MAX_VALUE){
+                cursor = Long.MIN_VALUE;
+            }
+            sortByNewestAndOldest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) > ? ORDER BY standard3 ASC ";
+            standardColumn = "standard3";
+        } else {
+            sortByFollow = ""
+                    + "JOIN     follow_user "
+                    + "ON       feed.user_id = following_id "
+                    + "AND      follow_user.user_id = "+userId.toString()+" ";
+            standardColumn = "standard3";
+            sortByNewestAndOldest = " AND (SELECT CONVERT(feed.created_at, signed INTEGER)) < ? ORDER BY standard3 DESC ";
+        }
+
+        String filterByThemeType = "";
+
+        if (theme != 0 && theme > 1) {
+            filterByThemeType = "         and knowhow_theme_type_id="+theme+" ";
+        }
+
+        Object[] retrieveKnowhowFeedListParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveKnowhowFeedListQuery = ""
+                + "SELECT CASE "
+                + "         WHEN Timestampdiff(day, feed.created_at, Now()) < 3 THEN 1 "
+                + "         ELSE 0 "
+                + "       end                                                     AS is_new, "
+                + "       feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                                     AS thumbnail, "
+                + "       Concat(knowhow_feed.title)                              AS description, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       view_count, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0)              AS scrapped_count "
+                + "       , "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   scrapbook_feed "
+                + "                          JOIN scrapbook "
+                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                   WHERE  user_id = ?)                         AS is_bookmarked, "
+                + "         feed.view_count + Round(feed.created_at/10, 0) AS standard1, "
+                + "Concat(Lpad(view_count, 8, '0'), Lpad(feed.id, 8, '0')) AS standard2, "
+                + "      (SELECT CONVERT(feed.created_at, signed INTEGER)) AS standard3 "
+                + "FROM     feed "
+                + "JOIN     knowhow_feed "
+                + "ON       feed.id = knowhow_feed.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS like_count, "
+                + "                            feed_id "
+                + "                   FROM     like_feed "
+                + "                   GROUP BY feed_id) forLikeCount "
+                + "ON        feed.id = forLikeCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS scrapped_count, "
+                + "                            feed_id "
+                + "                   FROM     scrapbook_feed "
+                + "                   GROUP BY feed_id) forScrappedCount "
+                + "ON        feed.id = forScrappedCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   Count(*) AS comment_count, "
+                + "                            feed_id "
+                + "                   FROM     comment "
+                + "                   GROUP BY feed_id) forCommentCount "
+                + "ON        feed.id = forCommentCount.feed_id "
+                + "LEFT JOIN "
+                + "          ( "
+                + "                   SELECT   comment.feed_id , "
+                + "                            user.profile_image_url AS recent_comment_user_profile_image_url, "
+                + "                            user.nickname          AS recent_comment_user_nickname, "
+                + "                            comment.content           recent_comment_content "
+                + "                   FROM     comment "
+                + "                   JOIN     user "
+                + "                   ON       user.id = comment.user_id "
+                + "                   WHERE    is_recomment = 0 "
+                + "                   GROUP BY feed_id "
+                + "                   ORDER BY comment.created_at DESC ) forRecentComment "
+                + "ON        forRecentComment.feed_id = feed.id "
+                + "JOIN      user "
+                + "ON        feed.user_id = user.id "
+                + sortByFollow
+                + "WHERE    is_knowhow = 1 "
+                + filterByThemeType
+                + sortByBestNewest
+                + sortByBest
+                + sortByNewestAndOldest;
+        String forLimitQueryTail = "LIMIT 5 ";
+        String finalStandardColumn = standardColumn;
+        List<GetFeedsKnowhowFeedsListResFeed> getFeedsKnowhowFeedsListResFeedList = this.jdbcTemplate.query(retrieveKnowhowFeedListQuery+forLimitQueryTail,
+                (rs, rowNum) -> new GetFeedsKnowhowFeedsListResFeed(
+                        rs.getInt("is_new"),
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("description"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("view_count"),
+                        rs.getInt("scrapped_count"),
+                        rs.getLong(finalStandardColumn),
+                        rs.getInt("is_bookmarked")
+                ), retrieveKnowhowFeedListParams);
+        String forCountQueryHeader = ""
+                + "SELECT Count(*) AS count "
+                + "FROM   (";
+        String forCountQueryTail = ""
+                + ") forCount";
+
+        Integer count = this.jdbcTemplate.queryForObject(forCountQueryHeader+retrieveKnowhowFeedListQuery+forCountQueryTail, Integer.class, retrieveKnowhowFeedListParams);
+
+        return new GetFeedsKnowhowFeedsListRes(count, getFeedsKnowhowFeedsListResFeedList);
     }
 }
