@@ -42,7 +42,7 @@ public class FeedProvider {
 
 
     // 미디어 피드 상단에 노출되는 메타 데이터 조회하기
-    public GetFeedsMediaFeedMetaRes retrieveMediaFeedMeta(Long feedId) throws BaseException{
+    public GetFeedsMediaFeedsMetaRes retrieveMediaFeedMeta(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeedMeta";
         Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)) {
@@ -53,8 +53,29 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
-            GetFeedsMediaFeedMetaRes getFeedsMediaFeedMetaRes = feedDao.retrieveMediaFeedMeta(feedId);
-            return getFeedsMediaFeedMetaRes;
+            GetFeedsMediaFeedsMetaRes getFeedsMediaFeedsMetaRes = feedDao.retrieveMediaFeedMeta(feedId);
+            return getFeedsMediaFeedsMetaRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long feedId) throws BaseException{
+        String methodName = "retrieveMediaFeedBottom";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsMediaFeed() != 1) {
+            throw new BaseException(IS_NOT_MEDIA_FEED);
+        }
+        try{
+            GetFeedsMediaFeedsBottomRes getFeedsMediaFeedsBottomRes = feedDao.retrieveMediaFeedBottom(userId, feedId);
+            return getFeedsMediaFeedsBottomRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -65,7 +86,7 @@ public class FeedProvider {
     }
     
     // 미디어 피드 상세 내용 조회하기
-    public GetFeedsMediaFeedRes retrieveMediaFeed(Long feedId) throws BaseException{
+    public GetFeedsMediaFeedsRes retrieveMediaFeed(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeed";
         Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)) {
@@ -76,16 +97,16 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
-            List<GetFeedsMediaFeedResMedia> getFeedsMediaFeedResMediaList = feedDao.retrieveMediaFeedMedias(userId, feedId);
-            List<GetFeedsMediaFeedResBase> getFeedsMediaFeedResBaseList = new ArrayList();
-            for (int i = 0; i < getFeedsMediaFeedResMediaList.size(); i++) {
-                GetFeedsMediaFeedResMedia getFeedsMediaFeedResMedia = getFeedsMediaFeedResMediaList.get(i);
-                GetFeedsMediaFeedResBase getFeedsMediaFeedResBase = new GetFeedsMediaFeedResBase(getFeedsMediaFeedResMedia, keywordDao.getKeywordListByFeedId(getFeedsMediaFeedResMedia.getFeedId()));
-                getFeedsMediaFeedResBaseList.add(getFeedsMediaFeedResBase);
+            List<GetFeedsMediaFeedsResMedia> getFeedsMediaFeedsResMediaList = feedDao.retrieveMediaFeedMedias(userId, feedId);
+            List<GetFeedsMediaFeedsResBase> getFeedsMediaFeedsResBaseList = new ArrayList();
+            for (int i = 0; i < getFeedsMediaFeedsResMediaList.size(); i++) {
+                GetFeedsMediaFeedsResMedia getFeedsMediaFeedsResMedia = getFeedsMediaFeedsResMediaList.get(i);
+                GetFeedsMediaFeedsResBase getFeedsMediaFeedsResBase = new GetFeedsMediaFeedsResBase(getFeedsMediaFeedsResMedia, keywordDao.getKeywordListByFeedId(getFeedsMediaFeedsResMedia.getFeedId()));
+                getFeedsMediaFeedsResBaseList.add(getFeedsMediaFeedsResBase);
             }
 
             MediaFeed mediaFeed = feedDao.getMediaFeedByFeedId(feedId);
-            return new GetFeedsMediaFeedRes(mediaFeed.getFeedId(), getFeedsMediaFeedResBaseList);
+            return new GetFeedsMediaFeedsRes(mediaFeed.getFeedId(), getFeedsMediaFeedsResBaseList);
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -246,7 +267,6 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
-
 
 
 }

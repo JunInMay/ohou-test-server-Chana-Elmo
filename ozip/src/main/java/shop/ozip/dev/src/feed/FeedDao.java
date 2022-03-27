@@ -87,7 +87,7 @@ public class FeedDao {
     }
     
     // 특정 미디어 피드에 담긴 미디어(사진)들 가져오기
-    public List<GetFeedsMediaFeedResMedia> retrieveMediaFeedMedias(Long userId, Long feedId){
+    public List<GetFeedsMediaFeedsResMedia> retrieveMediaFeedMedias(Long userId, Long feedId){
         String retrieveMediaFeedMediasQuery = ""
                 + "SELECT media.*, "
                 + "       media.feed_id IN (SELECT feed_id "
@@ -103,7 +103,7 @@ public class FeedDao {
                 userId, feedId
         };
         return this.jdbcTemplate.query(retrieveMediaFeedMediasQuery,
-                (rs, rowNum) -> new GetFeedsMediaFeedResMedia(
+                (rs, rowNum) -> new GetFeedsMediaFeedsResMedia(
                         rs.getLong("id"),
                         rs.getLong("feed_id"),
                         rs.getString("thumbnail_url"),
@@ -1365,7 +1365,7 @@ public class FeedDao {
     }
 
     // 미디어 피드 상단에 노출되는 메타데이터
-    public GetFeedsMediaFeedMetaRes retrieveMediaFeedMeta(Long feedId) {
+    public GetFeedsMediaFeedsMetaRes retrieveMediaFeedMeta(Long feedId) {
         String retrieveMediaFeedMetaQuery = ""
                 + "SELECT media_feed.feed_id, "
                 + "       media_feed_acreage_type.name                     AS acreage, "
@@ -1381,7 +1381,7 @@ public class FeedDao {
                 + "              ON media_feed_style_type.id = media_feed. media_feed_style_type_id "
                 + "WHERE  feed_id = ?;";
         return this.jdbcTemplate.queryForObject(retrieveMediaFeedMetaQuery,
-                (rs, rowNum) -> new GetFeedsMediaFeedMetaRes(
+                (rs, rowNum) -> new GetFeedsMediaFeedsMetaRes(
                         rs.getLong("feed_id"),
                         rs.getString("acreage"),
                         rs.getString("home"),
@@ -1389,4 +1389,55 @@ public class FeedDao {
                 ), feedId);
     }
 
+    public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long userId, Long feedId) {
+        Object[] retrieveMediaFeedBottomParams = new Object[]{
+                userId, feedId
+        };
+        String retrieveMediaFeedBottomQuery = ""
+                + "SELECT user.id                                       AS user_id, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       user.description                              AS description, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   follow_user "
+                + "                WHERE  user_id = ? "
+                + "                       AND following_id = user.id) ) AS is_followed, "
+                + "       feed.id                                       AS feed_id, "
+                + "       IF (like_count > 0, like_count, 0)            AS like_count, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0)    AS scrapped_count, "
+                + "       IF (comment_count > 0, comment_count, 0)      AS comment_count, "
+                + "       view_count "
+                + "FROM   feed "
+                + "       JOIN user "
+                + "         ON user.id = feed.user_id "
+                + "       LEFT JOIN (SELECT Count(*) AS like_count, "
+                + "                         feed_id "
+                + "                  FROM   like_feed "
+                + "                  GROUP  BY feed_id) forLikeCount "
+                + "              ON feed.id = forLikeCount.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS scrapped_count, "
+                + "                         feed_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY feed_id) forScrappedCount "
+                + "              ON feed.id = forScrappedCount.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS comment_count, "
+                + "                         feed_id "
+                + "                  FROM   comment "
+                + "                  GROUP  BY feed_id) forCommentCount "
+                + "              ON feed.id = forCommentCount.feed_id "
+                + "WHERE  feed.id = ?";
+        return this.jdbcTemplate.queryForObject(retrieveMediaFeedBottomQuery,
+                (rs, rowNum) -> new GetFeedsMediaFeedsBottomRes(
+                        rs.getLong("user_id"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("description"),
+                        rs.getInt("is_followed"),
+                        rs.getLong("feed_id"),
+                        rs.getInt("like_count"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count")
+                ), retrieveMediaFeedBottomParams);
+    }
 }

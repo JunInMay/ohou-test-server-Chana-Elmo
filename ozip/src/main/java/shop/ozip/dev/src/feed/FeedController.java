@@ -42,13 +42,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping("/media-feeds/{feedId}")
-    public BaseResponse<GetFeedsMediaFeedRes> getFeedsMediaFeeds(@PathVariable("feedId") Long feedId) {
+    public BaseResponse<GetFeedsMediaFeedsRes> getFeedsMediaFeeds(@PathVariable("feedId") Long feedId) {
         if (feedId == null){
             return new BaseResponse<>(EMPTY_FEED_ID);
         }
         try{
-            GetFeedsMediaFeedRes getFeedsMediaFeedRes = feedProvider.retrieveMediaFeed(feedId);
-            return new BaseResponse<>(getFeedsMediaFeedRes);
+            GetFeedsMediaFeedsRes getFeedsMediaFeedsRes = feedProvider.retrieveMediaFeed(feedId);
+            return new BaseResponse<>(getFeedsMediaFeedsRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -59,18 +59,34 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping("/media-feeds/{feedId}/meta")
-    public BaseResponse<GetFeedsMediaFeedMetaRes> getFeedsMediaFeedsMeta(@PathVariable("feedId") Long feedId) {
+    public BaseResponse<GetFeedsMediaFeedsMetaRes> getFeedsMediaFeedsMeta(@PathVariable("feedId") Long feedId) {
         if (feedId == null){
             return new BaseResponse<>(EMPTY_FEED_ID);
         }
         try{
-            GetFeedsMediaFeedMetaRes getFeedsMediaFeedMetaRes = feedProvider.retrieveMediaFeedMeta(feedId);
-            return new BaseResponse<>(getFeedsMediaFeedMetaRes);
+            GetFeedsMediaFeedsMetaRes getFeedsMediaFeedsMetaRes = feedProvider.retrieveMediaFeedMeta(feedId);
+            return new BaseResponse<>(getFeedsMediaFeedsMetaRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
     }
-
+    /*
+    해당 미디어 피드의 하단 정보 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds/{feedId}}/bottom
+    */
+    @ResponseBody
+    @GetMapping("/media-feeds/{feedId}/bottom")
+    public BaseResponse<GetFeedsMediaFeedsBottomRes> getFeedsMediaFeedsBottom(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetFeedsMediaFeedsBottomRes getFeedsMediaFeedsBottomRes = feedProvider.retrieveMediaFeedBottom(feedId);
+            return new BaseResponse<>(getFeedsMediaFeedsBottomRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
     /*
     미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API

@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsMediaFeedRes {
+public class GetFeedsMediaFeedsRes {
     private Long feedId;
-    private List<GetFeedsMediaFeedResBase> medias;
+    private List<GetFeedsMediaFeedsResBase> medias;
 }
