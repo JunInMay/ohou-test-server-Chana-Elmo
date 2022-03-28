@@ -6,9 +6,13 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.comment.model.Comment;
 import shop.ozip.dev.src.comment.model.PostCommentsMediaFeedsRes;
+import shop.ozip.dev.src.feed.model.Feed;
+import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookMainTopRes;
 import shop.ozip.dev.src.scrapbook.model.PostBookmarksFeedRes;
+import shop.ozip.dev.src.scrapbook.model.PostBookmarksRes;
 import shop.ozip.dev.src.scrapbook.model.Scrapbook;
 import shop.ozip.dev.utils.Common;
 
@@ -79,6 +83,17 @@ public class ScrapbookDao {
         };
         return this.jdbcTemplate.queryForObject(checkBookmarkExistQuery, boolean.class, checkBookmarkExistParams);
     }
+    // 스크랩북이 존재하는지 체크
+    public boolean checkScrapbookById(Long scrapbookId) {
+        String checkScrapbookByIdQuery = ""
+                + "SELECT EXISTS(SELECT * "
+                + "              FROM   scrapbook "
+                + "              WHERE  id = ?) AS exist;";
+        Object[] checkScrapbookByIdParams = new Object[]{
+                scrapbookId
+        };
+        return this.jdbcTemplate.queryForObject(checkScrapbookByIdQuery, boolean.class, checkScrapbookByIdParams);
+    }
 
     
     // 피드 북마크하기
@@ -99,5 +114,95 @@ public class ScrapbookDao {
                 scrapbookId,
                 result
         );
+    }
+
+    @Transactional
+    // 스크랩북 만들기
+    public PostBookmarksRes createScrapbook(Long userId, String name, String description) {
+
+        Object[] createScrapbookParams;
+        String createScrapbookQuery;
+        if (description != null){
+            createScrapbookParams = new Object[]{
+                    userId, name, description
+            };
+            createScrapbookQuery = ""
+                    + "INSERT INTO scrapbook "
+                    + "            (user_id, "
+                    + "             name, "
+                    + "             description) "
+                    + "VALUES     (?, "
+                    + "            ?, "
+                    + "            ?);";
+        }else {
+            createScrapbookParams = new Object[]{
+                    userId, name
+            };
+            createScrapbookQuery = ""
+                    + "INSERT INTO scrapbook "
+                    + "            (user_id, "
+                    + "             name) "
+                    + "VALUES     (?, "
+                    + "            ?);";
+        }
+        this.jdbcTemplate.update(createScrapbookQuery, createScrapbookParams);
+        String lastInsertIdQuery = "select last_insert_id()";
+        Long recentId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        return new PostBookmarksRes(recentId);
+    }
+
+
+    // 스크랩북 상단 정보 조회
+    public GetBookmarksScrapbookMainTopRes retrieveScrapbookTop(Long scrapbookId) {
+        String retrieveScrapbookTopQuery = ""
+                + "SELECT main.id, "
+                + "       main.name, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       (SELECT Count(*) "
+                + "        FROM   scrapbook_feed "
+                + "        WHERE  scrapbook_feed.scrapbook_id = main.id) AS all_count, "
+                + "       (SELECT Count(*) "
+                + "        FROM   scrapbook_feed "
+                + "               JOIN feed "
+                + "                 ON scrapbook_feed.feed_id = feed.id "
+                + "        WHERE  scrapbook_feed.scrapbook_id = main.id "
+                + "               AND feed.is_photo = 1 "
+                + "                OR feed.is_video = 1 "
+                + "                OR feed.is_media_feed = 1)            AS media_count, "
+                + "       (SELECT Count(*) "
+                + "        FROM   scrapbook_feed "
+                + "               JOIN feed "
+                + "                 ON scrapbook_feed.feed_id = feed.id "
+                + "        WHERE  scrapbook_feed.scrapbook_id = main.id "
+                + "               AND feed.is_product = 1)               AS product_count, "
+                + "       (SELECT Count(*) "
+                + "        FROM   scrapbook_feed "
+                + "               JOIN feed "
+                + "                 ON scrapbook_feed.feed_id = feed.id "
+                + "        WHERE  scrapbook_feed.scrapbook_id = main.id "
+                + "               AND is_homewarming = 1)                AS homewarming_count, "
+                + "       (SELECT Count(*) "
+                + "        FROM   scrapbook_feed "
+                + "               JOIN feed "
+                + "                 ON scrapbook_feed.feed_id = feed.id "
+                + "        WHERE  scrapbook_feed.scrapbook_id = main.id "
+                + "               AND is_knowhow = 1)                    AS knowhow_count "
+                + "FROM   scrapbook main "
+                + "       JOIN user "
+                + "         ON main.user_id = user.id "
+                + "WHERE  main.id = ? ";
+        return this.jdbcTemplate.queryForObject(retrieveScrapbookTopQuery,
+                (rs, rowNum) -> new GetBookmarksScrapbookMainTopRes(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("all_count"),
+                        rs.getInt("media_count"),
+                        rs.getInt("homewarming_count"),
+                        rs.getInt("knowhow_count")
+                ), scrapbookId);
     }
 }

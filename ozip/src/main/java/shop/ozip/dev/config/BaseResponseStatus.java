@@ -57,6 +57,10 @@ public enum BaseResponseStatus {
 
     EMPTY_BOOKMARK_FEED_ID(false, 2360, "북마크할 피드의 id를 입력해주세요."),
 
+    //[POST] app/bookmarks
+    EMPTY_BOOKMARK_NAME(false, 2370, "만드려는 북마크의 이름을 입력해주세요."),
+    TOO_LONG_BOOKMARK_DESCRIPTION(false, 2371, "북마크의 한 줄 설명은 30자 이내여야 합니다."),
+
 
     /**
      * 3000 : Response 오류
@@ -88,6 +92,7 @@ public enum BaseResponseStatus {
 
     // bookmark 3350~
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
+    SCRAPBOOK_NOT_EXIST(false, 3351, "존재하지 않는 스크랩북입니다."),
 
 
     /**

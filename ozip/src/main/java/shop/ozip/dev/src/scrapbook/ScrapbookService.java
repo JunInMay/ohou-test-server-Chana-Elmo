@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.comment.CommentDao;
 import shop.ozip.dev.src.feed.FeedDao;
-import shop.ozip.dev.src.scrapbook.model.PostBookmarksFeedReq;
-import shop.ozip.dev.src.scrapbook.model.PostBookmarksFeedRes;
-import shop.ozip.dev.src.scrapbook.model.Scrapbook;
+import shop.ozip.dev.src.scrapbook.model.*;
 import shop.ozip.dev.utils.JwtService;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
@@ -54,6 +52,18 @@ public class ScrapbookService {
         }
         try{
             return scrapbookDao.createBookmarkFeed(mainScrapbook.getId(), postBookmarksFeedReq.getFeedId());
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+    
+    // 스크랩북 만들기
+    public PostBookmarksRes createScrapbook(PostBookmarksReq postBookmarksReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        try{
+            return scrapbookDao.createScrapbook(userId, postBookmarksReq.getName(), postBookmarksReq.getDescription());
         }
         catch (Exception exception) {
             exception.printStackTrace();
