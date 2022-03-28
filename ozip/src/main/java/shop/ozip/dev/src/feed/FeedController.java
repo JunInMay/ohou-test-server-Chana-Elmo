@@ -107,7 +107,7 @@ public class FeedController {
 
     /*
     미디어 피드(사진 묶음, 동영상) 조회(정렬 및 필터) API
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/?sort=&video=&home-type=&style=/:lastValue
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/:lastValue?sort=&video=&home-type=&style=/
     */
     @ResponseBody
     @GetMapping(value = {"/media-feeds/list", "/media-feeds/list/{cursor}"})
@@ -315,6 +315,25 @@ public class FeedController {
         try{
             Integer getFeedsMediasCount = feedProvider.retrieveFeedsMediasCount(userId);
             return new BaseResponse<>(getFeedsMediasCount);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
+    특정 스크랩북의 모든 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/all/:scrapbookId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/all/{scrapbookId}","/scrapped/all/{scrapbookId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedAll>> getFeedsScrappedAll(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedAll> getFeedsScrappedAllList = feedProvider.retrieveScrappedAll(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedAllList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

@@ -288,6 +288,15 @@ public class FeedProvider {
         }
     }
 
-
-
+    // 해당 스크랩북에 스크랩된 모든 피드 조회
+    public List<GetFeedsScrappedAll> retrieveScrappedAll(Long scrapbookId, Long cursor) throws BaseException{
+        String methodName = "retrieveScrappedAll";
+        try {
+            return feedDao.retrieveScrappedAll(scrapbookId, cursor);
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
 }

@@ -8,12 +8,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Scrapbook {
-    private Long id;
-    private Long userId;
-    private String name;
+public class GetBookmarksScrapbook {
+    private Long scrapbookId;
+    private String scrapbookName;
     private String description;
-    private Integer isMain;
-    private String createdAt;
-    private String updatedAt;
+    private Integer feedCount;
+    private String thumbnailUrl;
+    private Long cursor;
 }
