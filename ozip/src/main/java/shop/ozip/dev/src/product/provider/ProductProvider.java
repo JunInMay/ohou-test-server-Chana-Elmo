@@ -14,6 +14,7 @@ import shop.ozip.dev.src.product.repository.PopularProductRepository;
 import shop.ozip.dev.src.product.repository.ProductRepository;
 import shop.ozip.dev.src.product.repository.ProductViewRepository;
 import shop.ozip.dev.src.product.repository.TodayDealRepository;
+import shop.ozip.dev.src.product.service.ProductService;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class ProductProvider {
     private final ProductViewRepository productViewRepository;
     private final JwtService jwtService;
     private final CategoryProvider categoryProvider;
+    private final ProductService productService;
 
     public Product getProduct(Long productId) {
         Product product = productRepository.findById(productId).orElseThrow(()
@@ -96,6 +98,7 @@ public class ProductProvider {
         detailProductInfoRes.setRatedCountList(ratedCountList);
 
         GetProductDetailsInfoRes getProductDetailsInfoRes = new GetProductDetailsInfoRes(detailProductInfoRes);
+        productService.addViewedProduct(productId);
         return getProductDetailsInfoRes;
     }
 

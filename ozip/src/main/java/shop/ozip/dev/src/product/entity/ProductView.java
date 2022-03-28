@@ -11,7 +11,6 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 public class ProductView extends BaseTimeEntity {
     @Id
@@ -23,4 +22,10 @@ public class ProductView extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Long userId;
+
+    @Builder
+    public ProductView(Long productId, Long userId) {
+        this.productId = productId;
+        this.userId = userId;
+    }
 }
