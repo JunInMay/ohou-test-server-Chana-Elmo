@@ -49,6 +49,14 @@ public enum BaseResponseStatus {
     EMPTY_COMMENT_CONTENT(false, 2160, "댓글 내용을 입력해주세요."),
     EMPTY_COMMENT_FEED_ID(false, 2161, "댓글 달 피드의 id를 입력해주세요."),
 
+    // 2300 : follow, bookmark
+
+    // bookmark(2350~
+
+    //[POST] app/bookmarks/feed
+
+    EMPTY_BOOKMARK_FEED_ID(false, 2360, "북마크할 피드의 id를 입력해주세요."),
+
 
     /**
      * 3000 : Response 오류
@@ -73,10 +81,14 @@ public enum BaseResponseStatus {
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
 
-    // 3300 : follow
+    // 3300 : follow, bookmark
 
     POST_FOLLOW_ALREADY_FOLLOW(false,3310,"이미 팔로우한 관계입니다."),
     DELETE_FOLLOW_NOT_EXIST(false,3320,"팔로우되지 않은 관계입니다."),
+
+    // bookmark 3350~
+    ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
+
 
     /**
      * 4000 : Database, Server 오류

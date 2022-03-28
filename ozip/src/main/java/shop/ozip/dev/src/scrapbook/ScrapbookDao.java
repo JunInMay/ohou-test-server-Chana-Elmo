@@ -2,14 +2,17 @@
 package shop.ozip.dev.src.scrapbook;
 
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import shop.ozip.dev.src.comment.model.Comment;
+import shop.ozip.dev.src.comment.model.PostCommentsMediaFeedsRes;
+import shop.ozip.dev.src.scrapbook.model.PostBookmarksFeedRes;
 import shop.ozip.dev.src.scrapbook.model.Scrapbook;
 import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
-import java.util.List;
 
 
 @Repository
@@ -39,5 +42,62 @@ public class ScrapbookDao {
                 getCountScrapbookFeedByUserIdQuery,
                 Integer.class,
                 userId);
+    }
+    // 유저의 메인 스크랩북 가져오기
+    public Scrapbook getMainScrapbookByUserId(Long userId){
+//        getMainScrapbookByUserIdParams
+        String getMainScrapbookByUserIdQuery = ""
+                + "SELECT * "
+                + "FROM   scrapbook "
+                + "WHERE  user_id = ? "
+                + "       AND is_main = 1;";;
+
+        return this.jdbcTemplate.queryForObject(getMainScrapbookByUserIdQuery,
+                (rs, rowNum) -> new Scrapbook(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getInt("is_main"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at"))
+                ), userId);
+    }
+    // 해당 피드를 이미 북마크했는지 체크
+    public boolean checkBookmarkExist(Long userId, Long feedId) {
+        String checkBookmarkExistQuery = ""
+                + "SELECT EXISTS(SELECT user_id, "
+                + "                     feed_id "
+                + "              FROM   scrapbook_feed "
+                + "                     JOIN (SELECT * "
+                + "                           FROM   scrapbook) s "
+                + "                       ON s.id = scrapbook_feed.scrapbook_id "
+                + "              WHERE  user_id = ? "
+                + "                     AND feed_id = ?) AS exist;";
+        Object[] checkBookmarkExistParams = new Object[]{
+                userId, feedId
+        };
+        return this.jdbcTemplate.queryForObject(checkBookmarkExistQuery, boolean.class, checkBookmarkExistParams);
+    }
+
+    
+    // 피드 북마크하기
+    public PostBookmarksFeedRes createBookmarkFeed(Long scrapbookId, Long feedId) {
+        String createBookMarkFeedQuery = ""
+                + "INSERT INTO scrapbook_feed "
+                + "            (scrapbook_id, "
+                + "             feed_id) "
+                + "VALUES     (?, "
+                + "            ?);";;
+        Object[] createBookMarkFeedParams = new Object[]{
+                scrapbookId, feedId
+        };
+        int result = this.jdbcTemplate.update(createBookMarkFeedQuery, createBookMarkFeedParams);
+
+
+        return new PostBookmarksFeedRes(
+                scrapbookId,
+                result
+        );
     }
 }

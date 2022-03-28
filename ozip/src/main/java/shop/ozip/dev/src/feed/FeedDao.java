@@ -731,7 +731,25 @@ public class FeedDao {
     public List<GetFeedsFollowsListRes> retrieveFeedsFollowsList(Long userId, Long cursor) {
         Object[] retrieveFeedsFollowsListParams = new Object[]{ userId, userId, userId, cursor};
         String retrieveFeedsFollowsListQuery = ""
-                + "SELECT   *, "
+                + "SELECT "
+                + "         CASE "
+                + "                  WHEN a.is_video = 1 THEN "
+                + "                           ( "
+                + "                                  SELECT feed_id "
+                + "                                  FROM   media_feed "
+                + "                                  WHERE  feed_id = "
+                + "                                         ( "
+                + "                                                SELECT feed_id "
+                + "                                                FROM   feed_having_media "
+                + "                                                WHERE  media_id = "
+                + "                                                       ( "
+                + "                                                              SELECT id "
+                + "                                                              FROM   media "
+                + "                                                              WHERE  media.feed_id = a.id) "
+                + "                                                LIMIT  1)) "
+                + "                  ELSE a.id "
+                + "         end AS alternative_id, "
+                + "         a.*, "
                 + "                  Concat(Round(a.created_at/10, 0), Lpad(a.id, 5, \"0\")) AS standard, "
                 + "         a.id IN "
                 + "         ( "
@@ -930,7 +948,7 @@ public class FeedDao {
 
         List<GetFeedsFollowsListResBase> getFeedsFollowsListResBasesList = this.jdbcTemplate.query(retrieveFeedsFollowsListQuery,
                 (rs, rowNum) -> new GetFeedsFollowsListResBase(
-                        rs.getLong("id"),
+                        rs.getLong("alternative_id"),
                         rs.getInt("is_media_Feed"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_video"),

@@ -10,8 +10,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Scrapbook {
     private Long id;
+    private Long userId;
     private String name;
-    private Integer referredCount;
+    private String description;
+    private Integer isMain;
     private String createdAt;
     private String updatedAt;
 }
