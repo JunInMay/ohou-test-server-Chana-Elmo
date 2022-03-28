@@ -9,6 +9,7 @@ import shop.ozip.dev.src.product.entity.Product;
 @Setter
 @AllArgsConstructor
 public class SimpleProductInfoRes {
+    private Long productId;
     private String brand;
     private String name;
     private byte isDeal;
@@ -20,6 +21,7 @@ public class SimpleProductInfoRes {
     private int deliveryAmount;
 
     public SimpleProductInfoRes(Product product) {
+        this.productId = product.getId();
         this.brand = product.getBrand();
         this.name = product.getName();
         this.price = product.getPrice();

@@ -4,18 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.src.category.provider.CategoryProvider;
 import shop.ozip.dev.src.product.entity.PopularProduct;
 import shop.ozip.dev.src.product.entity.Product;
 import shop.ozip.dev.src.product.entity.ProductView;
 import shop.ozip.dev.src.product.entity.TodayDeal;
-import shop.ozip.dev.src.product.model.GetPopularProductsRes;
-import shop.ozip.dev.src.product.model.GetTodayDealProductsRes;
-import shop.ozip.dev.src.product.model.GetViewProductRes;
-import shop.ozip.dev.src.product.model.SimpleProductInfoRes;
+import shop.ozip.dev.src.product.model.*;
 import shop.ozip.dev.src.product.repository.PopularProductRepository;
 import shop.ozip.dev.src.product.repository.ProductRepository;
 import shop.ozip.dev.src.product.repository.ProductViewRepository;
 import shop.ozip.dev.src.product.repository.TodayDealRepository;
+import shop.ozip.dev.src.product.service.ProductService;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -32,6 +31,8 @@ public class ProductProvider {
     private final TodayDealRepository todayDealRepository;
     private final ProductViewRepository productViewRepository;
     private final JwtService jwtService;
+    private final CategoryProvider categoryProvider;
+    private final ProductService productService;
 
     public Product getProduct(Long productId) {
         Product product = productRepository.findById(productId).orElseThrow(()
@@ -86,6 +87,19 @@ public class ProductProvider {
 
         GetViewProductRes getViewProductRes = new GetViewProductRes(productList);
         return getViewProductRes;
+    }
+
+    public GetProductDetailsInfoRes getProductDetailInfo(Long productId) throws BaseException{
+        Product product = getProduct(productId);
+        DetailProductInfoRes detailProductInfoRes = new DetailProductInfoRes(product);
+        RatedCountList ratedCountList = new RatedCountList();
+
+        detailProductInfoRes.setCategory(categoryProvider.getFullCategoryPath(product.getSubCategory()));
+        detailProductInfoRes.setRatedCountList(ratedCountList);
+
+        GetProductDetailsInfoRes getProductDetailsInfoRes = new GetProductDetailsInfoRes(detailProductInfoRes);
+        productService.addViewedProduct(productId);
+        return getProductDetailsInfoRes;
     }
 
 }

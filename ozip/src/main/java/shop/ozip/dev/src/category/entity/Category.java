@@ -21,6 +21,7 @@ public class Category extends BaseTimeEntity {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private Long itemId;
+    @ManyToOne
+    @JoinColumn(name = "itemId", referencedColumnName = "id", nullable = false)
+    private CategoryItem categoryItem;
 }
