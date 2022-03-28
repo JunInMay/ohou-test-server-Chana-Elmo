@@ -21,9 +21,11 @@ public class SubCategory extends BaseTimeEntity {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(nullable = true)
-    private Long itemId;
+    @ManyToOne
+    @JoinColumn(name = "itemId", referencedColumnName = "id", nullable = true)
+    private SubCategoryItem subCategoryItem;
 
-    @Column(nullable = false)
-    private Long categoryId;
+    @ManyToOne
+    @JoinColumn(name = "parentCategoryId", referencedColumnName = "id", nullable = false)
+    private Category category;
 }

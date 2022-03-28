@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.ozip.dev.src.category.entity.SubCategory;
 import shop.ozip.dev.src.global.repository.BaseTimeEntity;
 import shop.ozip.dev.src.user.entity.User;
 
@@ -55,8 +56,9 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private int sellCount;
 
-    @Column(nullable = false)
-    private Long categoryId;
+    @ManyToOne
+    @JoinColumn(name = "categoryId", referencedColumnName = "id", nullable = false)
+    private SubCategory subCategory;
 
     @Column(columnDefinition = "TINYINT", nullable = false)
     private byte isDeal;
