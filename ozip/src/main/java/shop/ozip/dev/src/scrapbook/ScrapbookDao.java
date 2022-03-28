@@ -2,21 +2,15 @@
 package shop.ozip.dev.src.scrapbook;
 
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import shop.ozip.dev.src.comment.model.Comment;
-import shop.ozip.dev.src.comment.model.PostCommentsMediaFeedsRes;
-import shop.ozip.dev.src.feed.model.Feed;
-import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookMainTopRes;
-import shop.ozip.dev.src.scrapbook.model.PostBookmarksFeedRes;
-import shop.ozip.dev.src.scrapbook.model.PostBookmarksRes;
-import shop.ozip.dev.src.scrapbook.model.Scrapbook;
+import shop.ozip.dev.src.scrapbook.model.*;
 import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 
 @Repository
@@ -118,31 +112,35 @@ public class ScrapbookDao {
 
     @Transactional
     // 스크랩북 만들기
-    public PostBookmarksRes createScrapbook(Long userId, String name, String description) {
+    public PostBookmarksRes createScrapbook(Long userId, String name, String description, Integer isMain) {
 
         Object[] createScrapbookParams;
         String createScrapbookQuery;
         if (description != null){
             createScrapbookParams = new Object[]{
-                    userId, name, description
+                    userId, name, isMain, description
             };
             createScrapbookQuery = ""
                     + "INSERT INTO scrapbook "
                     + "            (user_id, "
                     + "             name, "
+                    + "             is_main, "
                     + "             description) "
                     + "VALUES     (?, "
+                    + "            ?, "
                     + "            ?, "
                     + "            ?);";
         }else {
             createScrapbookParams = new Object[]{
-                    userId, name
+                    userId, name, isMain
             };
             createScrapbookQuery = ""
                     + "INSERT INTO scrapbook "
                     + "            (user_id, "
-                    + "             name) "
+                    + "             name, "
+                    + "             is_main) "
                     + "VALUES     (?, "
+                    + "            ?, "
                     + "            ?);";
         }
         this.jdbcTemplate.update(createScrapbookQuery, createScrapbookParams);
@@ -154,10 +152,12 @@ public class ScrapbookDao {
 
 
     // 스크랩북 상단 정보 조회
-    public GetBookmarksScrapbookMainTopRes retrieveScrapbookTop(Long scrapbookId) {
+    public GetBookmarksScrapbookTopRes retrieveScrapbookTop(Long scrapbookId) {
         String retrieveScrapbookTopQuery = ""
                 + "SELECT main.id, "
                 + "       main.name, "
+                + "       main.description, "
+                + "       user.id as user_id, "
                 + "       user.profile_image_url, "
                 + "       user.nickname, "
                 + "       (SELECT Count(*) "
@@ -194,9 +194,11 @@ public class ScrapbookDao {
                 + "         ON main.user_id = user.id "
                 + "WHERE  main.id = ? ";
         return this.jdbcTemplate.queryForObject(retrieveScrapbookTopQuery,
-                (rs, rowNum) -> new GetBookmarksScrapbookMainTopRes(
+                (rs, rowNum) -> new GetBookmarksScrapbookTopRes(
                         rs.getLong("id"),
                         rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getLong("user_id"),
                         rs.getString("profile_image_url"),
                         rs.getString("nickname"),
                         rs.getInt("all_count"),
@@ -204,5 +206,79 @@ public class ScrapbookDao {
                         rs.getInt("homewarming_count"),
                         rs.getInt("knowhow_count")
                 ), scrapbookId);
+    }
+
+    public List<GetBookmarksScrapbook> retrieveSubScrapbook(Long userId, Long cursor) {
+        Object[] retrieveSubScrapbookParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveSubScrapbookQuery = ""
+                + "SELECT main.id, "
+                + "       main.name, "
+                + "       main.description, "
+                + "       IF (feed_count > 0, feed_count, 0) AS feed_count, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                AS thumbnail, "
+                + "       main.created_at + 0                AS standard "
+                + "FROM   (SELECT *, "
+                + "               (SELECT feed_id "
+                + "                FROM   scrapbook_feed "
+                + "                WHERE  scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                ORDER  BY created_at DESC "
+                + "                LIMIT  1) AS feed_id "
+                + "        FROM   scrapbook) AS main "
+                + "       LEFT JOIN feed "
+                + "              ON feed.id = main.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS feed_count, "
+                + "                         scrapbook_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY scrapbook_id) forFeedCount "
+                + "              ON main.id = forFeedCount.scrapbook_id "
+                + "WHERE  main.is_main != 1 "
+                + "       AND main.user_id = ? "
+                + "       AND main.created_at + 0 < ? "
+                + "ORDER  BY main.created_at DESC "
+                + "LIMIT  10 ";
+
+        return this.jdbcTemplate.query(retrieveSubScrapbookQuery,
+                (rs, rowNum) -> new GetBookmarksScrapbook(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getInt("feed_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveSubScrapbookParams);
     }
 }

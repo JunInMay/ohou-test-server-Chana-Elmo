@@ -7,12 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
-import shop.ozip.dev.src.feed.model.Feed;
-import shop.ozip.dev.src.feed.model.GetFeedsMediaFeedsMetaRes;
-import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookMainTopRes;
+import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbook;
+import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookTopRes;
 import shop.ozip.dev.src.scrapbook.model.Scrapbook;
 import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.utils.JwtService;
+
+import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -37,23 +38,44 @@ public class ScrapbookProvider {
     }
 
     // 스크랩북 상단 유저정보 + 피드 갯수 조회
-    public GetBookmarksScrapbookMainTopRes retrieveScrapbookTop(Long userId, Long scrapbookId) throws BaseException {
+    public GetBookmarksScrapbookTopRes retrieveScrapbookTop(Long userId, Long scrapbookId) throws BaseException {
         String methodName = "retrieveScrapbookTop";
-        if (!userDao.checkUserExistById(userId)){
-            throw new BaseException(USER_NOT_EXIST);
+        if (userId != null) {
+            if (!userDao.checkUserExistById(userId)) {
+                throw new BaseException(USER_NOT_EXIST);
+            }
+            if (scrapbookId == 0){
+                Scrapbook mainScrapbook = scrapbookDao.getMainScrapbookByUserId(userId);
+                scrapbookId = mainScrapbook.getId();
+            }
         }
-        if (scrapbookId == 0){
-            Scrapbook mainScrapbook = scrapbookDao.getMainScrapbookByUserId(userId);
-            scrapbookId = mainScrapbook.getId();
-        }
+
         if (!scrapbookDao.checkScrapbookById(scrapbookId)){
             throw new BaseException(SCRAPBOOK_NOT_EXIST);
         }
 
+        try{
+            GetBookmarksScrapbookTopRes getBookmarksScrapbookTopRes = scrapbookDao.retrieveScrapbookTop(scrapbookId);
+            return getBookmarksScrapbookTopRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    // 특정 유저가 만든 서브 스크랩북 조회
+    public List<GetBookmarksScrapbook> retrieveSubScrapbook(Long userId, Long cursor) throws BaseException{
+        String methodName = "retrieveSubScrapbook";
+        if (!userDao.checkUserExistById(userId)) {
+            throw new BaseException(USER_NOT_EXIST);
+        }
 
         try{
-            GetBookmarksScrapbookMainTopRes getBookmarksScrapbookMainTopRes = scrapbookDao.retrieveScrapbookTop(scrapbookId);
-            return getBookmarksScrapbookMainTopRes;
+            List<GetBookmarksScrapbook> getBookmarksScrapbookList = scrapbookDao.retrieveSubScrapbook(userId, cursor);
+            return getBookmarksScrapbookList;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());

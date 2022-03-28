@@ -52,6 +52,8 @@ public enum BaseResponseStatus {
     // 2300 : follow, bookmark
 
     // bookmark(2350~
+    EMPTY_SCRAPBOOK_ID(false, 2350, "스크랩북 ID를 입력해주세요."),
+    WRONG_SCRAPBOOK_ID(false, 2351, "잘못된 스크랩북 ID 입니다."),
 
     //[POST] app/bookmarks/feed
 

@@ -63,7 +63,7 @@ public class ScrapbookService {
     public PostBookmarksRes createScrapbook(PostBookmarksReq postBookmarksReq) throws BaseException{
         Long userId = jwtService.getUserId();
         try{
-            return scrapbookDao.createScrapbook(userId, postBookmarksReq.getName(), postBookmarksReq.getDescription());
+            return scrapbookDao.createScrapbook(userId, postBookmarksReq.getName(), postBookmarksReq.getDescription(), 0);
         }
         catch (Exception exception) {
             exception.printStackTrace();

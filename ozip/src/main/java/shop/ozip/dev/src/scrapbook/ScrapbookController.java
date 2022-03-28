@@ -4,15 +4,13 @@ package shop.ozip.dev.src.scrapbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import shop.ozip.dev.src.comment.model.PostCommentsMediaFeedsReq;
-import shop.ozip.dev.src.comment.model.PostCommentsMediaFeedsRes;
-import shop.ozip.dev.src.feed.model.GetFeedsMediaFeedsMetaRes;
 import shop.ozip.dev.src.scrapbook.model.*;
 import shop.ozip.dev.utils.JwtService;
+
+import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -86,14 +84,55 @@ public class ScrapbookController {
     */
     @ResponseBody
     @GetMapping("/scrapbook/main/top/{userId}")
-    public BaseResponse<GetBookmarksScrapbookMainTopRes> getBookmarksScrapbookMainTop(@PathVariable("userId") Long userId) {
+    public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookMainTop(@PathVariable("userId") Long userId) {
         if (userId == null){
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
         }
         try{
             Long scrapbookId = 0L;
-            GetBookmarksScrapbookMainTopRes getBookmarksScrapbookMainTopRes = scrapbookProvider.retrieveScrapbookTop(userId, scrapbookId);
-            return new BaseResponse<>(getBookmarksScrapbookMainTopRes);
+            GetBookmarksScrapbookTopRes getBookmarksScrapbookTopRes = scrapbookProvider.retrieveScrapbookTop(userId, scrapbookId);
+            return new BaseResponse<>(getBookmarksScrapbookTopRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 스크랩북 최상단 정보 조회 API
+    (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/top/:scrapbookId
+    */
+    @ResponseBody
+    @GetMapping("/scrapbook/top/{scrapbookId}")
+    public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookTop(@PathVariable("scrapbookId") Long scrapbookId) {
+        if (scrapbookId == null){
+            return new BaseResponse<>(EMPTY_SCRAPBOOK_ID);
+        }
+        if (scrapbookId == 0){
+            return new BaseResponse<>(WRONG_SCRAPBOOK_ID);
+        }
+        try{
+            GetBookmarksScrapbookTopRes getBookmarksScrapbookTopRes = scrapbookProvider.retrieveScrapbookTop(null, scrapbookId);
+            return new BaseResponse<>(getBookmarksScrapbookTopRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    특정 유저가 만든 모든 서브 스크랩북 조회 API
+    (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapbook/{userId}/{cursor}","/scrapbook/{userId}"})
+    public BaseResponse<List<GetBookmarksScrapbook>> getBookmarksScrapbook(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            List<GetBookmarksScrapbook> getBookmarksScrapbookList = scrapbookProvider.retrieveSubScrapbook(userId, cursor);
+            return new BaseResponse<>(getBookmarksScrapbookList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

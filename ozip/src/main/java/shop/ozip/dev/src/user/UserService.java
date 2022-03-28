@@ -8,6 +8,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.secret.Secret;
+import shop.ozip.dev.src.scrapbook.ScrapbookDao;
+import shop.ozip.dev.src.scrapbook.model.PostBookmarksRes;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -32,17 +34,19 @@ public class UserService {
     private final UserDao userDao;
     private final UserProvider userProvider;
     private final JwtService jwtService;
+    private final ScrapbookDao scrapbookDao;
 
 
     @Autowired
-    public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService) {
+    public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService, ScrapbookDao scrapbookDao) {
         this.userDao = userDao;
         this.userProvider = userProvider;
         this.jwtService = jwtService;
 
+        this.scrapbookDao = scrapbookDao;
     }
 
-    //POST
+    //POST 회원가입
     public PostUsersRes createUser(PostUsersReq postUsersReq) throws BaseException {
 
 
@@ -79,9 +83,13 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
-
+            
             postUsersReq.checkNullProfileImageUrl();
             Long userId = userDao.createUser(postUsersReq);
+
+            // 계정이 생성되었으므로 메인 스크랩북 만들어줌
+            PostBookmarksRes postBookmarksRes = scrapbookDao.createScrapbook(userId, "스크랩북", null, 1);
+            
             //jwt 발급.
             return new PostUsersRes(userId);
         } catch (Exception exception) {
