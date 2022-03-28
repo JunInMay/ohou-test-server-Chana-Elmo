@@ -1,13 +1,11 @@
 package shop.ozip.dev.src.product.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.product.model.GetPopularProductsRes;
+import shop.ozip.dev.src.product.model.GetProductDetailsInfoRes;
 import shop.ozip.dev.src.product.model.GetTodayDealProductsRes;
 import shop.ozip.dev.src.product.model.GetViewProductRes;
 import shop.ozip.dev.src.product.provider.ProductProvider;
@@ -47,6 +45,16 @@ public class ProductController {
         try {
             GetViewProductRes getViewProductRes = productProvider.retrieveViewProducts();
             return new BaseResponse<>(getViewProductRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    @GetMapping("/products/{productId}")
+    public BaseResponse<GetProductDetailsInfoRes> getProductDetailInfo(@PathVariable Long productId) {
+        try {
+            GetProductDetailsInfoRes getProductDetailsInfoRes = productProvider.getProductDetailInfo(productId);
+            return new BaseResponse<>(getProductDetailsInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }

@@ -8,8 +8,11 @@ import shop.ozip.dev.src.product.entity.Product;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ProductInfoRes {
+public class DetailProductInfoRes {
+    // 상품 아이디
     private Long id;
+    // 상품 카테고리 정보
+    private String category;
     private String imgUrl;
     private String brand;
     private String name;
@@ -22,23 +25,24 @@ public class ProductInfoRes {
     private int deliveryAmount;
     private String description;
     private double ratedAverage;
-    // 별점별 개수 리스트
-//    private List<Riview>
+    // 별점 별 개수
+    private RatedCountList ratedCountList;
     // 문의 개수
-    // private int questionCount;
+    private int questionCount;
 
-    public ProductInfoRes(Product product) {
+    public DetailProductInfoRes(Product product) {
         this.id = product.getId();
+        this.imgUrl = product.getImgUrl();
+        this.brand = product.getBrand();
         this.name = product.getName();
+        this.reviewCount = product.getReviewCount();
+        this.isDeal = product.getIsDeal();
         this.price = product.getPrice();
-        this.deliveryAmount = product.getDeliveryAmount();
         this.discountRate = product.getDiscountRate();
         this.point = product.getPoint();
+        this.deliveryAmount = product.getDeliveryAmount();
         this.description = product.getDescription();
-        this.imgUrl = product.getImgUrl();
         this.ratedAverage = product.getRatedAverage();
-        this.reviewCount = product.getReviewCount();
-        this.brand = product.getBrand();
-        this.isDeal = product.getIsDeal();
+        this.questionCount = product.getQuestionCount();
     }
 }
