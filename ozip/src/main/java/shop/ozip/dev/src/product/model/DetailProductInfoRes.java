@@ -10,7 +10,7 @@ import shop.ozip.dev.src.product.entity.Product;
 @AllArgsConstructor
 public class DetailProductInfoRes {
     // 상품 아이디
-    private Long id;
+    private Long productId;
     // 상품 카테고리 정보
     private String category;
     private String imgUrl;
@@ -31,7 +31,7 @@ public class DetailProductInfoRes {
     private int questionCount;
 
     public DetailProductInfoRes(Product product) {
-        this.id = product.getId();
+        this.productId = product.getId();
         this.imgUrl = product.getImgUrl();
         this.brand = product.getBrand();
         this.name = product.getName();
