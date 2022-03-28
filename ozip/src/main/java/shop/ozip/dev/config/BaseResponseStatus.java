@@ -94,6 +94,8 @@ public enum BaseResponseStatus {
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
     SCRAPBOOK_NOT_EXIST(false, 3351, "존재하지 않는 스크랩북입니다."),
 
+    NAVER_API_ERROR(false, 3500, "네이버 API 응답에 오류가 있습니다."),
+
 
     /**
      * 4000 : Database, Server 오류

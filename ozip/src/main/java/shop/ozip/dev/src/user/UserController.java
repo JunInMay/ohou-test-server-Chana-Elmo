@@ -7,7 +7,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
 import shop.ozip.dev.utils.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import shop.ozip.dev.utils.ValidationRegex;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
@@ -98,6 +96,7 @@ public class UserController {
     @ResponseBody
     @PostMapping("")
     public BaseResponse<PostUsersRes> createUser(@RequestBody PostUsersReq postUsersReq) {
+
         // TODO: email 관련한 짧은 validation 예시입니다. 그 외 더 부가적으로 추가해주세요!
         if (postUsersReq.getProvider() == "local") {
             if (postUsersReq.getEmail() == null) {
@@ -135,7 +134,7 @@ public class UserController {
     // 카카오 로그인
     @ResponseBody
     @GetMapping("/kakao-login")
-    public BaseResponse<PostLoginRes> getKakaoUserLogin() {
+    public BaseResponse<PostLoginRes> getKakaoLogin() {
         try{
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
             String accessToken = request.getHeader("Access-Token");
@@ -173,6 +172,13 @@ public class UserController {
             return new BaseResponse<>(KAKAO_LOGIN_FAIL);
         }
     }
+
+
+
+
+
+
+
     /**
      * 유저정보변경 API
      * [PATCH] /users/:userIdx

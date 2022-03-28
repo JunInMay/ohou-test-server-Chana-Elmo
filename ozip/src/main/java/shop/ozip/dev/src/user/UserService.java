@@ -44,6 +44,8 @@ public class UserService {
 
     //POST
     public PostUsersRes createUser(PostUsersReq postUsersReq) throws BaseException {
+
+
         // 카카오 유저 회원가입일 경우
         if (postUsersReq.getProvider().equals("kakao")) {
             try {
@@ -77,6 +79,7 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR);
         }
         try{
+
             postUsersReq.checkNullProfileImageUrl();
             Long userId = userDao.createUser(postUsersReq);
             //jwt 발급.
@@ -189,4 +192,8 @@ public class UserService {
 
         return kakaoUserRes;
     }
+
+
+
+
 }
