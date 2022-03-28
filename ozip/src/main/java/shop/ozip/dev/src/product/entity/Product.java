@@ -54,6 +54,9 @@ public class Product extends BaseTimeEntity {
     private int reviewCount;
 
     @Column(nullable = false)
+    private int questionCount;
+
+    @Column(nullable = false)
     private int sellCount;
 
     @ManyToOne
