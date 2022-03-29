@@ -300,4 +300,15 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+
+    public List<GetFeedsScrappedMediaFeed> retrieveScrappedMediaFeed(Long scrapbookId, Long cursor) throws BaseException{
+        String methodName = "retrieveScrappedAll";
+        try {
+            return feedDao.retrieveScrappedMediaFeed(scrapbookId, cursor);
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
 }

@@ -112,7 +112,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/:lastValue?sort=&video=&home-type=&style=/
     */
     @ResponseBody
-    @GetMapping(value = {"/media-feeds/list", "/media-feeds/list/{cursor}"})
+    @GetMapping(value = {"/media-feeds", "/media-feeds/{cursor}"})
     public BaseResponse<List<GetFeedsMediaFeedsListRes>> getFeedsMediaFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="video", required=false, defaultValue="0") Integer video, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="style", required=false, defaultValue="0") Integer style) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -130,7 +130,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/homewarmings/list/:cursor?sort=&home-type=&acreage-start=&acreage-end=&budget-start=&budget-end&family=&style=&all-color=&wall-color=&floor-color=&detail=&category=&subject=
     */
     @ResponseBody
-    @GetMapping(value = {"/homewarmings/list", "homewarmings/list/{cursor}"})
+    @GetMapping(value = {"/homewarmings/", "homewarmings/{cursor}"})
     public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -149,7 +149,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/homewarmings/pro/list?sort=&home-type=&acreage-start=&acreage-end=&budget=&family=&style=&all-color=&wall-color=&floor-color=&detail=&category=&subject=
     */
     @ResponseBody
-    @GetMapping(value = {"/homewarmings/pro/list", "homewarmings/pro/list/{cursor}"})
+    @GetMapping(value = {"/homewarmings/pro", "homewarmings/pro/{cursor}"})
     public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsProList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -169,7 +169,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/knowhows/list/:cursor?sort=&theme=
     */
     @ResponseBody
-    @GetMapping(value = {"/knowhows/list", "knowhows/list/{cursor}"})
+    @GetMapping(value = {"/knowhows", "knowhows/{cursor}"})
     public BaseResponse<GetFeedsKnowhowFeedsListRes> getFeedsKnowhowFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="3") Integer sort, @RequestParam(value="theme", required=false, defaultValue="0") Integer theme) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -190,7 +190,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/follows/list
     */
     @ResponseBody
-    @GetMapping(value = {"/follows/list", "/follows/list/{cursor}"})
+    @GetMapping(value = {"/follows", "/follows/{cursor}"})
     public BaseResponse<List<GetFeedsFollowsListRes>> getFeedsFollowsList(@PathVariable(value = "cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MAX_VALUE;
@@ -336,6 +336,24 @@ public class FeedController {
         try{
             List<GetFeedsScrappedAll> getFeedsScrappedAllList = feedProvider.retrieveScrappedAll(scrapbookId, cursor);
             return new BaseResponse<>(getFeedsScrappedAllList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 스크랩북의 모든 미디어 관련 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/media-feed/:scrapbookId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/media-feed/{scrapbookId}","/scrapped/media-feed/{scrapbookId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMediaFeed>> getFeedsScrappedMediaFeed(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMediaFeed> getFeedsScrappedMediaFeedList = feedProvider.retrieveScrappedMediaFeed(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMediaFeedList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
