@@ -55,9 +55,10 @@ public enum BaseResponseStatus {
     EMPTY_SCRAPBOOK_ID(false, 2350, "스크랩북 ID를 입력해주세요."),
     WRONG_SCRAPBOOK_ID(false, 2351, "잘못된 스크랩북 ID 입니다."),
 
-    //[POST] app/bookmarks/feed
+    //[POST / DELETE] app/bookmarks/feed
 
     EMPTY_BOOKMARK_FEED_ID(false, 2360, "북마크할 피드의 id를 입력해주세요."),
+    EMPTY_BOOKMARK_FEED_ID_FOR_DELETE(false, 2361, "북마크 해제 할 피드의 id를 입력해주세요."),
 
     //[POST] app/bookmarks
     EMPTY_BOOKMARK_NAME(false, 2370, "만드려는 북마크의 이름을 입력해주세요."),
@@ -95,6 +96,7 @@ public enum BaseResponseStatus {
     // bookmark 3350~
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
     SCRAPBOOK_NOT_EXIST(false, 3351, "존재하지 않는 스크랩북입니다."),
+    NOT_SCRAPPED(false, 3360, "스크랩 되지 않은 피드입니다."),
 
     NAVER_API_ERROR(false, 3500, "네이버 API 응답에 오류가 있습니다."),
 

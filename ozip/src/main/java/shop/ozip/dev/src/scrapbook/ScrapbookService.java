@@ -60,6 +60,23 @@ public class ScrapbookService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 북마크 취소
+    public DeleteBookmarksFeedRes deleteBookmarkFeed(DeleteBookmarksFeedReq deleteBookmarksFeedReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        // 이미 북마크 해제된 관계인지
+        if (!scrapbookDao.checkBookmarkExist(userId, deleteBookmarksFeedReq.getFeedId())){
+            throw new BaseException(NOT_SCRAPPED);
+        }
+        try{
+            return scrapbookDao.deleteBookmarkFeed(userId, deleteBookmarksFeedReq.getFeedId());
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     
     // 스크랩북 만들기
     public PostBookmarksRes createScrapbook(PostBookmarksReq postBookmarksReq) throws BaseException{
@@ -72,4 +89,6 @@ public class ScrapbookService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+
 }

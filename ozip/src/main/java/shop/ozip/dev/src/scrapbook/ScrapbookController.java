@@ -55,6 +55,25 @@ public class ScrapbookController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    피드 북마크 취소하기 API
+    (POST) 127.0.0.1:9000/app/bookmarks/feed
+    */
+    @ResponseBody
+    @DeleteMapping("/feed")
+    public BaseResponse<DeleteBookmarksFeedRes> deleteBookmarksFeed(@RequestBody DeleteBookmarksFeedReq deleteBookmarksFeedReq) {
+
+        if (deleteBookmarksFeedReq.getFeedId() == null || deleteBookmarksFeedReq.getFeedId() == 0) {
+            return new BaseResponse<>(EMPTY_BOOKMARK_FEED_ID_FOR_DELETE);
+        }
+
+        try{
+            DeleteBookmarksFeedRes deleteBookmarksFeedRes = scrapbookService.deleteBookmarkFeed(deleteBookmarksFeedReq);
+            return new BaseResponse<>(deleteBookmarksFeedRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
     /*
     스크랩북(북마크 폴더) 만들기 API
@@ -85,7 +104,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/main/top/:userId
     */
     @ResponseBody
-    @GetMapping("/scrapbook/main/top/{userId}")
+    @GetMapping("/scrapbooks/main/top/{userId}")
     public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookMainTop(@PathVariable("userId") Long userId) {
         if (userId == null){
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
@@ -104,7 +123,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/top/:scrapbookId
     */
     @ResponseBody
-    @GetMapping("/scrapbook/top/{scrapbookId}")
+    @GetMapping("/scrapbooks/top/{scrapbookId}")
     public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookTop(@PathVariable("scrapbookId") Long scrapbookId) {
         if (scrapbookId == null){
             return new BaseResponse<>(EMPTY_SCRAPBOOK_ID);
@@ -124,7 +143,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/:userId/:cursor
     */
     @ResponseBody
-    @GetMapping(value = {"/scrapbook/{userId}/{cursor}","/scrapbook/{userId}"})
+    @GetMapping(value = {"/scrapbooks/{userId}/{cursor}","/scrapbooks/{userId}"})
     public BaseResponse<List<GetBookmarksScrapbook>> getBookmarksScrapbook(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
         if (userId == null){
             return new BaseResponse<>(USERS_EMPTY_USER_ID);

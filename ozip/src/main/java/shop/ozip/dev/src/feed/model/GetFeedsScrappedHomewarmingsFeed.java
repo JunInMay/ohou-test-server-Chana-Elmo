@@ -8,12 +8,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsScrappedMediaFeed {
+public class GetFeedsScrappedHomewarmingsFeed {
     private Long feedId;
-    private Integer isPhoto;
-    private Integer isMediaFeed;
-    private Integer videoTime;
+    private Integer isHomewarming;
     private String thumbnailUrl;
+    private String title;
+    private Long userId;
+    private String profileImageUrl;
+    private String userNickname;
+    private Integer isProfessional;
     private Long cursor;
 
 }

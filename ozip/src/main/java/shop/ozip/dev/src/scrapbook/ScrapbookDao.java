@@ -91,6 +91,7 @@ public class ScrapbookDao {
 
     
     // 피드 북마크하기
+    @Transactional
     public PostBookmarksFeedRes createBookmarkFeed(Long scrapbookId, Long feedId) {
         String createBookMarkFeedQuery = ""
                 + "INSERT INTO scrapbook_feed "
@@ -109,6 +110,23 @@ public class ScrapbookDao {
                 result
         );
     }
+    public DeleteBookmarksFeedRes deleteBookmarkFeed(Long userId, Long feedId) {
+        String deleteBookMarkFeedQuery = ""
+                + "DELETE scrapbook_feed "
+                + "FROM   scrapbook_feed "
+                + "       JOIN scrapbook "
+                + "         ON scrapbook_id = scrapbook.id "
+                + "WHERE  user_id = ? "
+                + "       AND feed_id = ?;";
+        Object[] deleteBookMarkFeedParams = new Object[]{
+                userId, feedId
+        };
+        int result = this.jdbcTemplate.update(deleteBookMarkFeedQuery, deleteBookMarkFeedParams);
+
+        return new DeleteBookmarksFeedRes(feedId, result);
+
+    }
+
 
     @Transactional
     // 스크랩북 만들기
@@ -281,4 +299,6 @@ public class ScrapbookDao {
                         rs.getLong("standard")
                 ), retrieveSubScrapbookParams);
     }
+
+
 }

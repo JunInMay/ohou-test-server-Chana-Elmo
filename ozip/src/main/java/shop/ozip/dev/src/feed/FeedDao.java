@@ -1618,12 +1618,12 @@ public class FeedDao {
                 ), retrieveScrappedAllParams);
     }
 
-    public List<GetFeedsScrappedMediaFeed> retrieveScrappedMediaFeed(Long scrapbookId, Long cursor) {
+    public List<GetFeedsScrappedMediaFeeds> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) {
 
-        Object[] retrieveScrappedMediaFeedParams = new Object[]{
+        Object[] retrieveScrappedMediaFeedsParams = new Object[]{
                 scrapbookId, cursor
         };
-        String retrieveScrappedMediaFeedQuery = ""
+        String retrieveScrappedMediaFeedsQuery = ""
                 + "SELECT * "
                 + "FROM   (SELECT @rownum := @rownum + 1 AS rownum, "
                 + "               b.* "
@@ -1705,14 +1705,222 @@ public class FeedDao {
                 + "        WHERE  ( @rownum := 0 ) = 0) main "
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
-        return this.jdbcTemplate.query(retrieveScrappedMediaFeedQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMediaFeed(
+        return this.jdbcTemplate.query(retrieveScrappedMediaFeedsQuery,
+                (rs, rowNum) -> new GetFeedsScrappedMediaFeeds(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_media_feed"),
                         rs.getInt("video_time"),
                         rs.getString("thumbnail"),
                         rs.getLong("rownum")
-                ), retrieveScrappedMediaFeedParams);
+                ), retrieveScrappedMediaFeedsParams);
+    }
+
+    public List<GetFeedsScrappedHomewarmingsFeed> retrieveScrappedHomewarmings(Long scrapbookId, Long cursor) {
+
+        Object[] retrieveScrappedHomewarmingsParams = new Object[]{
+                scrapbookId, cursor
+        };
+        String retrieveScrappedHomewarmingsQuery = ""
+                + "SELECT * "
+                + "FROM   (SELECT @rownum := @rownum + 1 AS rownum, "
+                + "               b.* "
+                + "        FROM   (SELECT CASE "
+                + "                         WHEN feed.is_video = 1 THEN (SELECT feed_id "
+                + "                                                      FROM   media_feed "
+                + "                                                      WHERE "
+                + "                         feed_id = (SELECT feed_id "
+                + "                                    FROM   feed_having_media "
+                + "                                    WHERE  media_id = "
+                + "                                           (SELECT id "
+                + "                                            FROM   media "
+                + "                                            WHERE  media.feed_id = "
+                + "                                                   feed.id) "
+                + "                                    LIMIT  1)) "
+                + "                         ELSE feed.id "
+                + "                       end "
+                + "                       AS "
+                + "                               alternative_id, "
+                + "                       feed.is_homewarming, "
+                + "                       CASE "
+                + "                         WHEN feed.is_media_feed = 1 "
+                + "                              AND (SELECT media_feed.is_photo "
+                + "                                   FROM   media_feed "
+                + "                                   WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                         ( "
+                + "                         SELECT url "
+                + "                         FROM   media "
+                + "                         WHERE "
+                + "                         media.id = (SELECT media_id "
+                + "                                     FROM   feed_having_media "
+                + "                                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                                     ORDER  BY feed_having_media.created_at "
+                + "                                     LIMIT  1)) "
+                + "                         WHEN feed.is_media_feed = 1 "
+                + "                              AND (SELECT media_feed.is_video "
+                + "                                   FROM   media_feed "
+                + "                                   WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                         ( "
+                + "                         SELECT "
+                + "                         thumbnail_url "
+                + "                         FROM "
+                + "                         media "
+                + "                         WHERE "
+                + "                         media.id = (SELECT media_id "
+                + "                                     FROM   feed_having_media "
+                + "                                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                                     LIMIT  1)) "
+                + "                         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "                         media.feed_id = feed.id) "
+                + "                         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "                         media.feed_id = feed.id) "
+                + "                         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "                         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "                         ELSE NULL "
+                + "                       end "
+                + "                       AS "
+                + "                               thumbnail, "
+                + "                       Concat(homewarming_feed.description, \"\", "
+                + "                       homewarming_feed.title) AS "
+                + "                               title, "
+                + "                       forUser.user_id "
+                + "                       AS "
+                + "                               user_id, "
+                + "                       forUser.profile_image_url, "
+                + "                       forUser.nickname, "
+                + "                       forUser.is_professional "
+                + "                FROM   scrapbook_feed "
+                + "                       JOIN (SELECT feed.*, "
+                + "                                    user.nickname, "
+                + "                                    user.profile_image_url, "
+                + "                                    user.is_professional "
+                + "                             FROM   feed "
+                + "                                    JOIN user "
+                + "                                      ON feed.user_id = user.id) AS forUser "
+                + "                         ON scrapbook_feed.feed_id = forUser.id "
+                + "                       JOIN feed "
+                + "                         ON scrapbook_feed.feed_id = feed.id "
+                + "                       JOIN homewarming_feed "
+                + "                         ON scrapbook_feed.feed_id = homewarming_feed.feed_id "
+                + "                WHERE  scrapbook_id = ? "
+                + "                       AND ( feed.is_homewarming = 1 ) "
+                + "                ORDER  BY scrapbook_feed.created_at DESC) b "
+                + "        WHERE  ( @rownum := 0 ) = 0) main "
+                + "WHERE  rownum > ? "
+                + "LIMIT  10 ";
+        return this.jdbcTemplate.query(retrieveScrappedHomewarmingsQuery,
+                (rs, rowNum) -> new GetFeedsScrappedHomewarmingsFeed(
+                        rs.getLong("alternative_id"),
+                        rs.getInt("is_homewarming"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getLong("user_id"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("is_professional"),
+                        rs.getLong("rownum")
+                ), retrieveScrappedHomewarmingsParams);
+    }
+
+    public List<GetFeedsScrappedKnowhowsFeed> retrieveScrappedKnowhows(Long scrapbookId, Long cursor) {
+
+        Object[] retrieveScrappedKnowhowsParams = new Object[]{
+                scrapbookId, cursor
+        };
+        String retrieveScrappedKnowhowsQuery = ""
+                + "SELECT * "
+                + "FROM   (SELECT @rownum := @rownum + 1 AS rownum, "
+                + "               b.* "
+                + "        FROM   (SELECT CASE "
+                + "                         WHEN feed.is_video = 1 THEN (SELECT feed_id "
+                + "                                                      FROM   media_feed "
+                + "                                                      WHERE "
+                + "                         feed_id = (SELECT feed_id "
+                + "                                    FROM   feed_having_media "
+                + "                                    WHERE  media_id = "
+                + "                                           (SELECT id "
+                + "                                            FROM   media "
+                + "                                            WHERE  media.feed_id = "
+                + "                                                   feed.id) "
+                + "                                    LIMIT  1)) "
+                + "                         ELSE feed.id "
+                + "                       end                                                   AS "
+                + "                       alternative_id, "
+                + "                       feed.is_knowhow, "
+                + "                       CASE "
+                + "                         WHEN feed.is_media_feed = 1 "
+                + "                              AND (SELECT media_feed.is_photo "
+                + "                                   FROM   media_feed "
+                + "                                   WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                         ( "
+                + "                         SELECT url "
+                + "                         FROM   media "
+                + "                         WHERE "
+                + "                         media.id = (SELECT media_id "
+                + "                                     FROM   feed_having_media "
+                + "                                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                                     ORDER  BY feed_having_media.created_at "
+                + "                                     LIMIT  1)) "
+                + "                         WHEN feed.is_media_feed = 1 "
+                + "                              AND (SELECT media_feed.is_video "
+                + "                                   FROM   media_feed "
+                + "                                   WHERE  media_feed.feed_id = feed.id) = 1 THEN "
+                + "                         ( "
+                + "                         SELECT "
+                + "                         thumbnail_url "
+                + "                         FROM "
+                + "                         media "
+                + "                         WHERE "
+                + "                         media.id = (SELECT media_id "
+                + "                                     FROM   feed_having_media "
+                + "                                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                                     LIMIT  1)) "
+                + "                         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "                         media.feed_id = feed.id) "
+                + "                         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                                      FROM   media "
+                + "                                                      WHERE "
+                + "                         media.feed_id = feed.id) "
+                + "                         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "                         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "                         ELSE NULL "
+                + "                       end                                                   AS "
+                + "                       thumbnail, "
+                + "                       Concat(forKnowhow.description, \"\", forKnowhow.title) AS "
+                + "                       title, "
+                + "                       forKnowhow.name                                       AS "
+                + "                       theme_name "
+                + "                FROM   scrapbook_feed "
+                + "                       JOIN feed "
+                + "                         ON scrapbook_feed.feed_id = feed.id "
+                + "                       JOIN (SELECT knowhow_feed.*, "
+                + "                                    knowhow_theme_type.name "
+                + "                             FROM   knowhow_feed "
+                + "                                    JOIN knowhow_theme_type "
+                + "                                      ON knowhow_theme_type.id = "
+                + "                                         knowhow_feed.knowhow_theme_type_id) AS "
+                + "                                          forKnowhow "
+                + "                         ON scrapbook_feed.feed_id = forKnowhow.feed_id "
+                + "                WHERE  scrapbook_id = ? "
+                + "                       AND ( feed.is_knowhow = 1 ) "
+                + "                ORDER  BY scrapbook_feed.created_at DESC) b "
+                + "        WHERE  ( @rownum := 0 ) = 0) main "
+                + "WHERE  rownum > ? "
+                + "LIMIT  10 ";
+        return this.jdbcTemplate.query(retrieveScrappedKnowhowsQuery,
+                (rs, rowNum) -> new GetFeedsScrappedKnowhowsFeed(
+                        rs.getLong("alternative_id"),
+                        rs.getInt("is_knowhow"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getString("theme_name"),
+                        rs.getLong("rownum")
+                ), retrieveScrappedKnowhowsParams);
     }
 }

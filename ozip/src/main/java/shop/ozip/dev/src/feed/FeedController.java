@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import shop.ozip.dev.src.feed.FeedProvider;
-import shop.ozip.dev.src.feed.FeedService;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
@@ -187,7 +185,7 @@ public class FeedController {
 
     /*
     팔로우탭 - 유저가 팔로우한 키워드 + 유저들의 피드 리스트 조회 API
-    (GET) 127.0.0.1:9000/app/feeds/follows/list
+    (GET) 127.0.0.1:9000/app/feeds/follows
     */
     @ResponseBody
     @GetMapping(value = {"/follows", "/follows/{cursor}"})
@@ -343,17 +341,52 @@ public class FeedController {
 
     /*
     특정 스크랩북의 모든 미디어 관련 피드 조회 API
-    (GET) 127.0.0.1:9000/app/feeds/scrapped/media-feed/:scrapbookId/:cursor
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/media-feeds/:scrapbookId/:cursor
     */
     @ResponseBody
-    @GetMapping(value = {"/scrapped/media-feed/{scrapbookId}","/scrapped/media-feed/{scrapbookId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMediaFeed>> getFeedsScrappedMediaFeed(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+    @GetMapping(value = {"/scrapped/media-feeds/{scrapbookId}","/scrapped/media-feeds/{scrapbookId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMediaFeeds>> getFeedsScrappedMediaFeeds(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMediaFeed> getFeedsScrappedMediaFeedList = feedProvider.retrieveScrappedMediaFeed(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedMediaFeedList);
+            List<GetFeedsScrappedMediaFeeds> getFeedsScrappedMediaFeedsList = feedProvider.retrieveScrappedMediaFeeds(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMediaFeedsList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 스크랩북의 집들이 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/homewarmings/:scrapbookId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/homewarmings/{scrapbookId}","/scrapped/homewarmings/{scrapbookId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedHomewarmingsFeed>> getFeedsScrappedHomewarmings(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedHomewarmingsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedHomewarmings(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    특정 스크랩북의 노하우 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/knowhows/:scrapbookId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/knowhows/{scrapbookId}","/scrapped/knowhows/{scrapbookId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedKnowhowsFeed>> getFeedsScrappedKnowhows(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedKnowhowsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedKnowhows(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
