@@ -71,18 +71,18 @@ public class FeedController {
         }
     }
     /*
-    해당 미디어 피드의 하단 정보 조회 API
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds/{feedId}}/bottom
+    특정 피드의 하단 정보 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/{feedId}/bottom
     */
     @ResponseBody
-    @GetMapping("/media-feeds/{feedId}/bottom")
-    public BaseResponse<GetFeedsMediaFeedsBottomRes> getFeedsMediaFeedsBottom(@PathVariable("feedId") Long feedId) {
+    @GetMapping("/{feedId}/bottom")
+    public BaseResponse<GetFeedsBottomRes> getFeedsMediaFeedsBottom(@PathVariable("feedId") Long feedId) {
         if (feedId == null){
             return new BaseResponse<>(EMPTY_FEED_ID);
         }
         try{
-            GetFeedsMediaFeedsBottomRes getFeedsMediaFeedsBottomRes = feedProvider.retrieveMediaFeedBottom(feedId);
-            return new BaseResponse<>(getFeedsMediaFeedsBottomRes);
+            GetFeedsBottomRes getFeedsBottomRes = feedProvider.retrieveFeedBottom(feedId);
+            return new BaseResponse<>(getFeedsBottomRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -465,6 +465,43 @@ public class FeedController {
         }
     }
 
+    /*
+    미디어 상세 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/medias/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/medias/{feedId}")
+    public BaseResponse<GetFeedsMediasRes> getFeedsMedias(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetFeedsMediasRes getFeedsMediasRes = feedProvider.retrieveMedia(feedId);
+            return new BaseResponse<>(getFeedsMediasRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
+    /*
+    유저들의 비슷한 공간 베스트 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/medias/similar-space/:feedId
+    */
+    @ResponseBody
+    @GetMapping(value = {"/medias/similar-space/{feedId}", "/medias/similar-space/{feedId}/{cursor}"})
+    public BaseResponse<List<GetFeedsMediasSimilarSpaceRes>> getFeedsMediasSimilarSpace(@PathVariable("feedId") Long feedId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsMediasSimilarSpaceRes> getFeedsMediasSimilarSpaceRes = feedProvider.retrieveMediasSimilarSpace(feedId, cursor);
+            return new BaseResponse<>(getFeedsMediasSimilarSpaceRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 }

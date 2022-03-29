@@ -92,6 +92,7 @@ public enum BaseResponseStatus {
 
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
+    IS_NOT_MEDIA(false,3201,"해당 피드는 사진 피드가 아닙니다."),
 
     // 3300 : follow, bookmark
 

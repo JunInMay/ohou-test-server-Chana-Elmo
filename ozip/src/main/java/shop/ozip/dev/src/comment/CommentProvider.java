@@ -45,10 +45,6 @@ public class CommentProvider {
         if (!feedDao.checkFeedExistById(feedId)) {
             throw new BaseException(FEED_NOT_EXIST);
         }
-        Feed feed = feedDao.getFeedById(feedId);
-        if (feed.getIsMediaFeed() != 1) {
-            throw new BaseException(IS_NOT_MEDIA_FEED);
-        }
         try{
             List<GetCommentsPartResComment> getCommentsPartResCommentList = commentDao.retrieveCommentsPart(userId, feedId);
             Integer allCommentCount = commentDao.countCommentByFeedId(feedId);
@@ -76,10 +72,6 @@ public class CommentProvider {
         Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)) {
             throw new BaseException(FEED_NOT_EXIST);
-        }
-        Feed feed = feedDao.getFeedById(feedId);
-        if (feed.getIsMediaFeed() != 1) {
-            throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
             List<GetCommentsListResMainComment> getCommentsListResMainCommentList = commentDao.retrieveCommentsListMainComment(feedId, userId, cursor);

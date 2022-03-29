@@ -84,6 +84,9 @@ public class ScrapbookService {
         if (!scrapbookDao.checkScrapbookExistById(patchBookmarksFeedReq.getScrapbookId())){
             throw new BaseException(SCRAPBOOK_NOT_EXIST);
         }
+        if (!scrapbookDao.checkBookmarkExist(userId, patchBookmarksFeedReq.getFeedId())){
+            throw new BaseException(NOT_SCRAPPED);
+        }
         Scrapbook scrapbook = scrapbookDao.getScrapbookById(patchBookmarksFeedReq.getScrapbookId());
         if (scrapbook.getUserId() != userId){
             throw new BaseException(NOT_SCRAPBOOK_OWNER);

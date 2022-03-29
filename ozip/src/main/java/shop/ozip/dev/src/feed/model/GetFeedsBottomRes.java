@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsMediaFeedsBottomRes {
+public class GetFeedsBottomRes {
     private Long userId;
     private String profileImageUrl;
     private String nickname;
