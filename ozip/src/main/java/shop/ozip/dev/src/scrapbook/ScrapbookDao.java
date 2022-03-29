@@ -61,6 +61,27 @@ public class ScrapbookDao {
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
                 ), userId);
     }
+
+    // 스크랩북 ID로 가져오기
+    public Scrapbook getScrapbookById(Long scrapbookId){
+//        getMainScrapbookByUserIdParams
+        String getScrapbookByIdQuery = ""
+                + "SELECT * "
+                + "FROM   scrapbook "
+                + "WHERE  id = ? ";
+
+        return this.jdbcTemplate.queryForObject(getScrapbookByIdQuery,
+                (rs, rowNum) -> new Scrapbook(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getInt("is_main"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at"))
+                ), scrapbookId);
+    }
+
     // 해당 피드를 이미 북마크했는지 체크
     public boolean checkBookmarkExist(Long userId, Long feedId) {
         String checkBookmarkExistQuery = ""
@@ -166,6 +187,64 @@ public class ScrapbookDao {
         Long recentId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
 
         return new PostBookmarksRes(recentId);
+    }
+
+
+
+    // 스크랩북 수정하기
+    @Transactional
+    public PatchBookmarksRes updateScrapbook(PatchBookmarksReq patchBookmarksReq) {
+
+        Object[] createScrapbookParams = new Object[]{
+                patchBookmarksReq.getName(),
+                patchBookmarksReq.getDescription(),
+                patchBookmarksReq.getScrapbookId()
+        };
+        String createScrapbookQuery = ""
+                + "UPDATE scrapbook "
+                + "SET    name = ?, "
+                + "       description = ? "
+                + "WHERE  id = ? ";
+
+        Integer result = this.jdbcTemplate.update(createScrapbookQuery, createScrapbookParams);
+
+        return new PatchBookmarksRes(patchBookmarksReq.getScrapbookId(), patchBookmarksReq.getName(), patchBookmarksReq.getDescription(), result);
+
+    }
+    
+    // 스크랩북 삭제하기(삭제하고 내부에 속한 피드들은 메인으로 옮기기)
+    @Transactional
+    public DeleteBookmarksRes deleteScrapbook(DeleteBookmarksReq deleteBookmarksReq, Long mainScrapbookId) {
+        Object[] deleteScrapbookParams = new Object[]{
+                deleteBookmarksReq.getScrapbookId()
+        };
+        String deleteScrapbookQuery = ""
+                + "DELETE FROM scrapbook "
+                + "WHERE  id = ? ";
+
+
+
+        Integer result = this.jdbcTemplate.update(deleteScrapbookQuery, deleteScrapbookParams);
+        Integer migrateResult = migrateFeedInScrapbook(deleteBookmarksReq.getScrapbookId(), mainScrapbookId);
+
+        return new DeleteBookmarksRes(deleteBookmarksReq.getScrapbookId(), result);
+    }
+
+    // 특정 스크랩북에 있는 피드 전체를 다른 스크랩북으로 다 옮기기
+    @Transactional
+    public Integer migrateFeedInScrapbook(Long fromScrapbookId, Long toScrapbookId) {
+        Object[] migrateFeedInScrapbookParams = new Object[]{
+                toScrapbookId,
+                fromScrapbookId
+        };
+        String migrateFeedInScrapbookQuery = ""
+                + "UPDATE scrapbook_feed "
+                + "SET    scrapbook_id = ? "
+                + "WHERE  scrapbook_id = ? ";
+
+        Integer result = this.jdbcTemplate.update(migrateFeedInScrapbookQuery, migrateFeedInScrapbookParams);
+
+        return result;
     }
 
 

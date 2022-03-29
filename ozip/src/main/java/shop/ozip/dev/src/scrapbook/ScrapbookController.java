@@ -97,6 +97,48 @@ public class ScrapbookController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    스크랩북 내용 수정하기 API
+    (PATCH) 127.0.0.1:9000/app/bookmarks
+    */
+    @ResponseBody
+    @PatchMapping("")
+    public BaseResponse<PatchBookmarksRes> patchBookmarks(@RequestBody PatchBookmarksReq patchBookmarksReq) {
+
+        if (patchBookmarksReq.getName() == null || patchBookmarksReq.getName() == ""){
+            return new BaseResponse<>(EMPTY_BOOKMARK_NAME);
+        }
+        if (patchBookmarksReq.getDescription().length() > 30){
+            return new BaseResponse<>(TOO_LONG_BOOKMARK_DESCRIPTION);
+        }
+
+        try{
+            PatchBookmarksRes patchBookmarksRes = scrapbookService.updateScrapbook(patchBookmarksReq);
+            return new BaseResponse<>(patchBookmarksRes);
+        }catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    스크랩북 삭제하기 API
+    (DELETE) 127.0.0.1:9000/app/bookmarks
+    */
+    @ResponseBody
+    @DeleteMapping("")
+    public BaseResponse<DeleteBookmarksRes> deleteBookmarks(@RequestBody DeleteBookmarksReq deleteBookmarksReq) {
+
+        if (deleteBookmarksReq.getScrapbookId() == null || deleteBookmarksReq.getScrapbookId() == 0){
+            return new BaseResponse<>(EMPTY_SCRAPBOOK_ID);
+        }
+
+        try{
+            DeleteBookmarksRes deleteBookmarksRes = scrapbookService.deleteScrapbook(deleteBookmarksReq);
+            return new BaseResponse<>(deleteBookmarksRes);
+        }catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 
     /*

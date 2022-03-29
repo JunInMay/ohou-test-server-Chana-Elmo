@@ -90,5 +90,44 @@ public class ScrapbookService {
         }
     }
 
+    // 스크랩북 수정하기
+    public PatchBookmarksRes updateScrapbook(PatchBookmarksReq patchBookmarksReq) throws BaseException {
+        Long userId = jwtService.getUserId();
+        Scrapbook scrapbook = scrapbookDao.getScrapbookById(patchBookmarksReq.getScrapbookId());
+        if (scrapbook.getIsMain() == 1) {
+            throw new BaseException(MAIN_CANT_PATCHED);
+        }
+        if (scrapbook.getUserId() != userId){
+            throw new BaseException(NOT_SCRAPBOOK_OWNER);
+        }
 
+        try{
+            return scrapbookDao.updateScrapbook(patchBookmarksReq);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 스크랩북 삭제하기
+    public DeleteBookmarksRes deleteScrapbook(DeleteBookmarksReq deleteBookmarksReq) throws BaseException {
+        Long userId = jwtService.getUserId();
+        Scrapbook mainScrapbook = scrapbookDao.getMainScrapbookByUserId(userId);
+        Scrapbook targetScrapbook = scrapbookDao.getScrapbookById(deleteBookmarksReq.getScrapbookId());
+        if (targetScrapbook.getIsMain() == 1) {
+            throw new BaseException(MAIN_CANT_DELETED);
+        }
+        if (targetScrapbook.getUserId() != userId){
+            throw new BaseException(NOT_SCRAPBOOK_OWNER);
+        }
+
+        try{
+            return scrapbookDao.deleteScrapbook(deleteBookmarksReq, mainScrapbook.getId());
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

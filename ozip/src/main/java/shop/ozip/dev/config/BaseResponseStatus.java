@@ -61,8 +61,10 @@ public enum BaseResponseStatus {
     EMPTY_BOOKMARK_FEED_ID_FOR_DELETE(false, 2361, "북마크 해제 할 피드의 id를 입력해주세요."),
 
     //[POST] app/bookmarks
-    EMPTY_BOOKMARK_NAME(false, 2370, "만드려는 북마크의 이름을 입력해주세요."),
+    EMPTY_BOOKMARK_NAME(false, 2370, "북마크의 이름을 입력해주세요."),
     TOO_LONG_BOOKMARK_DESCRIPTION(false, 2371, "북마크의 한 줄 설명은 30자 이내여야 합니다."),
+
+
 
 
     /**
@@ -97,6 +99,13 @@ public enum BaseResponseStatus {
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
     SCRAPBOOK_NOT_EXIST(false, 3351, "존재하지 않는 스크랩북입니다."),
     NOT_SCRAPPED(false, 3360, "스크랩 되지 않은 피드입니다."),
+
+    // [PATCH] /app/bookmarks
+    MAIN_CANT_PATCHED(false, 3370, "메인 스크랩북은 수정할 수 없습니다."),
+    NOT_SCRAPBOOK_OWNER(false, 3371, "해당 스크랩북의 주인이 아닙니다."),
+
+    // [DELETED] /app/bookmarks
+    MAIN_CANT_DELETED(false, 3380, "메인 스크랩북은 삭제할 수 없습니다."),
 
     NAVER_API_ERROR(false, 3500, "네이버 API 응답에 오류가 있습니다."),
 
