@@ -8,5 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ColorOptions {
+    private Long optionId;
     private String color;
 }
