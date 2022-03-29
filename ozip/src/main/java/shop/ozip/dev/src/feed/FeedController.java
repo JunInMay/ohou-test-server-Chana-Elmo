@@ -340,6 +340,24 @@ public class FeedController {
     }
 
     /*
+    메인 스크랩북의 모든 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/all/:userId
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/all/{userId}","/scrapped/main/all/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainAll>> getFeedsScrappedMainAll(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainAll> getFeedsScrappedMainAllList = feedProvider.retrieveScrappedMainAll(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainAllList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     특정 스크랩북의 모든 미디어 관련 피드 조회 API
     (GET) 127.0.0.1:9000/app/feeds/scrapped/media-feeds/:scrapbookId/:cursor
     */
@@ -352,6 +370,24 @@ public class FeedController {
         try{
             List<GetFeedsScrappedMediaFeeds> getFeedsScrappedMediaFeedsList = feedProvider.retrieveScrappedMediaFeeds(scrapbookId, cursor);
             return new BaseResponse<>(getFeedsScrappedMediaFeedsList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    메인 스크랩북의 모든 미디어 관련 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/media-feeds/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/media-feeds/{userId}","/scrapped/main/media-feeds/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainMediaFeeds>> getFeedsScrappedMainMediaFeeds(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainMediaFeeds> getFeedsScrappedMainMediaFeedsList = feedProvider.retrieveScrappedMainMediaFeeds(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainMediaFeedsList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

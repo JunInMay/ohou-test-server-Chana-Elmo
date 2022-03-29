@@ -300,8 +300,9 @@ public class FeedProvider {
         }
     }
 
+    // 해당 스크랩북에 스크랩된 미디어 관룐 피드들 조회
     public List<GetFeedsScrappedMediaFeeds> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) throws BaseException{
-        String methodName = "retrieveScrappedAll";
+        String methodName = "retrieveScrappedMediaFeeds";
         try {
             return feedDao.retrieveScrappedMediaFeeds(scrapbookId, cursor);
         } catch (Exception exception) {
@@ -332,5 +333,28 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
 
+    }
+
+    // 특정 유저의 스크랩북의 전체탭
+    public List<GetFeedsScrappedMainAll> retrieveScrappedMainAll(Long userId, Long cursor) throws BaseException {
+        String methodName = "retrieveScrappedMainAll";
+        try {
+            return feedDao.retrieveScrappedMainAll(userId, cursor);
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
+
+    public List<GetFeedsScrappedMainMediaFeeds> retrieveScrappedMainMediaFeeds(Long userId, Long cursor) throws BaseException {
+        String methodName = "retrieveScrappedMainMediaFeeds";
+        try {
+            return feedDao.retrieveScrappedMainMediaFeeds(userId, cursor);
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
     }
 }
