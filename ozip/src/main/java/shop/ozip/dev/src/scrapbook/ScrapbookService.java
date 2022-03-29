@@ -60,12 +60,70 @@ public class ScrapbookService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 북마크 취소
+    public DeleteBookmarksFeedRes deleteBookmarkFeed(DeleteBookmarksFeedReq deleteBookmarksFeedReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        // 이미 북마크 해제된 관계인지
+        if (!scrapbookDao.checkBookmarkExist(userId, deleteBookmarksFeedReq.getFeedId())){
+            throw new BaseException(NOT_SCRAPPED);
+        }
+        try{
+            return scrapbookDao.deleteBookmarkFeed(userId, deleteBookmarksFeedReq.getFeedId());
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     
     // 스크랩북 만들기
     public PostBookmarksRes createScrapbook(PostBookmarksReq postBookmarksReq) throws BaseException{
         Long userId = jwtService.getUserId();
         try{
             return scrapbookDao.createScrapbook(userId, postBookmarksReq.getName(), postBookmarksReq.getDescription(), 0);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 스크랩북 수정하기
+    public PatchBookmarksRes updateScrapbook(PatchBookmarksReq patchBookmarksReq) throws BaseException {
+        Long userId = jwtService.getUserId();
+        Scrapbook scrapbook = scrapbookDao.getScrapbookById(patchBookmarksReq.getScrapbookId());
+        if (scrapbook.getIsMain() == 1) {
+            throw new BaseException(MAIN_CANT_PATCHED);
+        }
+        if (scrapbook.getUserId() != userId){
+            throw new BaseException(NOT_SCRAPBOOK_OWNER);
+        }
+
+        try{
+            return scrapbookDao.updateScrapbook(patchBookmarksReq);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 스크랩북 삭제하기
+    public DeleteBookmarksRes deleteScrapbook(DeleteBookmarksReq deleteBookmarksReq) throws BaseException {
+        Long userId = jwtService.getUserId();
+        Scrapbook mainScrapbook = scrapbookDao.getMainScrapbookByUserId(userId);
+        Scrapbook targetScrapbook = scrapbookDao.getScrapbookById(deleteBookmarksReq.getScrapbookId());
+        if (targetScrapbook.getIsMain() == 1) {
+            throw new BaseException(MAIN_CANT_DELETED);
+        }
+        if (targetScrapbook.getUserId() != userId){
+            throw new BaseException(NOT_SCRAPBOOK_OWNER);
+        }
+
+        try{
+            return scrapbookDao.deleteScrapbook(deleteBookmarksReq, mainScrapbook.getId());
         }
         catch (Exception exception) {
             exception.printStackTrace();

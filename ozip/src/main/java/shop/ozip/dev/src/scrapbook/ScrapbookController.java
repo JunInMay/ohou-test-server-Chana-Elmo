@@ -55,6 +55,25 @@ public class ScrapbookController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    피드 북마크 취소하기 API
+    (POST) 127.0.0.1:9000/app/bookmarks/feed
+    */
+    @ResponseBody
+    @DeleteMapping("/feed")
+    public BaseResponse<DeleteBookmarksFeedRes> deleteBookmarksFeed(@RequestBody DeleteBookmarksFeedReq deleteBookmarksFeedReq) {
+
+        if (deleteBookmarksFeedReq.getFeedId() == null || deleteBookmarksFeedReq.getFeedId() == 0) {
+            return new BaseResponse<>(EMPTY_BOOKMARK_FEED_ID_FOR_DELETE);
+        }
+
+        try{
+            DeleteBookmarksFeedRes deleteBookmarksFeedRes = scrapbookService.deleteBookmarkFeed(deleteBookmarksFeedReq);
+            return new BaseResponse<>(deleteBookmarksFeedRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
     /*
     스크랩북(북마크 폴더) 만들기 API
@@ -78,6 +97,48 @@ public class ScrapbookController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    스크랩북 내용 수정하기 API
+    (PATCH) 127.0.0.1:9000/app/bookmarks
+    */
+    @ResponseBody
+    @PatchMapping("")
+    public BaseResponse<PatchBookmarksRes> patchBookmarks(@RequestBody PatchBookmarksReq patchBookmarksReq) {
+
+        if (patchBookmarksReq.getName() == null || patchBookmarksReq.getName() == ""){
+            return new BaseResponse<>(EMPTY_BOOKMARK_NAME);
+        }
+        if (patchBookmarksReq.getDescription().length() > 30){
+            return new BaseResponse<>(TOO_LONG_BOOKMARK_DESCRIPTION);
+        }
+
+        try{
+            PatchBookmarksRes patchBookmarksRes = scrapbookService.updateScrapbook(patchBookmarksReq);
+            return new BaseResponse<>(patchBookmarksRes);
+        }catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    스크랩북 삭제하기 API
+    (DELETE) 127.0.0.1:9000/app/bookmarks
+    */
+    @ResponseBody
+    @DeleteMapping("")
+    public BaseResponse<DeleteBookmarksRes> deleteBookmarks(@RequestBody DeleteBookmarksReq deleteBookmarksReq) {
+
+        if (deleteBookmarksReq.getScrapbookId() == null || deleteBookmarksReq.getScrapbookId() == 0){
+            return new BaseResponse<>(EMPTY_SCRAPBOOK_ID);
+        }
+
+        try{
+            DeleteBookmarksRes deleteBookmarksRes = scrapbookService.deleteScrapbook(deleteBookmarksReq);
+            return new BaseResponse<>(deleteBookmarksRes);
+        }catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 
     /*
@@ -85,7 +146,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/main/top/:userId
     */
     @ResponseBody
-    @GetMapping("/scrapbook/main/top/{userId}")
+    @GetMapping("/scrapbooks/main/top/{userId}")
     public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookMainTop(@PathVariable("userId") Long userId) {
         if (userId == null){
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
@@ -104,7 +165,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/top/:scrapbookId
     */
     @ResponseBody
-    @GetMapping("/scrapbook/top/{scrapbookId}")
+    @GetMapping("/scrapbooks/top/{scrapbookId}")
     public BaseResponse<GetBookmarksScrapbookTopRes> getBookmarksScrapbookTop(@PathVariable("scrapbookId") Long scrapbookId) {
         if (scrapbookId == null){
             return new BaseResponse<>(EMPTY_SCRAPBOOK_ID);
@@ -124,7 +185,7 @@ public class ScrapbookController {
     (GET) 127.0.0.1:9000/app/bookmarks/scrapbook/:userId/:cursor
     */
     @ResponseBody
-    @GetMapping(value = {"/scrapbook/{userId}/{cursor}","/scrapbook/{userId}"})
+    @GetMapping(value = {"/scrapbooks/{userId}/{cursor}","/scrapbooks/{userId}"})
     public BaseResponse<List<GetBookmarksScrapbook>> getBookmarksScrapbook(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
         if (userId == null){
             return new BaseResponse<>(USERS_EMPTY_USER_ID);

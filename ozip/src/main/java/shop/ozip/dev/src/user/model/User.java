@@ -19,9 +19,9 @@ public class User {
     private String personalUrl;
     private String description;
     private Integer point;
-    private Integer isDeleted;
+    private String status;
     private Integer isProfessional;
-    private Integer isProvider;
+    private Integer isSeller;
     private String createdAt;
     private String updatedAt;
 }

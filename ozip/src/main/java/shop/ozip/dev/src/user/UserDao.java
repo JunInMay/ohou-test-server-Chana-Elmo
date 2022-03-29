@@ -47,9 +47,9 @@ public class UserDao {
                         rs.getString("personal_url"),
                         rs.getString("description"),
                         rs.getInt("point"),
-                        rs.getInt("is_deleted"),
+                        rs.getString("status"),
                         rs.getInt("is_professional"),
-                        rs.getInt("is_provider"),
+                        rs.getInt("is_seller"),
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
                         Common.formatTimeStamp(rs.getTimestamp("created_at"))),
                 retrieveUserParams);
@@ -72,9 +72,9 @@ public class UserDao {
                         rs.getString("personal_url"),
                         rs.getString("description"),
                         rs.getInt("point"),
-                        rs.getInt("is_deleted"),
+                        rs.getString("status"),
                         rs.getInt("is_professional"),
-                        rs.getInt("is_provider"),
+                        rs.getInt("is_seller"),
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
                         Common.formatTimeStamp(rs.getTimestamp("created_at"))),
                 id);
