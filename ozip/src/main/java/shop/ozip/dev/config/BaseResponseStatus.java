@@ -92,11 +92,15 @@ public enum BaseResponseStatus {
 
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
+    IS_NOT_MEDIA(false,3201,"해당 피드는 사진 피드가 아닙니다."),
 
     // 3300 : follow, bookmark
 
     POST_FOLLOW_ALREADY_FOLLOW(false,3310,"이미 팔로우한 관계입니다."),
     DELETE_FOLLOW_NOT_EXIST(false,3320,"팔로우되지 않은 관계입니다."),
+
+    // 3400 : homewarming 관련
+    IS_NOT_HOMEWARMING_FEED(false,3400,"해당 피드는 집들이 피드가 아닙니다."),
 
     // bookmark 3350~
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),

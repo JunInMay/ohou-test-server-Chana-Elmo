@@ -183,7 +183,9 @@ public class UserDao {
                 + "                           12), "
                 + "              \"년 전\" "
                 + "              ) "
-                + "       end                                           AS uploaded_at "
+                + "       end                                                 AS uploaded_at, "
+                + "       date_format(feed.created_at, \'%Y년 %m월 %d일\')     AS uploaded_date, "
+                + "       user.is_professional                                AS is_professional "
                 + "FROM   feed "
                 + "       JOIN user "
                 + "         ON feed.user_id = user.id "
@@ -200,7 +202,9 @@ public class UserDao {
                         rs.getString("profile_image_url"),
                         rs.getString("nickname"),
                         rs.getInt("is_followed"),
-                        rs.getString("uploaded_at")
+                        rs.getString("uploaded_at"),
+                        rs.getString("uploaded_date"),
+                        rs.getInt("is_professional")
                 ), retrieveUsersFeedsParams
         );
     }

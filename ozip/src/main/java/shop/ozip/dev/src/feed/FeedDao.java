@@ -118,6 +118,88 @@ public class FeedDao {
                         rs.getInt("is_bookmarked")
                 ), retrieveMediaFeedMediasParams);
     }
+
+    // 미디어(사진 단독) 상세 조회
+    public GetFeedsMediasResBase retrieveMedia(Long feedId) {
+        String retrieveMediaDetailQuery = ""
+                + "SELECT media.id                   AS media_id, "
+                + "       feed.id                    AS referred_id, "
+                + "       feed.is_homewarming, "
+                + "       feed.is_media_feed, "
+                + "       media.url                  AS url, "
+                + "       media.description, "
+                + "       (SELECT Count(*) "
+                + "        FROM   feed_having_media "
+                + "        WHERE  feed_id = feed.id) AS count "
+                + "FROM   media "
+                + "       JOIN (SELECT feed.*, "
+                + "                    media_id "
+                + "             FROM   feed_having_media "
+                + "                    JOIN feed "
+                + "                      ON feed.id = feed_having_media.feed_id "
+                + "             WHERE  ( feed.is_media_feed = 1 "
+                + "                       OR feed.is_homewarming = 1 )) feed "
+                + "         ON media.id = feed.media_id "
+                + "WHERE  media.feed_id = ? "
+                + "ORDER  BY feed.created_at ASC "
+                + "LIMIT  1;";
+        return this.jdbcTemplate.queryForObject(retrieveMediaDetailQuery,
+                (rs, rowNum) -> new GetFeedsMediasResBase(
+                        rs.getLong("media_id"),
+                        rs.getLong("referred_id"),
+                        rs.getInt("is_homewarming"),
+                        rs.getInt("is_media_feed"),
+                        rs.getString("url"),
+                        rs.getString("description"),
+                        rs.getInt("count")
+                ), feedId);
+    }
+
+    // 미디어(사진 단독) 상단에 들어가는 참조중인 피드의 메타 정보
+    public GetFeedsMediasResMeta retrieveMediaMetaByRefferedFeedId(Long feedId, int isHomewarming) {
+        String retrieveMediaMetaByRefferedFeedIdQuery;
+        if (isHomewarming == 1) {
+            retrieveMediaMetaByRefferedFeedIdQuery = ""
+                    + "         WHEN homewarming_feed.acreage < 10 THEN \"10평 미만\" "
+                    + "         WHEN homewarming_feed.acreage < 20 THEN \"10평대\" "
+                    + "         WHEN homewarming_feed.acreage < 30 THEN \"20평대\" "
+                    + "         WHEN homewarming_feed.acreage < 40 THEN \"30평대\" "
+                    + "         WHEN homewarming_feed.acreage < 50 THEN \"40평대\" "
+                    + "         ELSE \"50평 이상\" "
+                    + "       end     AS acreage, "
+                    + "       ht.name AS hometype, "
+                    + "       st.name AS style "
+                    + "FROM   homewarming_feed "
+                    + "       LEFT JOIN homewarming_home_type ht "
+                    + "              ON ht.id = homewarming_feed.homewarming_home_type_id "
+                    + "       LEFT JOIN homewarming_style_type st "
+                    + "              ON st.id = homewarming_feed.homewarming_style_type_id "
+                    + "WHERE  homewarming_feed.feed_id = ? ";
+        } else {
+            retrieveMediaMetaByRefferedFeedIdQuery = ""
+                    + "SELECT at.name AS acreage, "
+                    + "       ht.name AS hometype, "
+                    + "       st.name AS style "
+                    + "FROM   media_feed "
+                    + "       LEFT JOIN media_feed_acreage_type AS at "
+                    + "              ON at.id = media_feed.media_feed_acreage_type_id "
+                    + "       LEFT JOIN media_feed_home_type AS ht "
+                    + "              ON ht.id = media_feed.media_feed_home_type_id "
+                    + "       LEFT JOIN media_feed_style_type AS st "
+                    + "              ON st.id = media_feed.media_feed_style_type_id "
+                    + "WHERE  media_feed.feed_id = ? ";
+
+        }
+        return this.jdbcTemplate.queryForObject(retrieveMediaMetaByRefferedFeedIdQuery,
+                (rs, rowNum) -> new GetFeedsMediasResMeta(
+                        rs.getString("acreage"),
+                        rs.getString("hometype"),
+                        rs.getString("style")
+                ), feedId);
+    }
+
+
+
     
     // 해당 피드에 담긴 사진들 URL리스트만 가져오기
     public List<JustPhotoUrl> getJustPhotoUrlByFeedId(Long feedId){
@@ -1408,11 +1490,11 @@ public class FeedDao {
     }
 
     // 미디어 피드 하단에 노출되는 유저 정보 및 좋아요, 댓글 등
-    public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long userId, Long feedId) {
-        Object[] retrieveMediaFeedBottomParams = new Object[]{
+    public GetFeedsBottomRes retrieveFeedBottom(Long userId, Long feedId) {
+        Object[] retrieveFeedBottomParams = new Object[]{
                 userId, feedId
         };
-        String retrieveMediaFeedBottomQuery = ""
+        String retrieveFeedBottomQuery = ""
                 + "SELECT user.id                                       AS user_id, "
                 + "       user.profile_image_url, "
                 + "       user.nickname, "
@@ -1445,8 +1527,8 @@ public class FeedDao {
                 + "                  GROUP  BY feed_id) forCommentCount "
                 + "              ON feed.id = forCommentCount.feed_id "
                 + "WHERE  feed.id = ?";
-        return this.jdbcTemplate.queryForObject(retrieveMediaFeedBottomQuery,
-                (rs, rowNum) -> new GetFeedsMediaFeedsBottomRes(
+        return this.jdbcTemplate.queryForObject(retrieveFeedBottomQuery,
+                (rs, rowNum) -> new GetFeedsBottomRes(
                         rs.getLong("user_id"),
                         rs.getString("profile_image_url"),
                         rs.getString("nickname"),
@@ -1457,7 +1539,7 @@ public class FeedDao {
                         rs.getInt("scrapped_count"),
                         rs.getInt("comment_count"),
                         rs.getInt("view_count")
-                ), retrieveMediaFeedBottomParams);
+                ), retrieveFeedBottomParams);
     }
 
     // 미디어 피드 하단에 노출되는 해당 미디어 피드를 올린 유저가 올린 다른 미디어 피드
@@ -1521,7 +1603,7 @@ public class FeedDao {
     }
 
     // 특정 스크랩북의 전체 탭
-    public List<GetFeedsScrappedAll> retrieveScrappedAll(Long scrapbookId, Long cursor) {
+    public List<GetFeedsScrappedAllRes> retrieveScrappedAll(Long scrapbookId, Long cursor) {
         Object[] retrieveScrappedAllParams = new Object[]{
                 scrapbookId, cursor
         };
@@ -1607,7 +1689,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10";
         return this.jdbcTemplate.query(retrieveScrappedAllQuery,
-                (rs, rowNum) -> new GetFeedsScrappedAll(
+                (rs, rowNum) -> new GetFeedsScrappedAllRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_media_feed"),
@@ -1620,7 +1702,7 @@ public class FeedDao {
     }
 
     // 메인 스크랩북의 전체 탭 조회
-    public List<GetFeedsScrappedMainAll> retrieveScrappedMainAll(Long userId, Long cursor) {
+    public List<GetFeedsScrappedMainAllRes> retrieveScrappedMainAll(Long userId, Long cursor) {
         Object[] retrieveScrappedMainAllParams = new Object[]{
                 userId, cursor
         };
@@ -1713,7 +1795,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedMainAllQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMainAll(
+                (rs, rowNum) -> new GetFeedsScrappedMainAllRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_media_feed"),
@@ -1726,7 +1808,7 @@ public class FeedDao {
     }
 
     // 특정 스크랩북의 미디어 관련 피드들 조회
-    public List<GetFeedsScrappedMediaFeeds> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) {
+    public List<GetFeedsScrappedMediaFeedsRes> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) {
 
         Object[] retrieveScrappedMediaFeedsParams = new Object[]{
                 scrapbookId, cursor
@@ -1814,7 +1896,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedMediaFeedsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMediaFeeds(
+                (rs, rowNum) -> new GetFeedsScrappedMediaFeedsRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_media_feed"),
@@ -1825,7 +1907,7 @@ public class FeedDao {
     }
 
     // 메인 스크랩북의 미디어 관련 피드들 조회
-    public List<GetFeedsScrappedMainMediaFeeds> retrieveScrappedMainMediaFeeds(Long userId, Long cursor) {
+    public List<GetFeedsScrappedMainMediaFeedsRes> retrieveScrappedMainMediaFeeds(Long userId, Long cursor) {
 
         Object[] retrieveScrappedMainMediaFeedsParams = new Object[]{
                 userId, cursor
@@ -1922,7 +2004,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedMainMediaFeedsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMainMediaFeeds(
+                (rs, rowNum) -> new GetFeedsScrappedMainMediaFeedsRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_photo"),
                         rs.getInt("is_media_feed"),
@@ -1934,7 +2016,7 @@ public class FeedDao {
 
 
     // 특정 스크랩북의 집들이 피드들 조회
-    public List<GetFeedsScrappedHomewarmingsFeed> retrieveScrappedHomewarmings(Long scrapbookId, Long cursor) {
+    public List<GetFeedsScrappedHomewarmingsFeedRes> retrieveScrappedHomewarmings(Long scrapbookId, Long cursor) {
 
         Object[] retrieveScrappedHomewarmingsParams = new Object[]{
                 scrapbookId, cursor
@@ -2031,7 +2113,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedHomewarmingsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedHomewarmingsFeed(
+                (rs, rowNum) -> new GetFeedsScrappedHomewarmingsFeedRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_homewarming"),
                         rs.getString("thumbnail"),
@@ -2045,7 +2127,7 @@ public class FeedDao {
     }
 
     // 메인 스크랩북의 집들이 피드들 조회
-    public List<GetFeedsScrappedMainHomewarmingsFeed> retrieveScrappedMainHomewarmings(Long userId, Long cursor) {
+    public List<GetFeedsScrappedMainHomewarmingsFeedRes> retrieveScrappedMainHomewarmings(Long userId, Long cursor) {
 
         Object[] retrieveScrappedMainHomewarmingsParams = new Object[]{
                 userId, cursor
@@ -2143,7 +2225,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedMainHomewarmingsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMainHomewarmingsFeed(
+                (rs, rowNum) -> new GetFeedsScrappedMainHomewarmingsFeedRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_homewarming"),
                         rs.getString("thumbnail"),
@@ -2158,7 +2240,7 @@ public class FeedDao {
 
 
     // 특정 스크랩북의 노하우 피드들 조회
-    public List<GetFeedsScrappedKnowhowsFeed> retrieveScrappedKnowhows(Long scrapbookId, Long cursor) {
+    public List<GetFeedsScrappedKnowhowsFeedRes> retrieveScrappedKnowhows(Long scrapbookId, Long cursor) {
 
         Object[] retrieveScrappedKnowhowsParams = new Object[]{
                 scrapbookId, cursor
@@ -2246,7 +2328,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedKnowhowsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedKnowhowsFeed(
+                (rs, rowNum) -> new GetFeedsScrappedKnowhowsFeedRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_knowhow"),
                         rs.getString("thumbnail"),
@@ -2257,7 +2339,7 @@ public class FeedDao {
     }
 
     // 메인 스크랩북의 노하우 피드들 조회
-    public List<GetFeedsScrappedMainKnowhowsFeed> retrieveScrappedMainKnowhows(Long userId, Long cursor) {
+    public List<GetFeedsScrappedMainKnowhowsFeedRes> retrieveScrappedMainKnowhows(Long userId, Long cursor) {
 
         Object[] retrieveScrappedMainKnowhowsParams = new Object[]{
                 userId, cursor
@@ -2361,7 +2443,7 @@ public class FeedDao {
                 + "WHERE  rownum > ? "
                 + "LIMIT  10 ";
         return this.jdbcTemplate.query(retrieveScrappedMainKnowhowsQuery,
-                (rs, rowNum) -> new GetFeedsScrappedMainKnowhowsFeed(
+                (rs, rowNum) -> new GetFeedsScrappedMainKnowhowsFeedRes(
                         rs.getLong("alternative_id"),
                         rs.getInt("is_knowhow"),
                         rs.getString("thumbnail"),
@@ -2369,5 +2451,152 @@ public class FeedDao {
                         rs.getString("theme_name"),
                         rs.getLong("rownum")
                 ), retrieveScrappedMainKnowhowsParams);
+    }
+
+
+    // 추천 사진 조회(사진, 미디어 피드 하단에 들어가는 유저들의 비슷한 공간 베스트에 들어갈 데이터)
+    public List<GetFeedsMediasSimilarSpaceRes> retrieveMediasSimilarSpace(Long userId, Long feedId, Long cursor) {
+        Object[] retrieveMediasSimilarSpaceParams = new Object[]{
+                userId, feedId, cursor
+        };
+        String retrieveMediasSimilarSpaceQuery = ""
+                + "SELECT feed.id, "
+                + "       media.url                       AS image_url, "
+                + "       media.description               AS description, "
+                + "       feed.is_photo, "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   scrapbook_feed "
+                + "                          JOIN scrapbook "
+                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                   WHERE  user_id = ?) AS is_bookmarked, "
+                + "       feed.created_at + 0             AS standard "
+                + "FROM   feed "
+                + "       JOIN media "
+                + "         ON media.feed_id = feed.id "
+                + "WHERE  feed.is_photo = 1 "
+                + "       AND feed.id != ? "
+                + "       AND feed.created_at + 0 < ? "
+                + "ORDER  BY feed.created_at + 0 DESC "
+                + "LIMIT  10 ";
+
+
+        return this.jdbcTemplate.query(retrieveMediasSimilarSpaceQuery,
+                (rs, rowNum) -> new GetFeedsMediasSimilarSpaceRes(
+                        rs.getLong("id"),
+                        rs.getString("image_url"),
+                        rs.getString("description"),
+                        rs.getInt("is_photo"),
+                        rs.getInt("is_bookmarked"),
+                        rs.getLong("standard")
+                ), retrieveMediasSimilarSpaceParams);
+    }
+
+    public GetFeedsHomewarmingsTop retrieveHomewarmingTop(Long feedId) {
+        Object[] retrieveHomewarmingTopParams = new Object[]{feedId};
+        String retrieveHomewarmingTopQuery = ""
+                + "SELECT CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                       AS thumbnail, "
+                + "       Concat(main.description, \"\", main.title) AS title, "
+                + "       ht.name                                   AS home, "
+                + "       ft.name                                   AS family, "
+                + "       ct.name                                   AS category, "
+                + "       sjt.name                                  AS subject, "
+                + "       stt.name                                  AS style, "
+                + "       dt.name                                   AS detail, "
+                + "       acreage, "
+                + "       Concat(budget, \"만원\")                  AS budget "
+                + "FROM   homewarming_feed main "
+                + "       JOIN feed "
+                + "         ON feed.id = main.feed_id "
+                + "       LEFT JOIN homewarming_home_type ht "
+                + "              ON ht.id = main.homewarming_home_type_id "
+                + "       LEFT JOIN homewarming_family_type ft "
+                + "              ON ft.id = main.homewarming_family_type_id "
+                + "       LEFT JOIN homewarming_category_type ct "
+                + "              ON ct.id = main.homewarming_family_type_id "
+                + "       LEFT JOIN homewarming_subject_type sjt "
+                + "              ON sjt.id = main.homewarming_subject_type_id "
+                + "       LEFT JOIN homewarming_style_type stt "
+                + "              ON stt.id = main.homewarming_style_type_id "
+                + "       LEFT JOIN homewarming_detail_type dt "
+                + "              ON dt.id = main.homewarming_detail_type_id "
+                + "WHERE  feed_id = ? ";
+
+        return this.jdbcTemplate.queryForObject(retrieveHomewarmingTopQuery,
+                (rs, rowNum) -> new GetFeedsHomewarmingsTop(
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getString("home"),
+                        rs.getString("family"),
+                        rs.getString("category"),
+                        rs.getString("subject"),
+                        rs.getString("style"),
+                        rs.getString("detail"),
+                        rs.getInt("acreage"),
+                        rs.getString("budget")
+                ), retrieveHomewarmingTopParams);
+    }
+
+    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId, Long userId) {
+        Object[] retrieveHomewarmingParams = new Object[]{userId, feedId};
+        String retrieveHomewarmingQuery = ""
+                + "SELECT media.photo_id                         AS feed_id, "
+                + "       media.url                              AS image_url, "
+                + "       media.photo_id IN (SELECT feed_id "
+                + "                          FROM   scrapbook_feed "
+                + "                                 JOIN scrapbook "
+                + "                                   ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                          WHERE  user_id = ?) AS is_bookmarked, "
+                + "       media.description                      AS description "
+                + "FROM   feed_having_media "
+                + "       JOIN (SELECT feed.id AS photo_id, "
+                + "                    media.url, "
+                + "                    media.description, "
+                + "                    media.id "
+                + "             FROM   media "
+                + "                    JOIN feed "
+                + "                      ON feed.id = media.feed_id) media "
+                + "         ON feed_having_media.media_id = media.id "
+                + "WHERE  feed_id = ? "
+                + "ORDER  BY feed_having_media.created_at DESC ";
+
+        return this.jdbcTemplate.query(retrieveHomewarmingQuery,
+                (rs, rowNum) -> new GetFeedsHomewarmings(
+                        rs.getLong("feed_id"),
+                        rs.getString("image_url"),
+                        rs.getString("is_bookmarked"),
+                        rs.getString("description")
+                ), retrieveHomewarmingParams);
     }
 }

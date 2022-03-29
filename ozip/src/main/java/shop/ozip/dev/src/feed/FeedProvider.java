@@ -62,20 +62,16 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-    // 미디어 피드 하단에 노출되는 유저 + 좋아요, 스크랩, 댓글, 조회 정보
-    public GetFeedsMediaFeedsBottomRes retrieveMediaFeedBottom(Long feedId) throws BaseException{
+    // 피드 하단에 노출되는 유저 + 좋아요, 스크랩, 댓글, 조회 정보
+    public GetFeedsBottomRes retrieveFeedBottom(Long feedId) throws BaseException{
         String methodName = "retrieveMediaFeedBottom";
         Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)) {
             throw new BaseException(FEED_NOT_EXIST);
         }
-        Feed feed = feedDao.getFeedById(feedId);
-        if (feed.getIsMediaFeed() != 1) {
-            throw new BaseException(IS_NOT_MEDIA_FEED);
-        }
         try{
-            GetFeedsMediaFeedsBottomRes getFeedsMediaFeedsBottomRes = feedDao.retrieveMediaFeedBottom(userId, feedId);
-            return getFeedsMediaFeedsBottomRes;
+            GetFeedsBottomRes getFeedsBottomRes = feedDao.retrieveFeedBottom(userId, feedId);
+            return getFeedsBottomRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -127,6 +123,44 @@ public class FeedProvider {
 
             MediaFeed mediaFeed = feedDao.getMediaFeedByFeedId(feedId);
             return new GetFeedsMediaFeedsRes(mediaFeed.getFeedId(), getFeedsMediaFeedsResBaseList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    
+    // 미디어(사진 단독 피드) 상세 조회하기
+    public GetFeedsMediasRes retrieveMedia(Long feedId) throws BaseException{
+        String methodName = "retrieveMedia";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsPhoto() != 1) {
+            throw new BaseException(IS_NOT_MEDIA);
+        }
+        try{
+            GetFeedsMediasResBase getFeedsMediasResBase = feedDao.retrieveMedia(feedId);
+            List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
+            GetFeedsMediasResMeta getFeedsMediasResMeta = feedDao.retrieveMediaMetaByRefferedFeedId(getFeedsMediasResBase.getReferredId(), getFeedsMediasResBase.getIsHomewarming());
+
+            return new GetFeedsMediasRes(
+                    getFeedsMediasResBase.getMediaId(),
+                    getFeedsMediasResBase.getReferredId(),
+                    getFeedsMediasResBase.getIsHomewarming(),
+                    getFeedsMediasResBase.getIsMediaFeed(),
+                    getFeedsMediasResMeta.getAcreage(),
+                    getFeedsMediasResMeta.getHometype(),
+                    getFeedsMediasResMeta.getStyle(),
+                    getFeedsMediasResBase.getImageUrl(),
+                    getFeedsMediasResBase.getDescription(),
+                    getFeedsMediasResBase.getCount(),
+                    keywordList
+            );
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -289,7 +323,7 @@ public class FeedProvider {
     }
 
     // 해당 스크랩북에 스크랩된 모든 피드 조회
-    public List<GetFeedsScrappedAll> retrieveScrappedAll(Long scrapbookId, Long cursor) throws BaseException{
+    public List<GetFeedsScrappedAllRes> retrieveScrappedAll(Long scrapbookId, Long cursor) throws BaseException{
         String methodName = "retrieveScrappedAll";
         try {
             return feedDao.retrieveScrappedAll(scrapbookId, cursor);
@@ -301,7 +335,7 @@ public class FeedProvider {
     }
 
     // 해당 스크랩북에 스크랩된 미디어 관련 피드들 조회
-    public List<GetFeedsScrappedMediaFeeds> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) throws BaseException{
+    public List<GetFeedsScrappedMediaFeedsRes> retrieveScrappedMediaFeeds(Long scrapbookId, Long cursor) throws BaseException{
         String methodName = "retrieveScrappedMediaFeeds";
         try {
             return feedDao.retrieveScrappedMediaFeeds(scrapbookId, cursor);
@@ -313,7 +347,7 @@ public class FeedProvider {
     }
 
     // 해당 스크랩북에 스크랩된 집들이 피드들 조회
-    public List<GetFeedsScrappedHomewarmingsFeed> retrieveScrappedHomewarmings(Long scrapbookId, Long cursor) throws BaseException{
+    public List<GetFeedsScrappedHomewarmingsFeedRes> retrieveScrappedHomewarmings(Long scrapbookId, Long cursor) throws BaseException{
         String methodName = "retrieveScrappedHomewarming";
         try {
             return feedDao.retrieveScrappedHomewarmings(scrapbookId, cursor);
@@ -325,7 +359,7 @@ public class FeedProvider {
     }
 
     // 해당 스크랩북에 스크랩된 노하우 피드들 조회
-    public List<GetFeedsScrappedKnowhowsFeed> retrieveScrappedKnowhows(Long scrapbookId, Long cursor) throws BaseException{
+    public List<GetFeedsScrappedKnowhowsFeedRes> retrieveScrappedKnowhows(Long scrapbookId, Long cursor) throws BaseException{
         String methodName = "retrieveScrappedKnowhows";
         try {
             return feedDao.retrieveScrappedKnowhows(scrapbookId, cursor);
@@ -338,7 +372,7 @@ public class FeedProvider {
     }
 
     // 특정 유저의 메인 스크랩북의 전체탭
-    public List<GetFeedsScrappedMainAll> retrieveScrappedMainAll(Long userId, Long cursor) throws BaseException {
+    public List<GetFeedsScrappedMainAllRes> retrieveScrappedMainAll(Long userId, Long cursor) throws BaseException {
         String methodName = "retrieveScrappedMainAll";
         try {
             return feedDao.retrieveScrappedMainAll(userId, cursor);
@@ -350,7 +384,7 @@ public class FeedProvider {
     }
 
     // 특정 유저의 메인 스크랩북의 미디어 관련 피드 조회(사진 탭)
-    public List<GetFeedsScrappedMainMediaFeeds> retrieveScrappedMainMediaFeeds(Long userId, Long cursor) throws BaseException {
+    public List<GetFeedsScrappedMainMediaFeedsRes> retrieveScrappedMainMediaFeeds(Long userId, Long cursor) throws BaseException {
         String methodName = "retrieveScrappedMainMediaFeeds";
         try {
             return feedDao.retrieveScrappedMainMediaFeeds(userId, cursor);
@@ -362,7 +396,7 @@ public class FeedProvider {
     }
 
     // 특정 유저의 메인 스크랩북의 집들이 탭 피드 조회
-    public List<GetFeedsScrappedMainHomewarmingsFeed> retrieveScrappedMainHomewarmings(Long userId, Long cursor) throws BaseException {String methodName = "retrieveScrappedHomewarming";
+    public List<GetFeedsScrappedMainHomewarmingsFeedRes> retrieveScrappedMainHomewarmings(Long userId, Long cursor) throws BaseException {String methodName = "retrieveScrappedHomewarming";
         try {
             return feedDao.retrieveScrappedMainHomewarmings(userId, cursor);
         } catch (Exception exception) {
@@ -371,8 +405,9 @@ public class FeedProvider {
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
-
-    public List<GetFeedsScrappedMainKnowhowsFeed> retrieveScrappedMainKnowhows(Long userId, Long cursor) throws BaseException {
+    
+    // 특정 유저의 메인 스크랩북의 노하우 탭 피드 리스트 조회
+    public List<GetFeedsScrappedMainKnowhowsFeedRes> retrieveScrappedMainKnowhows(Long userId, Long cursor) throws BaseException {
         String methodName = "retrieveScrappedMainKnowhows";
         try {
             return feedDao.retrieveScrappedMainKnowhows(userId, cursor);
@@ -380,6 +415,70 @@ public class FeedProvider {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
             exception.printStackTrace();
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+        }
+    }
+
+
+    // 유저들의 비슷한 공간 베스트 조회
+    public List<GetFeedsMediasSimilarSpaceRes> retrieveMediasSimilarSpace(Long feedId, Long cursor) throws BaseException{
+        String methodName = "retrieveMediasSimilarSpace";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+
+        try{
+            List<GetFeedsMediasSimilarSpaceRes> getFeedsMediasSimilarSpaceResList = feedDao.retrieveMediasSimilarSpace(userId, feedId, cursor);
+            return getFeedsMediasSimilarSpaceResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    
+    // 집들이 상단 정보 조회
+    public GetFeedsHomewarmingsTop retrieveHomewarmingTop(Long feedId) throws BaseException{
+        String methodName = "retrieveHomemwarmingTop";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1){
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            GetFeedsHomewarmingsTop getFeedsHomewarmingsTop = feedDao.retrieveHomewarmingTop(feedId);
+            return getFeedsHomewarmingsTop;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 집들이 상세 정보 조회
+    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId) throws BaseException{
+        String methodName = "retrieveHomemwarming";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1){
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmings> getFeedsHomewarmings = feedDao.retrieveHomewarming(feedId, userId);
+            return getFeedsHomewarmings;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 }

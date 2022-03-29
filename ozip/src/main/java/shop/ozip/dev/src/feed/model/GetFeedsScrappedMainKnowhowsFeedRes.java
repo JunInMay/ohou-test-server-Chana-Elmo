@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsScrappedKnowhowsFeed {
+public class GetFeedsScrappedMainKnowhowsFeedRes {
     private Long feedId;
     private Integer isKnowhow;
     private String thumbnailUrl;

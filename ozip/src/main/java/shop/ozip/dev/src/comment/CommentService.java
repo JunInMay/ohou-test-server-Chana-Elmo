@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
-import shop.ozip.dev.src.comment.CommentDao;
-import shop.ozip.dev.src.comment.CommentProvider;
 import shop.ozip.dev.src.comment.model.*;
-import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.FeedDao;
 import shop.ozip.dev.utils.JwtService;
 
@@ -38,30 +35,26 @@ public class CommentService {
 
     }
 
-    // 미디어 피드에 댓글달기
-    public PostCommentsMediaFeedsRes createMediaFeedComment(PostCommentsMediaFeedsReq postCommentsMediaFeedsReq) throws BaseException {
-        String methodName = "createMediaFeedComment";
+    // 피드에 댓글달기
+    public PostCommentsRes createComment(PostCommentsReq postCommentsReq) throws BaseException {
+        String methodName = "createComment";
         Long userId = jwtService.getUserId();
-        // 댓글 달 미디어 피드 존재 여부
-        if (!feedDao.checkFeedExistById(postCommentsMediaFeedsReq.getFeedId())) {
+        // 댓글 달 피드 존재 여부
+        if (!feedDao.checkFeedExistById(postCommentsReq.getFeedId())) {
             throw new BaseException(FEED_NOT_EXIST);
         }
-        Feed feed = feedDao.getFeedById(postCommentsMediaFeedsReq.getFeedId());
-        if (feed.getIsMediaFeed() != 1) {
-            throw new BaseException(IS_NOT_MEDIA_FEED);
-        }
         // 답글 달 댓글 존재 여부
-        if (postCommentsMediaFeedsReq.getIsRecomment() == 1){
-            if (!commentDao.checkCommentExistById(postCommentsMediaFeedsReq.getRecommentId())){
+        if (postCommentsReq.getIsRecomment() == 1){
+            if (!commentDao.checkCommentExistById(postCommentsReq.getRecommentId())){
                 throw new BaseException(RECOMMENT_NOT_EXIST);
             }
-            Comment recomment = commentDao.getCommentById(postCommentsMediaFeedsReq.getRecommentId());
-            if (recomment.getFeedId() != postCommentsMediaFeedsReq.getFeedId()){
+            Comment recomment = commentDao.getCommentById(postCommentsReq.getRecommentId());
+            if (recomment.getFeedId() != postCommentsReq.getFeedId()){
                 throw new BaseException(POST_RECOMMENT_FEED_NOT_MATCH);
             }
         }
         try{
-            return commentDao.createMediaFeedComment(postCommentsMediaFeedsReq, userId);
+            return commentDao.createComment(postCommentsReq, userId);
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());

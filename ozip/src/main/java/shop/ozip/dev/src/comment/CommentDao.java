@@ -68,11 +68,11 @@ public class CommentDao {
 
 
     
-    // 미디어 피드에 댓글 달기
-    public PostCommentsMediaFeedsRes createMediaFeedComment(PostCommentsMediaFeedsReq postCommentsMediaFeedsReq, Long userId) {
+    // 피드에 댓글 달기
+    public PostCommentsRes createComment(PostCommentsReq postCommentsReq, Long userId) {
         String createMediaFeedCommentQuery;
         Object[] createMediaFeedCommentParams;
-        if (postCommentsMediaFeedsReq.getIsRecomment() == 1) {
+        if (postCommentsReq.getIsRecomment() == 1) {
             createMediaFeedCommentQuery = ""
                     + "INSERT INTO comment "
                     + "            (user_id, "
@@ -87,10 +87,10 @@ public class CommentDao {
                     + "            ?)";
             createMediaFeedCommentParams = new Object[]{
                     userId,
-                    postCommentsMediaFeedsReq.getFeedId(),
-                    postCommentsMediaFeedsReq.getContent(),
-                    postCommentsMediaFeedsReq.getRecommentId(),
-                    postCommentsMediaFeedsReq.getIsRecomment()
+                    postCommentsReq.getFeedId(),
+                    postCommentsReq.getContent(),
+                    postCommentsReq.getRecommentId(),
+                    postCommentsReq.getIsRecomment()
             };
         }
         else {
@@ -104,8 +104,8 @@ public class CommentDao {
                     + "            ?)";
             createMediaFeedCommentParams = new Object[]{
                     userId,
-                    postCommentsMediaFeedsReq.getFeedId(),
-                    postCommentsMediaFeedsReq.getContent()
+                    postCommentsReq.getFeedId(),
+                    postCommentsReq.getContent()
             };
         }
         this.jdbcTemplate.update(createMediaFeedCommentQuery, createMediaFeedCommentParams);
@@ -113,7 +113,7 @@ public class CommentDao {
         Long recentId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
 
         Comment comment = getCommentById(recentId);
-        return new PostCommentsMediaFeedsRes(
+        return new PostCommentsRes(
                 comment.getId(),
                 comment.getFeedId(),
                 comment.getContent(),

@@ -15,4 +15,6 @@ public class GetUsersFeedsRes {
     private String nickname;
     private Integer isFollowed;
     private String uploadedAt;
+    private String uploadedDate;
+    private Integer isProfessional;
 }

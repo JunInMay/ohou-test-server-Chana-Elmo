@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostCommentsMediaFeedsReq {
+public class PostCommentsReq {
     private Long feedId;
     private String content;
     private Long recommentId;
