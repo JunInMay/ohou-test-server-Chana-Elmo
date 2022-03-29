@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponseStatus;
+import shop.ozip.dev.src.feed.FeedDao;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
@@ -24,7 +25,7 @@ import static shop.ozip.dev.config.BaseResponseStatus.*;
 @Service
 public class FeedProvider {
 
-    private final FeedDao feedDao;
+    private final shop.ozip.dev.src.feed.FeedDao feedDao;
     private final JwtService jwtService;
     private final String fileName;
     private final KeywordDao keywordDao;

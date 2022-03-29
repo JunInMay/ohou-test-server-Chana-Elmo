@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import shop.ozip.dev.src.keyword.KeywordProvider;
+import shop.ozip.dev.src.keyword.KeywordService;
 import shop.ozip.dev.utils.JwtService;
 
 @RestController
@@ -13,9 +15,9 @@ public class KeywordController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final KeywordProvider keywordProvider;
+    private final shop.ozip.dev.src.keyword.KeywordProvider keywordProvider;
     @Autowired
-    private final KeywordService keywordService;
+    private final shop.ozip.dev.src.keyword.KeywordService keywordService;
     @Autowired
     private final JwtService jwtService;
 

@@ -7,6 +7,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.user.UserProvider;
+import shop.ozip.dev.src.user.UserService;
 import shop.ozip.dev.utils.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +27,9 @@ public class UserController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final UserProvider userProvider;
+    private final shop.ozip.dev.src.user.UserProvider userProvider;
     @Autowired
-    private final UserService userService;
+    private final shop.ozip.dev.src.user.UserService userService;
     @Autowired
     private final JwtService jwtService;
 

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
+import shop.ozip.dev.src.follow.FollowProvider;
+import shop.ozip.dev.src.follow.FollowService;
 import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
 import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
@@ -21,9 +23,9 @@ public class FollowController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final FollowProvider followProvider;
+    private final shop.ozip.dev.src.follow.FollowProvider followProvider;
     @Autowired
-    private final FollowService followService;
+    private final shop.ozip.dev.src.follow.FollowService followService;
     @Autowired
     private final JwtService jwtService;
 

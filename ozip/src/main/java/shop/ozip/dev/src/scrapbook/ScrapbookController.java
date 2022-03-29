@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.scrapbook.ScrapbookProvider;
+import shop.ozip.dev.src.scrapbook.ScrapbookService;
 import shop.ozip.dev.src.scrapbook.model.*;
 import shop.ozip.dev.utils.JwtService;
 
@@ -20,9 +22,9 @@ public class ScrapbookController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final ScrapbookProvider scrapbookProvider;
+    private final shop.ozip.dev.src.scrapbook.ScrapbookProvider scrapbookProvider;
     @Autowired
-    private final ScrapbookService scrapbookService;
+    private final shop.ozip.dev.src.scrapbook.ScrapbookService scrapbookService;
     @Autowired
     private final JwtService jwtService;
 

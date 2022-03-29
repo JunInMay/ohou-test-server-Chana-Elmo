@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.src.comment.CommentDao;
+import shop.ozip.dev.src.comment.CommentProvider;
 import shop.ozip.dev.src.comment.model.*;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.FeedDao;
@@ -20,8 +22,8 @@ public class CommentService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final FeedDao feedDao;
-    private final CommentDao commentDao;
-    private final CommentProvider commentProvider;
+    private final shop.ozip.dev.src.comment.CommentDao commentDao;
+    private final shop.ozip.dev.src.comment.CommentProvider commentProvider;
     private final JwtService jwtService;
     private final String fileName;
 

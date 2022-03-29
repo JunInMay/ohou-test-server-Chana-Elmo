@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import shop.ozip.dev.config.BaseResponseStatus;
 
 @Getter
 @AllArgsConstructor
@@ -19,9 +20,9 @@ public class BaseResponse<T> {
 
     // 요청에 성공한 경우
     public BaseResponse(T result) {
-        this.isSuccess = BaseResponseStatus.SUCCESS.isSuccess();
-        this.message = BaseResponseStatus.SUCCESS.getMessage();
-        this.code = BaseResponseStatus.SUCCESS.getCode();
+        this.isSuccess = shop.ozip.dev.config.BaseResponseStatus.SUCCESS.isSuccess();
+        this.message = shop.ozip.dev.config.BaseResponseStatus.SUCCESS.getMessage();
+        this.code = shop.ozip.dev.config.BaseResponseStatus.SUCCESS.getCode();
         this.result = result;
     }
 

@@ -9,6 +9,7 @@ import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.like.LikeProvider;
 import shop.ozip.dev.src.like.LikeService;
+import shop.ozip.dev.src.text.TextService;
 import shop.ozip.dev.src.text.model.GetTextVerificationRes;
 import shop.ozip.dev.src.user.model.KakaoCallback;
 import shop.ozip.dev.utils.JwtService;

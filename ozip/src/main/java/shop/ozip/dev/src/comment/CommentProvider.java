@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.src.comment.CommentDao;
 import shop.ozip.dev.src.comment.model.*;
 import shop.ozip.dev.src.feed.FeedDao;
 import shop.ozip.dev.src.feed.model.Feed;
@@ -21,7 +22,7 @@ import static shop.ozip.dev.config.BaseResponseStatus.*;
 @Service
 public class CommentProvider {
 
-    private final CommentDao commentDao;
+    private final shop.ozip.dev.src.comment.CommentDao commentDao;
     private final JwtService jwtService;
     private final String fileName;
 
