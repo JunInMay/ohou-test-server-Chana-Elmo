@@ -77,6 +77,27 @@ public class ScrapbookService {
         }
     }
 
+    // 북마크한 피드 다른 폴더로 옮기기
+    public PatchBookmarksFeedRes updateBookmarkFeed(PatchBookmarksFeedReq patchBookmarksFeedReq) throws BaseException {
+        Long userId = jwtService.getUserId();
+
+        if (!scrapbookDao.checkScrapbookExistById(patchBookmarksFeedReq.getScrapbookId())){
+            throw new BaseException(SCRAPBOOK_NOT_EXIST);
+        }
+        Scrapbook scrapbook = scrapbookDao.getScrapbookById(patchBookmarksFeedReq.getScrapbookId());
+        if (scrapbook.getUserId() != userId){
+            throw new BaseException(NOT_SCRAPBOOK_OWNER);
+        }
+
+        try{
+            return scrapbookDao.updateBookmarkFeed(userId, patchBookmarksFeedReq);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     
     // 스크랩북 만들기
     public PostBookmarksRes createScrapbook(PostBookmarksReq postBookmarksReq) throws BaseException{
@@ -130,4 +151,6 @@ public class ScrapbookService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+
 }

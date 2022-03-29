@@ -99,7 +99,7 @@ public class ScrapbookDao {
         return this.jdbcTemplate.queryForObject(checkBookmarkExistQuery, boolean.class, checkBookmarkExistParams);
     }
     // 스크랩북이 존재하는지 체크
-    public boolean checkScrapbookById(Long scrapbookId) {
+    public boolean checkScrapbookExistById(Long scrapbookId) {
         String checkScrapbookByIdQuery = ""
                 + "SELECT EXISTS(SELECT * "
                 + "              FROM   scrapbook "
@@ -131,6 +131,7 @@ public class ScrapbookDao {
                 result
         );
     }
+    // 북마크한 피드 다시 해제하기
     public DeleteBookmarksFeedRes deleteBookmarkFeed(Long userId, Long feedId) {
         String deleteBookMarkFeedQuery = ""
                 + "DELETE scrapbook_feed "
@@ -146,6 +147,23 @@ public class ScrapbookDao {
 
         return new DeleteBookmarksFeedRes(feedId, result);
 
+    }
+    public PatchBookmarksFeedRes updateBookmarkFeed(Long userId, PatchBookmarksFeedReq patchBookmarksFeedReq) {
+        String updateBookmarkFeedQuery = ""
+                + "UPDATE scrapbook_feed "
+                + "       JOIN scrapbook "
+                + "         ON scrapbook.id = scrapbook_feed.scrapbook_id "
+                + "SET    scrapbook_id = ? "
+                + "WHERE  scrapbook_feed.feed_id = ? "
+                + "       AND scrapbook.user_id = ? ";
+        Object[] updateBookmarkFeedParams = new Object[]{
+                patchBookmarksFeedReq.getScrapbookId(),
+                patchBookmarksFeedReq.getFeedId(),
+                userId
+        };
+        int result = this.jdbcTemplate.update(updateBookmarkFeedQuery, updateBookmarkFeedParams);
+
+        return new PatchBookmarksFeedRes(patchBookmarksFeedReq.getFeedId(), patchBookmarksFeedReq.getScrapbookId(), result);
     }
 
 
@@ -380,4 +398,5 @@ public class ScrapbookDao {
     }
 
 
+    
 }

@@ -74,6 +74,29 @@ public class ScrapbookController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+    /*
+    북마크한 피드 다른 폴더로 옮기기 API
+    (PATCH) 127.0.0.1:9000/app/bookmarks/feed
+    */
+    @ResponseBody
+    @PatchMapping("/feed")
+    public BaseResponse<PatchBookmarksFeedRes> patchBookmarksFeed(@RequestBody PatchBookmarksFeedReq patchBookmarksFeedReq) {
+
+        if (patchBookmarksFeedReq.getFeedId() == null || patchBookmarksFeedReq.getFeedId() == 0) {
+            return new BaseResponse<>(EMPTY_BOOKMARK_FEED_ID_FOR_PATCH);
+        }
+        if (patchBookmarksFeedReq.getScrapbookId() == null || patchBookmarksFeedReq.getScrapbookId() == 0) {
+            return new BaseResponse<>(EMPTY_BOOKMARK_SCRAPBOOK_ID);
+        }
+
+        try{
+            PatchBookmarksFeedRes patchBookmarksFeedRes = scrapbookService.updateBookmarkFeed(patchBookmarksFeedReq);
+            return new BaseResponse<>(patchBookmarksFeedRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 
     /*
     스크랩북(북마크 폴더) 만들기 API

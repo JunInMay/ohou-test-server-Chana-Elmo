@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
-import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbook;
 import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookTopRes;
 import shop.ozip.dev.src.scrapbook.model.Scrapbook;
@@ -51,7 +50,7 @@ public class ScrapbookProvider {
             }
         }
 
-        if (!scrapbookDao.checkScrapbookById(scrapbookId)){
+        if (!scrapbookDao.checkScrapbookExistById(scrapbookId)){
             throw new BaseException(SCRAPBOOK_NOT_EXIST);
         }
 
