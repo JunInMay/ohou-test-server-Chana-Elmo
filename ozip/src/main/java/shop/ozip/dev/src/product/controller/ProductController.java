@@ -28,6 +28,7 @@ public class ProductController {
     private final ProductProvider productProvider;
     private final OptionProvider optionProvider;
 
+
     @GetMapping("/popular-products")
     public BaseResponse<GetPopularProductsRes> getPopularProducts() {
         try {
@@ -81,18 +82,6 @@ public class ProductController {
             MachineOptionsRes machineOptionsRes = new MachineOptionsRes(options);
             return new BaseResponse<>(machineOptionsRes);
 
-        } catch (BaseException exception) {
-            return new BaseResponse<>(exception.getStatus());
-        }
-    }
-
-    @PostMapping("/products/{productId}/order")
-    public BaseResponse<ProductOrderRes> orderProduct(@PathVariable Long productId, @RequestBody ProductOrderReq productOrderReq) {
-        productOrderReq.setProductId(productId);
-
-        try {
-            ProductOrderRes productOrderRes = productOrderService.order(productOrderReq);
-            return new BaseResponse<>(productOrderRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
