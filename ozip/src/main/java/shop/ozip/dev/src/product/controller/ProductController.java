@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import shop.ozip.dev.src.product.model.GetPopularProductsRes;
-import shop.ozip.dev.src.product.model.GetProductDetailsInfoRes;
-import shop.ozip.dev.src.product.model.GetTodayDealProductsRes;
-import shop.ozip.dev.src.product.model.GetViewProductRes;
+import shop.ozip.dev.src.order.service.ProductOrderService;
+import shop.ozip.dev.src.product.model.*;
 import shop.ozip.dev.src.product.option.entity.ColorOption;
 import shop.ozip.dev.src.product.option.entity.MachineOption;
 import shop.ozip.dev.src.product.option.model.ColorOptions;
@@ -15,6 +13,7 @@ import shop.ozip.dev.src.product.option.model.MachineOptionsRes;
 import shop.ozip.dev.src.product.option.provider.OptionProvider;
 import shop.ozip.dev.src.product.provider.ProductProvider;
 import shop.ozip.dev.src.product.service.ProductService;
+import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.List;
 @RequestMapping("/app/stores")
 public class ProductController {
 
-    private final ProductService productService;
+    private final ProductOrderService productOrderService;
     private final ProductProvider productProvider;
     private final OptionProvider optionProvider;
 
@@ -76,12 +75,24 @@ public class ProductController {
             List<ColorOptions> options = new ArrayList<>();
 
             for (MachineOption mo : machineOptions) {
-                options.add(new ColorOptions(mo.getColorId().getColor()));
+                options.add(new ColorOptions(mo.getId(), mo.getColorId().getColor()));
             }
 
             MachineOptionsRes machineOptionsRes = new MachineOptionsRes(options);
             return new BaseResponse<>(machineOptionsRes);
 
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    @PostMapping("/products/{productId}/order")
+    public BaseResponse<ProductOrderRes> orderProduct(@PathVariable Long productId, @RequestBody ProductOrderReq productOrderReq) {
+        productOrderReq.setProductId(productId);
+
+        try {
+            ProductOrderRes productOrderRes = productOrderService.order(productOrderReq);
+            return new BaseResponse<>(productOrderRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
