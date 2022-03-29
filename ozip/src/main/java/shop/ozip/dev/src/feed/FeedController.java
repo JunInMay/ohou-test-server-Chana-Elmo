@@ -522,4 +522,22 @@ public class FeedController {
         }
     }
 
+    /*
+    집들이 피드 상세 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/homewarmings/{feedId}")
+    public BaseResponse<List<GetFeedsHomewarmings>> getFeedsHomewarmings(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsHomewarmings> getFeedsHomewarmings = feedProvider.retrieveHomewarming(feedId);
+            return new BaseResponse<>(getFeedsHomewarmings);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }

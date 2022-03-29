@@ -459,4 +459,26 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 집들이 상세 정보 조회
+    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId) throws BaseException{
+        String methodName = "retrieveHomemwarming";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1){
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmings> getFeedsHomewarmings = feedDao.retrieveHomewarming(feedId, userId);
+            return getFeedsHomewarmings;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

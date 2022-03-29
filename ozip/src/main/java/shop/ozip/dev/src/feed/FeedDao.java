@@ -2567,4 +2567,36 @@ public class FeedDao {
                         rs.getString("budget")
                 ), retrieveHomewarmingTopParams);
     }
+
+    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId, Long userId) {
+        Object[] retrieveHomewarmingParams = new Object[]{userId, feedId};
+        String retrieveHomewarmingQuery = ""
+                + "SELECT media.photo_id                         AS feed_id, "
+                + "       media.url                              AS image_url, "
+                + "       media.photo_id IN (SELECT feed_id "
+                + "                          FROM   scrapbook_feed "
+                + "                                 JOIN scrapbook "
+                + "                                   ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                          WHERE  user_id = ?) AS is_bookmarked, "
+                + "       media.description                      AS description "
+                + "FROM   feed_having_media "
+                + "       JOIN (SELECT feed.id AS photo_id, "
+                + "                    media.url, "
+                + "                    media.description, "
+                + "                    media.id "
+                + "             FROM   media "
+                + "                    JOIN feed "
+                + "                      ON feed.id = media.feed_id) media "
+                + "         ON feed_having_media.media_id = media.id "
+                + "WHERE  feed_id = ? "
+                + "ORDER  BY feed_having_media.created_at DESC ";
+
+        return this.jdbcTemplate.query(retrieveHomewarmingQuery,
+                (rs, rowNum) -> new GetFeedsHomewarmings(
+                        rs.getLong("feed_id"),
+                        rs.getString("image_url"),
+                        rs.getString("is_bookmarked"),
+                        rs.getString("description")
+                ), retrieveHomewarmingParams);
+    }
 }
