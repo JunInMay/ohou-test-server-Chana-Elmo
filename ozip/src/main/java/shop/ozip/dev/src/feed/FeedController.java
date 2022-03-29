@@ -340,6 +340,24 @@ public class FeedController {
     }
 
     /*
+    메인 스크랩북의 모든 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/all/:userId
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/all/{userId}","/scrapped/main/all/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainAll>> getFeedsScrappedMainAll(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainAll> getFeedsScrappedMainAllList = feedProvider.retrieveScrappedMainAll(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainAllList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     특정 스크랩북의 모든 미디어 관련 피드 조회 API
     (GET) 127.0.0.1:9000/app/feeds/scrapped/media-feeds/:scrapbookId/:cursor
     */
@@ -352,6 +370,24 @@ public class FeedController {
         try{
             List<GetFeedsScrappedMediaFeeds> getFeedsScrappedMediaFeedsList = feedProvider.retrieveScrappedMediaFeeds(scrapbookId, cursor);
             return new BaseResponse<>(getFeedsScrappedMediaFeedsList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    메인 스크랩북의 모든 미디어 관련 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/media-feeds/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/media-feeds/{userId}","/scrapped/main/media-feeds/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainMediaFeeds>> getFeedsScrappedMainMediaFeeds(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainMediaFeeds> getFeedsScrappedMainMediaFeedsList = feedProvider.retrieveScrappedMainMediaFeeds(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainMediaFeedsList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -374,6 +410,25 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+    /*
+    메인 스크랩북의 집들이 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/homewarmings/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/homewarmings/{userId}","/scrapped/main/homewarmings/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainHomewarmingsFeed>> getFeedsScrappedMainHomewarmings(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainHomewarmingsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedMainHomewarmings(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    
     /*
     특정 스크랩북의 노하우 피드 조회 API
     (GET) 127.0.0.1:9000/app/feeds/scrapped/knowhows/:scrapbookId/:cursor
@@ -385,8 +440,26 @@ public class FeedController {
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedKnowhowsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedKnowhows(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
+            List<GetFeedsScrappedKnowhowsFeed> getFeedsScrappedKnowhowsFeedList = feedProvider.retrieveScrappedKnowhows(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedKnowhowsFeedList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    메인 스크랩북의 노하우 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/main/knowhows/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/main/knowhows/{userId}","/scrapped/main/knowhows/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsScrappedMainKnowhowsFeed>> getFeedsScrappedMainKnowhows(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MIN_VALUE;
+        }
+        try{
+            List<GetFeedsScrappedMainKnowhowsFeed> getFeedsScrappedMainKnowhowsFeedList = feedProvider.retrieveScrappedMainKnowhows(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainKnowhowsFeedList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

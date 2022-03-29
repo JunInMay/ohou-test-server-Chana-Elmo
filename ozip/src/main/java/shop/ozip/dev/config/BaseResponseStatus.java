@@ -55,10 +55,13 @@ public enum BaseResponseStatus {
     EMPTY_SCRAPBOOK_ID(false, 2350, "스크랩북 ID를 입력해주세요."),
     WRONG_SCRAPBOOK_ID(false, 2351, "잘못된 스크랩북 ID 입니다."),
 
-    //[POST / DELETE] app/bookmarks/feed
+    //[POST / DELETE / PATCH] app/bookmarks/feed
 
     EMPTY_BOOKMARK_FEED_ID(false, 2360, "북마크할 피드의 id를 입력해주세요."),
     EMPTY_BOOKMARK_FEED_ID_FOR_DELETE(false, 2361, "북마크 해제 할 피드의 id를 입력해주세요."),
+    EMPTY_BOOKMARK_FEED_ID_FOR_PATCH(false, 2362, "다른 폴더로 옮길 피드 id를 입력해주세요."),
+    EMPTY_BOOKMARK_SCRAPBOOK_ID(false, 2363, "피드를 옮길 폴더의 id를 입력해주세요."),
+
 
     //[POST] app/bookmarks
     EMPTY_BOOKMARK_NAME(false, 2370, "북마크의 이름을 입력해주세요."),
