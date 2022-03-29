@@ -327,13 +327,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/all/{scrapbookId}","/scrapped/all/{scrapbookId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedAll>> getFeedsScrappedAll(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedAllRes>> getFeedsScrappedAll(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedAll> getFeedsScrappedAllList = feedProvider.retrieveScrappedAll(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedAllList);
+            List<GetFeedsScrappedAllRes> getFeedsScrappedAllResList = feedProvider.retrieveScrappedAll(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedAllResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -345,13 +345,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/main/all/{userId}","/scrapped/main/all/{userId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMainAll>> getFeedsScrappedMainAll(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedMainAllRes>> getFeedsScrappedMainAll(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMainAll> getFeedsScrappedMainAllList = feedProvider.retrieveScrappedMainAll(userId, cursor);
-            return new BaseResponse<>(getFeedsScrappedMainAllList);
+            List<GetFeedsScrappedMainAllRes> getFeedsScrappedMainAllResList = feedProvider.retrieveScrappedMainAll(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainAllResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -363,13 +363,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/media-feeds/{scrapbookId}","/scrapped/media-feeds/{scrapbookId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMediaFeeds>> getFeedsScrappedMediaFeeds(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedMediaFeedsRes>> getFeedsScrappedMediaFeeds(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMediaFeeds> getFeedsScrappedMediaFeedsList = feedProvider.retrieveScrappedMediaFeeds(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedMediaFeedsList);
+            List<GetFeedsScrappedMediaFeedsRes> getFeedsScrappedMediaFeedsResList = feedProvider.retrieveScrappedMediaFeeds(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMediaFeedsResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -381,13 +381,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/main/media-feeds/{userId}","/scrapped/main/media-feeds/{userId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMainMediaFeeds>> getFeedsScrappedMainMediaFeeds(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedMainMediaFeedsRes>> getFeedsScrappedMainMediaFeeds(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMainMediaFeeds> getFeedsScrappedMainMediaFeedsList = feedProvider.retrieveScrappedMainMediaFeeds(userId, cursor);
-            return new BaseResponse<>(getFeedsScrappedMainMediaFeedsList);
+            List<GetFeedsScrappedMainMediaFeedsRes> getFeedsScrappedMainMediaFeedsResList = feedProvider.retrieveScrappedMainMediaFeeds(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainMediaFeedsResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -399,13 +399,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/homewarmings/{scrapbookId}","/scrapped/homewarmings/{scrapbookId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedHomewarmingsFeed>> getFeedsScrappedHomewarmings(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedHomewarmingsFeedRes>> getFeedsScrappedHomewarmings(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedHomewarmingsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedHomewarmings(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
+            List<GetFeedsScrappedHomewarmingsFeedRes> getFeedsScrappedHomewarmingsFeedResList = feedProvider.retrieveScrappedHomewarmings(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -417,12 +417,12 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/main/homewarmings/{userId}","/scrapped/main/homewarmings/{userId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMainHomewarmingsFeed>> getFeedsScrappedMainHomewarmings(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedMainHomewarmingsFeedRes>> getFeedsScrappedMainHomewarmings(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMainHomewarmingsFeed> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedMainHomewarmings(userId, cursor);
+            List<GetFeedsScrappedMainHomewarmingsFeedRes> getFeedsScrappedHomewarmingsFeedList = feedProvider.retrieveScrappedMainHomewarmings(userId, cursor);
             return new BaseResponse<>(getFeedsScrappedHomewarmingsFeedList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
@@ -435,13 +435,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/knowhows/{scrapbookId}","/scrapped/knowhows/{scrapbookId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedKnowhowsFeed>> getFeedsScrappedKnowhows(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedKnowhowsFeedRes>> getFeedsScrappedKnowhows(@PathVariable(value="scrapbookId") Long scrapbookId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedKnowhowsFeed> getFeedsScrappedKnowhowsFeedList = feedProvider.retrieveScrappedKnowhows(scrapbookId, cursor);
-            return new BaseResponse<>(getFeedsScrappedKnowhowsFeedList);
+            List<GetFeedsScrappedKnowhowsFeedRes> getFeedsScrappedKnowhowsFeedResList = feedProvider.retrieveScrappedKnowhows(scrapbookId, cursor);
+            return new BaseResponse<>(getFeedsScrappedKnowhowsFeedResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -453,13 +453,13 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/scrapped/main/knowhows/{userId}","/scrapped/main/knowhows/{userId}/{cursor}"})
-    public BaseResponse<List<GetFeedsScrappedMainKnowhowsFeed>> getFeedsScrappedMainKnowhows(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
+    public BaseResponse<List<GetFeedsScrappedMainKnowhowsFeedRes>> getFeedsScrappedMainKnowhows(@PathVariable(value="userId") Long userId, @PathVariable(value="cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MIN_VALUE;
         }
         try{
-            List<GetFeedsScrappedMainKnowhowsFeed> getFeedsScrappedMainKnowhowsFeedList = feedProvider.retrieveScrappedMainKnowhows(userId, cursor);
-            return new BaseResponse<>(getFeedsScrappedMainKnowhowsFeedList);
+            List<GetFeedsScrappedMainKnowhowsFeedRes> getFeedsScrappedMainKnowhowsFeedResList = feedProvider.retrieveScrappedMainKnowhows(userId, cursor);
+            return new BaseResponse<>(getFeedsScrappedMainKnowhowsFeedResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -499,6 +499,24 @@ public class FeedController {
         try{
             List<GetFeedsMediasSimilarSpaceRes> getFeedsMediasSimilarSpaceRes = feedProvider.retrieveMediasSimilarSpace(feedId, cursor);
             return new BaseResponse<>(getFeedsMediasSimilarSpaceRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    집들이 피드 상단 정보 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/:feedId/top
+    */
+    @ResponseBody
+    @GetMapping("/homewarmings/{feedId}/top")
+    public BaseResponse<GetFeedsHomewarmingsTop> getFeedsHomewarmingsTop(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetFeedsHomewarmingsTop getFeedsHomewarmingsTop = feedProvider.retrieveHomewarmingTop(feedId);
+            return new BaseResponse<>(getFeedsHomewarmingsTop);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
