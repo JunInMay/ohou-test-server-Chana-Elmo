@@ -59,6 +59,9 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private int sellCount;
 
+    @Column(nullable = false)
+    private Long optionId;
+
     @ManyToOne
     @JoinColumn(name = "categoryId", referencedColumnName = "id", nullable = false)
     private SubCategory subCategory;
