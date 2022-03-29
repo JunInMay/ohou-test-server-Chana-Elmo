@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbook;
 import shop.ozip.dev.src.scrapbook.model.GetBookmarksScrapbookTopRes;
 import shop.ozip.dev.src.scrapbook.model.Scrapbook;
@@ -21,7 +22,7 @@ import static shop.ozip.dev.config.BaseResponseStatus.*;
 @Service
 public class ScrapbookProvider {
 
-    private final ScrapbookDao scrapbookDao;
+    private final shop.ozip.dev.src.scrapbook.ScrapbookDao scrapbookDao;
     private final JwtService jwtService;
     private final String fileName;
     private final UserDao userDao;

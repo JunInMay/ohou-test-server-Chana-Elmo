@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import shop.ozip.dev.src.like.LikeProvider;
+import shop.ozip.dev.src.like.LikeService;
 import shop.ozip.dev.utils.JwtService;
 
 @RestController
@@ -14,9 +16,9 @@ public class LikeController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final LikeProvider likeProvider;
+    private final shop.ozip.dev.src.like.LikeProvider likeProvider;
     @Autowired
-    private final LikeService likeService;
+    private final shop.ozip.dev.src.like.LikeService likeService;
     @Autowired
     private final JwtService jwtService;
 

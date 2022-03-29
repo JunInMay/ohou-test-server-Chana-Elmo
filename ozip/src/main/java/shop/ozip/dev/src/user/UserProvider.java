@@ -9,6 +9,7 @@ import shop.ozip.dev.src.feed.FeedDao;
 import shop.ozip.dev.src.follow.FollowDao;
 import shop.ozip.dev.src.like.LikeDao;
 import shop.ozip.dev.src.scrapbook.ScrapbookDao;
+import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -23,7 +24,7 @@ import static shop.ozip.dev.config.BaseResponseStatus.*;
 @Service
 public class UserProvider {
 
-    private final UserDao userDao;
+    private final shop.ozip.dev.src.user.UserDao userDao;
     private final JwtService jwtService;
     private final String fileName;
     private final FollowDao followDao;
@@ -71,7 +72,7 @@ public class UserProvider {
             GetUsersRes getUsersRes = userDao.getUsers(userId);
             return getUsersRes;
         } catch (Exception exception) {
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 
@@ -79,7 +80,7 @@ public class UserProvider {
         try{
             return userDao.checkEmail(email);
         } catch (Exception exception){
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 
@@ -87,7 +88,7 @@ public class UserProvider {
         try {
             return userDao.checkNickname(nickname);
         } catch (Exception exception) {
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 
@@ -98,13 +99,13 @@ public class UserProvider {
         try {
             userPwd = userDao.getPwd(postLoginReq);
         } catch (Exception e) {
-            throw new BaseException(BaseResponseStatus.FAILED_TO_LOGIN);
+            throw new BaseException(FAILED_TO_LOGIN);
         }
 
         try {
             encryptPwd=new SHA256().encrypt(postLoginReq.getPassword());
         } catch (Exception ignored) {
-            throw new BaseException(BaseResponseStatus.PASSWORD_DECRYPTION_ERROR);
+            throw new BaseException(PASSWORD_DECRYPTION_ERROR);
         }
 
         if(userPwd.getPassword().equals(encryptPwd)){
@@ -113,7 +114,7 @@ public class UserProvider {
             return new PostLoginRes(userId,jwt);
         }
         else{
-            throw new BaseException(BaseResponseStatus.FAILED_TO_LOGIN);
+            throw new BaseException(FAILED_TO_LOGIN);
         }
 
     }
@@ -126,7 +127,7 @@ public class UserProvider {
             return new PostLoginRes(user.getId(), jwt);
         } catch (Exception exception) {
             exception.printStackTrace();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 
@@ -152,7 +153,7 @@ public class UserProvider {
         } catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
             exception.printStackTrace();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 
@@ -169,7 +170,7 @@ public class UserProvider {
         } catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
             exception.printStackTrace();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 }

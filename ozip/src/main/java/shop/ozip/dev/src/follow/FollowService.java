@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.FeedDao;
+import shop.ozip.dev.src.follow.FollowDao;
+import shop.ozip.dev.src.follow.FollowProvider;
 import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
 import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
@@ -23,8 +25,8 @@ public class FollowService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final FeedDao feedDao;
-    private final FollowDao followDao;
-    private final FollowProvider followProvider;
+    private final shop.ozip.dev.src.follow.FollowDao followDao;
+    private final shop.ozip.dev.src.follow.FollowProvider followProvider;
     private final JwtService jwtService;
     private final String fileName;
     private final UserDao userDao;

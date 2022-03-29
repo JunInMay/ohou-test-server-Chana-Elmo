@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.FeedDao;
+import shop.ozip.dev.src.keyword.KeywordDao;
+import shop.ozip.dev.src.keyword.KeywordProvider;
 import shop.ozip.dev.src.keyword.model.*;
 import shop.ozip.dev.utils.JwtService;
 
@@ -19,8 +21,8 @@ public class KeywordService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final FeedDao feedDao;
-    private final KeywordDao keywordDao;
-    private final KeywordProvider keywordProvider;
+    private final shop.ozip.dev.src.keyword.KeywordDao keywordDao;
+    private final shop.ozip.dev.src.keyword.KeywordProvider keywordProvider;
     private final JwtService jwtService;
     private final String fileName;
 

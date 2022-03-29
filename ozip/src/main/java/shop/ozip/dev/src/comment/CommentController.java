@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.comment.CommentProvider;
+import shop.ozip.dev.src.comment.CommentService;
 import shop.ozip.dev.src.comment.model.*;
 import shop.ozip.dev.utils.JwtService;
 
@@ -18,9 +20,9 @@ public class CommentController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final CommentProvider commentProvider;
+    private final shop.ozip.dev.src.comment.CommentProvider commentProvider;
     @Autowired
-    private final CommentService commentService;
+    private final shop.ozip.dev.src.comment.CommentService commentService;
     @Autowired
     private final JwtService jwtService;
 

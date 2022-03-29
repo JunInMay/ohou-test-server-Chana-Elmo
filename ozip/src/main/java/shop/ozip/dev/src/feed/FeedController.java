@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.feed.FeedProvider;
+import shop.ozip.dev.src.feed.FeedService;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
@@ -21,9 +23,9 @@ public class FeedController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private final FeedProvider feedProvider;
+    private final shop.ozip.dev.src.feed.FeedProvider feedProvider;
     @Autowired
-    private final FeedService feedService;
+    private final shop.ozip.dev.src.feed.FeedService feedService;
     @Autowired
     private final JwtService jwtService;
 
@@ -110,7 +112,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/media-feeds/list/:lastValue?sort=&video=&home-type=&style=/
     */
     @ResponseBody
-    @GetMapping(value = {"/media-feeds", "/media-feeds/{cursor}"})
+    @GetMapping(value = {"/media-feeds/list", "/media-feeds/list/{cursor}"})
     public BaseResponse<List<GetFeedsMediaFeedsListRes>> getFeedsMediaFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="video", required=false, defaultValue="0") Integer video, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="style", required=false, defaultValue="0") Integer style) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -128,7 +130,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/homewarmings/list/:cursor?sort=&home-type=&acreage-start=&acreage-end=&budget-start=&budget-end&family=&style=&all-color=&wall-color=&floor-color=&detail=&category=&subject=
     */
     @ResponseBody
-    @GetMapping(value = {"/homewarmings", "homewarmings/{cursor}"})
+    @GetMapping(value = {"/homewarmings/list", "homewarmings/list/{cursor}"})
     public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -147,7 +149,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/homewarmings/pro/list?sort=&home-type=&acreage-start=&acreage-end=&budget=&family=&style=&all-color=&wall-color=&floor-color=&detail=&category=&subject=
     */
     @ResponseBody
-    @GetMapping(value = {"/homewarmings/pro", "homewarmings/pro/{cursor}"})
+    @GetMapping(value = {"/homewarmings/pro/list", "homewarmings/pro/list/{cursor}"})
     public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsProList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -167,7 +169,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/knowhows/list/:cursor?sort=&theme=
     */
     @ResponseBody
-    @GetMapping(value = {"/knowhows", "knowhows/{cursor}"})
+    @GetMapping(value = {"/knowhows/list", "knowhows/list/{cursor}"})
     public BaseResponse<GetFeedsKnowhowFeedsListRes> getFeedsKnowhowFeedsList(@PathVariable(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="3") Integer sort, @RequestParam(value="theme", required=false, defaultValue="0") Integer theme) {
         // 정렬 적용시 주의
         if (cursor == null){
@@ -188,7 +190,7 @@ public class FeedController {
     (GET) 127.0.0.1:9000/app/feeds/follows/list
     */
     @ResponseBody
-    @GetMapping(value = {"/follows", "/follows/{cursor}"})
+    @GetMapping(value = {"/follows/list", "/follows/list/{cursor}"})
     public BaseResponse<List<GetFeedsFollowsListRes>> getFeedsFollowsList(@PathVariable(value = "cursor", required = false) Long cursor) {
         if (cursor == null){
             cursor = Long.MAX_VALUE;

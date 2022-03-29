@@ -10,6 +10,8 @@ import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.secret.Secret;
 import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.scrapbook.model.PostBookmarksRes;
+import shop.ozip.dev.src.user.UserDao;
+import shop.ozip.dev.src.user.UserProvider;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -31,8 +33,8 @@ import static shop.ozip.dev.config.BaseResponseStatus.KAKAO_INVALID_ACCESS_TOKEN
 public class UserService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final UserDao userDao;
-    private final UserProvider userProvider;
+    private final shop.ozip.dev.src.user.UserDao userDao;
+    private final shop.ozip.dev.src.user.UserProvider userProvider;
     private final JwtService jwtService;
     private final ScrapbookDao scrapbookDao;
 
