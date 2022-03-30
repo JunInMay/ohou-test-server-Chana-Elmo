@@ -10,14 +10,15 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsHomewarmingFeedsListResFeed {
+public class GetFeedsQnAListResFeed {
     private Long feedId;
-    private String thumbnailUrl;
-    private Integer isBookmarked;
-    private String description;
+    private Long qnaId;
+    private String title;
     private String profileImageUrl;
     private String nickname;
-    private Integer scrappedCount;
-    private Integer viewCount;
+    private String uploadedAt;
+    private Integer commentCount;
+    private Integer ViewCount;
+    private String thumbnailUrl;
     private Long cursor;
 }

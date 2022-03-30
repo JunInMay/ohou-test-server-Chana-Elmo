@@ -8,10 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsHomewarmings {
-    private Long photoId;
-    private String imageUrl;
-    private String isBookmarked;
-    private String description;
+public class GetFeedsHomewarmingsOthersRes {
+    private Long feedId;
+    private String thumbnailUrl;
+    private String title;
 
 }

@@ -18,8 +18,8 @@ public class Feed {
     private Integer isPhoto;
     private Integer isVideo;
     private Integer isHomewarming;
-    private Integer isKnowhow;
     private Integer isQna;
+    private Integer isKnowhow;
     private Integer isProduct;
     private String createdAt;
     private String updatedAt;

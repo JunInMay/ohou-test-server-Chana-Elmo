@@ -13,6 +13,7 @@ import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
+import shop.ozip.dev.src.keyword.model.QnAKeyword;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -200,12 +201,12 @@ public class FeedProvider {
         }
     }
     // 집들이 리스트 조회
-    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) throws BaseException{
+    public GetFeedsHomewarmingListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) throws BaseException{
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
-            return getFeedsHomewarmingFeedsListRes;
+            GetFeedsHomewarmingListRes getFeedsHomewarmingListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
+            return getFeedsHomewarmingListRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -214,12 +215,45 @@ public class FeedProvider {
         }
     }
 
-    public GetFeedsKnowhowFeedsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
+    // 노하우 리스트 조회
+    public GetFeedsKnowhowsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            GetFeedsKnowhowFeedsListRes getFeedsKnowhowFeedsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
-            return getFeedsKnowhowFeedsListRes;
+            GetFeedsKnowhowsListRes getFeedsKnowhowsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
+            return getFeedsKnowhowsListRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 질문과 답변 리스트 조회
+    public List<GetFeedsQnAListRes> retrieveQnAList(Long cursor, Integer sort, Integer noComment) throws BaseException {
+        String methodName = "retrieveQnAList";
+        try{
+            List<GetFeedsQnAListResFeed> getFeedsQnAListResFeedList = feedDao.retrieveQnAList(cursor, noComment, sort);
+            List<GetFeedsQnAListRes> getFeedsQnAListResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAListResFeedList.size(); i++){
+                GetFeedsQnAListResFeed getFeedsQnAListResFeed = getFeedsQnAListResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAListResFeedList.get(i).getQnaId());
+                GetFeedsQnAListRes getFeedsQnAListRes = new GetFeedsQnAListRes(
+                        getFeedsQnAListResFeed.getFeedId(),
+                        getFeedsQnAListResFeed.getTitle(),
+                        getFeedsQnAListResFeed.getProfileImageUrl(),
+                        getFeedsQnAListResFeed.getNickname(),
+                        getFeedsQnAListResFeed.getUploadedAt(),
+                        getFeedsQnAListResFeed.getCommentCount(),
+                        getFeedsQnAListResFeed.getViewCount(),
+                        getFeedsQnAListResFeed.getThumbnailUrl(),
+                        getFeedsQnAListResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAListResList.add(getFeedsQnAListRes);
+            }
+            return getFeedsQnAListResList;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -440,7 +474,7 @@ public class FeedProvider {
 
     
     // 집들이 상단 정보 조회
-    public GetFeedsHomewarmingsTop retrieveHomewarmingTop(Long feedId) throws BaseException{
+    public GetFeedsHomewarmingsTopRes retrieveHomewarmingTop(Long feedId) throws BaseException{
         String methodName = "retrieveHomemwarmingTop";
         if (!feedDao.checkFeedExistById(feedId)){
             throw new BaseException(FEED_NOT_EXIST);
@@ -450,8 +484,8 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_HOMEWARMING_FEED);
         }
         try{
-            GetFeedsHomewarmingsTop getFeedsHomewarmingsTop = feedDao.retrieveHomewarmingTop(feedId);
-            return getFeedsHomewarmingsTop;
+            GetFeedsHomewarmingsTopRes getFeedsHomewarmingsTopRes = feedDao.retrieveHomewarmingTop(feedId);
+            return getFeedsHomewarmingsTopRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -461,7 +495,7 @@ public class FeedProvider {
     }
 
     // 집들이 상세 정보 조회
-    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId) throws BaseException{
+    public List<GetFeedsHomewarmingsRes> retrieveHomewarming(Long feedId) throws BaseException{
         String methodName = "retrieveHomemwarming";
         Long userId = jwtService.getUserId();
         if (!feedDao.checkFeedExistById(feedId)){
@@ -472,8 +506,8 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_HOMEWARMING_FEED);
         }
         try{
-            List<GetFeedsHomewarmings> getFeedsHomewarmings = feedDao.retrieveHomewarming(feedId, userId);
-            return getFeedsHomewarmings;
+            List<GetFeedsHomewarmingsRes> getFeedsHomewarmingRes = feedDao.retrieveHomewarming(feedId, userId);
+            return getFeedsHomewarmingRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -481,4 +515,136 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 노하우 피드 상단 정보 조회
+    public GetFeedsKnowhowsTopRes retrieveKnowhowTop(Long feedId) throws BaseException{
+
+        String methodName = "retrieveKnowhowTop";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1){
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            GetFeedsKnowhowsTopRes getFeedsKnowhowsTopRes = feedDao.retrieveKnowhowTop(feedId);
+            return getFeedsKnowhowsTopRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 노하우 상세 조회
+    public GetFeedsKnowhowsRes retrieveKnowhow(Long feedId) throws BaseException {
+        String methodName = "retrieveKnowhow";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1){
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            List<GetFeedsKnowhowsResPhoto> getFeedsKnowhowsResPhotoList = feedDao.retrieveKnowhowPhoto(feedId);
+            List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
+            return new GetFeedsKnowhowsRes(getFeedsKnowhowsResPhotoList, keywordList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 집들이 피드 하단 이 피드 작성자가 올린 다른 집들이 피드 조회
+    public List<GetFeedsHomewarmingsOthersRes> retrieveHomewarmingOthers(Long feedId) throws BaseException{
+        String methodName = "retrieveHomewarmingOthers";
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1) {
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmingsOthersRes> getFeedsHomewarmingsOthersRes = feedDao.retrieveHomewarmingOthers(feedId);
+            return getFeedsHomewarmingsOthersRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    // 비슷한 집들이 리스트 조회
+    public List<GetFeedsHomewarmingSimilarRes> retrieveHomewarmingsSimilar(Long feedId, Long cursor) throws BaseException {
+        String methodName = "retrieveHomewarmingsSimilar";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1) {
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmingSimilarRes> getFeedsHomewarmingSimilarResList = feedDao.retrieveHomewarmingsSimilar(userId, feedId, cursor);
+            return getFeedsHomewarmingSimilarResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 해당 노하우 피드를 올린 작성자가 올린 다른 노하우 피드들
+    public List<GetFeedsKnowhowsOthersRes> retrieveKnowhowsOthers(Long feedId) throws BaseException{
+        String methodName = "retrieveKnowhowsOthers";
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1) {
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            List<GetFeedsKnowhowsOthersRes> getFeedsKnowhowsOthersResList = feedDao.retrieveKnowhowOthers(feedId);
+            return getFeedsKnowhowsOthersResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 노하우 최하단 당신이 놓친 스토리 조회
+    public List<GetFeedsKnowhowsSimilarRes> retrieveKnowhowsSimilar(Long feedId, Long cursor) throws BaseException{
+        String methodName = "retrieveKnowhowsSimilar";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1) {
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            List<GetFeedsKnowhowsSimilarRes> getFeedsKnowhowsSimilarRes = feedDao.retrieveKnowhowsSimilar(cursor);
+            return getFeedsKnowhowsSimilarRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
+
 }
