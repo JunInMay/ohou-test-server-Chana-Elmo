@@ -36,7 +36,7 @@ public class FeedDao {
         String getFeedByIdQuery = ""
                 + "SELECT * "
                 + "FROM   feed "
-                + "WHERE  id = ?;";
+                + "WHERE  id = ? ";
         return this.jdbcTemplate.queryForObject(getFeedByIdQuery,
                 (rs, rowNum) -> new Feed(
                         rs.getLong("id"),
@@ -2491,7 +2491,7 @@ public class FeedDao {
                 ), retrieveMediasSimilarSpaceParams);
     }
 
-    public GetFeedsHomewarmingsTop retrieveHomewarmingTop(Long feedId) {
+    public GetFeedsHomewarmingsTopRes retrieveHomewarmingTop(Long feedId) {
         Object[] retrieveHomewarmingTopParams = new Object[]{feedId};
         String retrieveHomewarmingTopQuery = ""
                 + "SELECT CASE "
@@ -2527,7 +2527,7 @@ public class FeedDao {
                 + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
                 + "         ELSE NULL "
                 + "       end                                       AS thumbnail, "
-                + "       Concat(main.description, \"\", main.title) AS title, "
+                + "       Concat(main.description, \" \", main.title) AS title, "
                 + "       ht.name                                   AS home, "
                 + "       ft.name                                   AS family, "
                 + "       ct.name                                   AS category, "
@@ -2554,7 +2554,7 @@ public class FeedDao {
                 + "WHERE  feed_id = ? ";
 
         return this.jdbcTemplate.queryForObject(retrieveHomewarmingTopQuery,
-                (rs, rowNum) -> new GetFeedsHomewarmingsTop(
+                (rs, rowNum) -> new GetFeedsHomewarmingsTopRes(
                         rs.getString("thumbnail"),
                         rs.getString("title"),
                         rs.getString("home"),
@@ -2568,7 +2568,7 @@ public class FeedDao {
                 ), retrieveHomewarmingTopParams);
     }
 
-    public List<GetFeedsHomewarmings> retrieveHomewarming(Long feedId, Long userId) {
+    public List<GetFeedsHomewarmingsRes> retrieveHomewarming(Long feedId, Long userId) {
         Object[] retrieveHomewarmingParams = new Object[]{userId, feedId};
         String retrieveHomewarmingQuery = ""
                 + "SELECT media.photo_id                         AS feed_id, "
@@ -2592,11 +2592,94 @@ public class FeedDao {
                 + "ORDER  BY feed_having_media.created_at DESC ";
 
         return this.jdbcTemplate.query(retrieveHomewarmingQuery,
-                (rs, rowNum) -> new GetFeedsHomewarmings(
+                (rs, rowNum) -> new GetFeedsHomewarmingsRes(
                         rs.getLong("feed_id"),
                         rs.getString("image_url"),
                         rs.getString("is_bookmarked"),
                         rs.getString("description")
                 ), retrieveHomewarmingParams);
+    }
+
+    public GetFeedsKnowhowsTopRes retrieveKnowhowTop(Long feedId) {
+        String retrieveKnowhowTopQuery = ""
+                + "SELECT CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                       AS thumbnail, "
+                + "       main.meta_image_url, "
+                + "       tt.name, "
+                + "       Concat(main.description, \" \", main.title) AS title, "
+                + "       main.top_content "
+                + "FROM   knowhow_feed main "
+                + "       JOIN feed "
+                + "         ON feed.id = main.feed_id "
+                + "       JOIN knowhow_theme_type tt "
+                + "         ON tt.id = main.knowhow_theme_type_id "
+                + "WHERE  feed_id = ? ";
+
+
+        return this.jdbcTemplate.queryForObject(retrieveKnowhowTopQuery,
+                (rs, rowNum) -> new GetFeedsKnowhowsTopRes(
+                        rs.getString("thumbnail"),
+                        rs.getString("name"),
+                        rs.getString("title"),
+                        rs.getString("meta_image_url"),
+                        rs.getString("top_content")
+                ), feedId);
+    }
+
+    public List<GetFeedsKnowhowsRes> retrieveKnowhow(Long feedId) {
+        Object[] retrieveKnowhowParams = new Object[]{feedId};
+        String retrieveKnowhowQuery = ""
+                + "SELECT media.photo_id    AS feed_id, "
+                + "       media.url         AS image_url, "
+                + "       media.description AS description "
+                + "FROM   feed_having_media "
+                + "       JOIN (SELECT feed.id AS photo_id, "
+                + "                    media.url, "
+                + "                    media.description, "
+                + "                    media.id "
+                + "             FROM   media "
+                + "                    JOIN feed "
+                + "                      ON feed.id = media.feed_id) media "
+                + "         ON feed_having_media.media_id = media.id "
+                + "WHERE  feed_id = ? "
+                + "ORDER  BY feed_having_media.created_at DESC ";
+
+        return this.jdbcTemplate.query(retrieveKnowhowQuery,
+                (rs, rowNum) -> new GetFeedsKnowhowsRes(
+                        rs.getLong("feed_id"),
+                        rs.getString("image_url"),
+                        rs.getString("description")
+                ), retrieveKnowhowParams);
     }
 }
