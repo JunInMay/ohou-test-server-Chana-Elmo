@@ -589,6 +589,27 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+
+    // 노하우 최하단 당신이 놓친 스토리 조회
+    public List<GetFeedsKnowhowsSimilarRes> retrieveKnowhowsSimilar(Long feedId, Long cursor) throws BaseException{
+        String methodName = "retrieveKnowhowsSimilar";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1) {
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            List<GetFeedsKnowhowsSimilarRes> getFeedsKnowhowsSimilarRes = feedDao.retrieveKnowhowsSimilar(cursor);
+            return getFeedsKnowhowsSimilarRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
 
     }
 }

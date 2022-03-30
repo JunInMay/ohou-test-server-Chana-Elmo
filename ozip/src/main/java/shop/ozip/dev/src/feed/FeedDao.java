@@ -2896,4 +2896,65 @@ public class FeedDao {
                         rs.getString("title")
                 ), retrieveKnowhowOthersParams);
     }
+
+    public List<GetFeedsKnowhowsSimilarRes> retrieveKnowhowsSimilar(Long cursor) {
+        String retrieveKnowhowsSimilarQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end "
+                + "       AS thumbnail, "
+                + "       Concat(homewarming_feed.description, \"\", homewarming_feed.title) "
+                + "       AS title, "
+                + "       Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER "
+                + "       ) AS "
+                + "       standard "
+                + "FROM   feed "
+                + "       LEFT JOIN homewarming_feed "
+                + "              ON homewarming_feed.feed_id = feed.id "
+                + "WHERE  feed.is_homewarming = 1 "
+                + "       AND Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed "
+                + "           INTEGER) < "
+                + "           ? "
+                + "ORDER  BY standard DESC "
+                + "LIMIT  10 ";
+
+        return this.jdbcTemplate.query(retrieveKnowhowsSimilarQuery,
+                (rs, rowNum) -> new GetFeedsKnowhowsSimilarRes(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getLong("standard")
+                ), cursor);
+    }
 }

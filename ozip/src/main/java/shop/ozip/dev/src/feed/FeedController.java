@@ -633,4 +633,25 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+    /*
+    노하우 피드 하단 당신이 놓친 스토리 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/knowhows/similar/:feedId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/knowhows/similar/{feedId}/{cursor}", "/knowhows/similar/{feedId}"})
+    public BaseResponse<List<GetFeedsKnowhowsSimilarRes>> getFeedsKnowhowsSimilar(@PathVariable("feedId") Long feedId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsKnowhowsSimilarRes> getFeedsKnowhowsSimilarResList = feedProvider.retrieveKnowhowsSimilar(feedId, cursor);
+            return new BaseResponse<>(getFeedsKnowhowsSimilarResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 }
