@@ -34,6 +34,9 @@ public class CartItem extends BaseTimeEntity {
     @Column(nullable = false)
     private int totalPrice;
 
+    @Column(nullable = false)
+    private int deliveryAmount;
+
     @ManyToOne
     @JoinColumn(name = "cartId", referencedColumnName = "id", nullable = false)
     private Cart cartId;

@@ -22,4 +22,13 @@ public class Cart extends BaseTimeEntity {
     @Column(nullable = false)
     private Long userId;
 
+    @Column(nullable = false)
+    private int totalPrice;
+
+    @Column(nullable = false)
+    private int deliveryAmount;
+
+    @Column(nullable = true)
+    private int productCount;
+
 }
