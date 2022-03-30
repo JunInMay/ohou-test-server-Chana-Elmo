@@ -76,7 +76,7 @@ public class ProductController {
             List<ColorOptions> options = new ArrayList<>();
 
             for (MachineOption mo : machineOptions) {
-                options.add(new ColorOptions(mo.getId(), mo.getColorId().getColor()));
+                options.add(new ColorOptions(mo));
             }
 
             MachineOptionsRes machineOptionsRes = new MachineOptionsRes(options);
