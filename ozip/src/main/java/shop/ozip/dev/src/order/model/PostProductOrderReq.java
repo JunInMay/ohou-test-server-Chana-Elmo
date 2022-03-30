@@ -1,4 +1,4 @@
-package shop.ozip.dev.src.product.model;
+package shop.ozip.dev.src.order.model;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductOrderReq {
+public class PostProductOrderReq {
     private Long productId;
     private Long optionId;
     private int productCount;

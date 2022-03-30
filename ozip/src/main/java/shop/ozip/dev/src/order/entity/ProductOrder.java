@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.ozip.dev.src.category.entity.SubCategory;
 import shop.ozip.dev.src.global.repository.BaseTimeEntity;
+import shop.ozip.dev.src.product.entity.Product;
+import shop.ozip.dev.src.product.option.entity.MachineOption;
 
 import javax.persistence.*;
 
@@ -18,11 +21,13 @@ public class ProductOrder extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long productId;
+    @ManyToOne
+    @JoinColumn(name = "productId", referencedColumnName = "id", nullable = false)
+    private Product productId;
 
-    @Column(nullable = false)
-    private Long optionId;
+    @ManyToOne
+    @JoinColumn(name = "optionId", referencedColumnName = "id", nullable = false)
+    private MachineOption optionId;
 
     @Column(nullable = false)
     private int productCount;
