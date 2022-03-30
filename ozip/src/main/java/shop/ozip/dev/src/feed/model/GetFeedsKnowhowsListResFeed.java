@@ -5,19 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsHomewarmingFeedsListResFeed {
+public class GetFeedsKnowhowsListResFeed {
+    private Integer isNew;
     private Long feedId;
     private String thumbnailUrl;
-    private Integer isBookmarked;
     private String description;
     private String profileImageUrl;
     private String nickname;
-    private Integer scrappedCount;
     private Integer viewCount;
+    private Integer scrappedCount;
     private Long cursor;
+    private Integer isBookmarked;
 }

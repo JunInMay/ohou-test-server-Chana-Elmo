@@ -4,14 +4,13 @@ package shop.ozip.dev.src.feed.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import shop.ozip.dev.src.feed.model.GetFeedsKnowhowFeedsListResFeed;
 
 import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetFeedsKnowhowFeedsListRes {
+public class GetFeedsHomewarmingListRes {
     private Integer feedCount;
-    private List<GetFeedsKnowhowFeedsListResFeed> knowhowFeeds;
+    private List<GetFeedsHomewarmingListResFeed> homewarmingFeeds;
 }

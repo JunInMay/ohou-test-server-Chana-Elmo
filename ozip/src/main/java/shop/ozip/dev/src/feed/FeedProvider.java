@@ -200,12 +200,12 @@ public class FeedProvider {
         }
     }
     // 집들이 리스트 조회
-    public GetFeedsHomewarmingFeedsListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) throws BaseException{
+    public GetFeedsHomewarmingListRes retrieveHomewarmingFeedList(Long cursor, Integer sort, Integer homeType, Integer acreageStart, Integer acreageEnd, Integer budgetStart, Integer budgetEnd, Integer family, Integer style, Integer allColor, Integer wallColor, Integer floorColor, Integer detail, Integer category, Integer subject, int professional) throws BaseException{
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
-            return getFeedsHomewarmingFeedsListRes;
+            GetFeedsHomewarmingListRes getFeedsHomewarmingListRes = feedDao.retrieveHomewarmingFeedList(userId, cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
+            return getFeedsHomewarmingListRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -214,12 +214,12 @@ public class FeedProvider {
         }
     }
 
-    public GetFeedsKnowhowFeedsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
+    public GetFeedsKnowhowsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
-            GetFeedsKnowhowFeedsListRes getFeedsKnowhowFeedsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
-            return getFeedsKnowhowFeedsListRes;
+            GetFeedsKnowhowsListRes getFeedsKnowhowsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
+            return getFeedsKnowhowsListRes;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -504,7 +504,8 @@ public class FeedProvider {
         }
     }
 
-    public List<GetFeedsKnowhowsRes> retrieveKnowhow(Long feedId) throws BaseException {
+    // 노하우 상세 조회
+    public GetFeedsKnowhowsRes retrieveKnowhow(Long feedId) throws BaseException {
         String methodName = "retrieveKnowhow";
         if (!feedDao.checkFeedExistById(feedId)){
             throw new BaseException(FEED_NOT_EXIST);
@@ -514,8 +515,53 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_KNOWHOW_FEED);
         }
         try{
-            List<GetFeedsKnowhowsRes> getFeedsKnowhowsResList = feedDao.retrieveKnowhow(feedId);
-            return getFeedsKnowhowsResList;
+            List<GetFeedsKnowhowsResPhoto> getFeedsKnowhowsResPhotoList = feedDao.retrieveKnowhowPhoto(feedId);
+            List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
+            return new GetFeedsKnowhowsRes(getFeedsKnowhowsResPhotoList, keywordList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 집들이 피드 하단 이 피드 작성자가 올린 다른 집들이 피드 조회
+    public List<GetFeedsHomewarmingsOthersRes> retrieveHomewarmingOthers(Long feedId) throws BaseException{
+        String methodName = "retrieveHomewarmingOthers";
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1) {
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmingsOthersRes> getFeedsHomewarmingsOthersRes = feedDao.retrieveHomewarmingOthers(feedId);
+            return getFeedsHomewarmingsOthersRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    // 비슷한 집들이 리스트 조회
+    public List<GetFeedsHomewarmingSimilarRes> retrieveHomewarmingsSimilar(Long feedId, Long cursor) throws BaseException {
+        String methodName = "retrieveHomewarmingsSimilar";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsHomewarming() != 1) {
+            throw new BaseException(IS_NOT_HOMEWARMING_FEED);
+        }
+        try{
+            List<GetFeedsHomewarmingSimilarRes> getFeedsHomewarmingSimilarResList = feedDao.retrieveHomewarmingsSimilar(userId, feedId, cursor);
+            return getFeedsHomewarmingSimilarResList;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());

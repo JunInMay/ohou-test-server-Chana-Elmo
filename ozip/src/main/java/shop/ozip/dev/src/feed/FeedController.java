@@ -129,15 +129,15 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/homewarmings"})
-    public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
+    public BaseResponse<GetFeedsHomewarmingListRes> getFeedsHomewarmingsList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
             cursor = Long.MAX_VALUE;
         }
         try{
             int professional = 0;
-            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedProvider.retrieveHomewarmingFeedList(cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
-            return new BaseResponse<>(getFeedsHomewarmingFeedsListRes);
+            GetFeedsHomewarmingListRes getFeedsHomewarmingListRes = feedProvider.retrieveHomewarmingFeedList(cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
+            return new BaseResponse<>(getFeedsHomewarmingListRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -148,15 +148,15 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/homewarmings/pro"})
-    public BaseResponse<GetFeedsHomewarmingFeedsListRes> getFeedsHomewarmingsProList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
+    public BaseResponse<GetFeedsHomewarmingListRes> getFeedsHomewarmingsProList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="home-type", required=false, defaultValue="0") Integer homeType, @RequestParam(value="acreage-start", required=false, defaultValue="0") Integer acreageStart, @RequestParam(value="acreage-end", required=false, defaultValue="0") Integer acreageEnd, @RequestParam(value="budget-start", required=false, defaultValue="0") Integer budgetStart, @RequestParam(value="budget-end", required=false, defaultValue="0") Integer budgetEnd, @RequestParam(value="family", required=false, defaultValue="0") Integer family, @RequestParam(value="style", required=false, defaultValue="0") Integer style, @RequestParam(value="all-color", required=false, defaultValue="0") Integer allColor, @RequestParam(value="wall-color", required=false, defaultValue="0") Integer wallColor, @RequestParam(value="floor-color", required=false, defaultValue="0") Integer floorColor, @RequestParam(value="detail", required=false, defaultValue="0") Integer detail, @RequestParam(value="category", required=false, defaultValue="0") Integer category, @RequestParam(value="subject", required=false, defaultValue="0") Integer subject) {
         // 정렬 적용시 주의
         if (cursor == null){
             cursor = Long.MAX_VALUE;
         }
         try{
             int professional = 1;
-            GetFeedsHomewarmingFeedsListRes getFeedsHomewarmingFeedsListRes = feedProvider.retrieveHomewarmingFeedList(cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
-            return new BaseResponse<>(getFeedsHomewarmingFeedsListRes);
+            GetFeedsHomewarmingListRes getFeedsHomewarmingListRes = feedProvider.retrieveHomewarmingFeedList(cursor, sort, homeType, acreageStart, acreageEnd, budgetStart, budgetEnd, family, style, allColor, wallColor, floorColor, detail, category, subject, professional);
+            return new BaseResponse<>(getFeedsHomewarmingListRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -168,14 +168,14 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping(value = {"/knowhows"})
-    public BaseResponse<GetFeedsKnowhowFeedsListRes> getFeedsKnowhowFeedsList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="3") Integer sort, @RequestParam(value="theme", required=false, defaultValue="0") Integer theme) {
+    public BaseResponse<GetFeedsKnowhowsListRes> getFeedsKnowhowFeedsList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="3") Integer sort, @RequestParam(value="theme", required=false, defaultValue="0") Integer theme) {
         // 정렬 적용시 주의
         if (cursor == null){
             cursor = Long.MAX_VALUE;
         }
         try{
-            GetFeedsKnowhowFeedsListRes getFeedsKnowhowFeedsListRes = feedProvider.retrieveKnowhowFeedList(cursor, theme, sort);
-            return new BaseResponse<>(getFeedsKnowhowFeedsListRes);
+            GetFeedsKnowhowsListRes getFeedsKnowhowsListRes = feedProvider.retrieveKnowhowFeedList(cursor, theme, sort);
+            return new BaseResponse<>(getFeedsKnowhowsListRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -540,6 +540,24 @@ public class FeedController {
         }
     }
 
+    /*
+    해당 집들이 피드 작성자가 올린 다른 집들이 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/:feedId/others
+    */
+    @ResponseBody
+    @GetMapping("/homewarmings/{feedId}/others")
+    public BaseResponse<List<GetFeedsHomewarmingsOthersRes>> getFeedsHomewarmingsOthers(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsHomewarmingsOthersRes> getFeedsHomewarmingsOthersRes = feedProvider.retrieveHomewarmingOthers(feedId);
+            return new BaseResponse<>(getFeedsHomewarmingsOthersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 
     /*
     노하우 피드 상단 정보 조회
@@ -565,16 +583,36 @@ public class FeedController {
     */
     @ResponseBody
     @GetMapping("/knowhows/{feedId}")
-    public BaseResponse<List<GetFeedsKnowhowsRes>> getFeedsKnowhows(@PathVariable("feedId") Long feedId) {
+    public BaseResponse<GetFeedsKnowhowsRes> getFeedsKnowhows(@PathVariable("feedId") Long feedId) {
         if (feedId == null){
             return new BaseResponse<>(EMPTY_FEED_ID);
         }
         try{
-            List<GetFeedsKnowhowsRes> getFeedsKnowhowsResList = feedProvider.retrieveKnowhow(feedId);
-            return new BaseResponse<>(getFeedsKnowhowsResList);
+            GetFeedsKnowhowsRes getFeedsKnowhowsRes = feedProvider.retrieveKnowhow(feedId);
+            return new BaseResponse<>(getFeedsKnowhowsRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
     }
 
+    /*
+    집들이 피드 하단 이 집과 비슷한 추천 집들이 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/similar/:feedId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/homewarmings/similar/{feedId}/{cursor}", "/homewarmings/similar/{feedId}"})
+    public BaseResponse<List<GetFeedsHomewarmingSimilarRes>> getFeedsHomewarmingsSimilar(@PathVariable("feedId") Long feedId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsHomewarmingSimilarRes> getFeedsHomewarmingSimilarResList = feedProvider.retrieveHomewarmingsSimilar(feedId, cursor);
+            return new BaseResponse<>(getFeedsHomewarmingSimilarResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 }
