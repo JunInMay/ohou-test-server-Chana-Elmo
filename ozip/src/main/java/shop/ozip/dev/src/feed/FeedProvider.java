@@ -569,4 +569,26 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    // 해당 노하우 피드를 올린 작성자가 올린 다른 노하우 피드들
+    public List<GetFeedsKnowhowsOthersRes> retrieveKnowhowsOthers(Long feedId) throws BaseException{
+        String methodName = "retrieveKnowhowsOthers";
+        if (!feedDao.checkFeedExistById(feedId)) {
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsKnowhow() != 1) {
+            throw new BaseException(IS_NOT_KNOWHOW_FEED);
+        }
+        try{
+            List<GetFeedsKnowhowsOthersRes> getFeedsKnowhowsOthersResList = feedDao.retrieveKnowhowOthers(feedId);
+            return getFeedsKnowhowsOthersResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
 }

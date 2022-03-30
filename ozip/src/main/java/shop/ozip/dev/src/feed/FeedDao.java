@@ -2832,4 +2832,68 @@ public class FeedDao {
                         rs.getLong("standard")
                 ), retrieveHomewarmingsSimilarParams);
     }
+
+    public List<GetFeedsKnowhowsOthersRes> retrieveKnowhowOthers(Long feedId) {
+        Object[] retrieveKnowhowOthersParams = new Object[]{
+                feedId, feedId
+        };
+        String retrieveKnowhowOthersQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end                                                       AS thumbnail, "
+                + "       name, "
+                + "       Concat(knowhow_feed.description, \" \", knowhow_feed.title) AS title "
+                + "FROM   feed "
+                + "       JOIN (SELECT knowhow_feed.*, "
+                + "                    knowhow_theme_type.name "
+                + "             FROM   knowhow_feed "
+                + "                    JOIN knowhow_theme_type "
+                + "                      ON knowhow_theme_type.id = "
+                + "                         knowhow_feed.knowhow_theme_type_id) "
+                + "                        knowhow_feed "
+                + "         ON feed.id = knowhow_feed.feed_id "
+                + "WHERE  user_id = (SELECT user_id "
+                + "                  FROM   feed "
+                + "                  WHERE  feed.id = ?) "
+                + "       AND is_knowhow = 1 "
+                + "       AND feed.id != ?;";
+        return this.jdbcTemplate.query(retrieveKnowhowOthersQuery,
+                (rs, rowNum) -> new GetFeedsKnowhowsOthersRes(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("name"),
+                        rs.getString("title")
+                ), retrieveKnowhowOthersParams);
+    }
 }

@@ -615,4 +615,22 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+    /*
+    해당 노하우 피드 작성자가 올린 다른 노하우 피드 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/knowhows/:feedId/others
+    */
+    @ResponseBody
+    @GetMapping("/knowhows/{feedId}/others")
+    public BaseResponse<List<GetFeedsKnowhowsOthersRes>> getFeedsKnowhowsOthers(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            List<GetFeedsKnowhowsOthersRes> getFeedsKnowhowsOthersResList = feedProvider.retrieveKnowhowsOthers(feedId);
+            return new BaseResponse<>(getFeedsKnowhowsOthersResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 }
