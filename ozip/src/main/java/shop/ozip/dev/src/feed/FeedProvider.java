@@ -13,6 +13,7 @@ import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
+import shop.ozip.dev.src.keyword.model.QnAKeyword;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -214,12 +215,45 @@ public class FeedProvider {
         }
     }
 
+    // 노하우 리스트 조회
     public GetFeedsKnowhowsListRes retrieveKnowhowFeedList(Long cursor, Integer theme, Integer sort) throws BaseException {
         String methodName = "retrieveMediaFeedList";
         Long userId = jwtService.getUserId();
         try{
             GetFeedsKnowhowsListRes getFeedsKnowhowsListRes = feedDao.retrieveKnowhowFeedList(userId, cursor, theme, sort);
             return getFeedsKnowhowsListRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 질문과 답변 리스트 조회
+    public List<GetFeedsQnAListRes> retrieveQnAList(Long cursor, Integer sort, Integer noComment) throws BaseException {
+        String methodName = "retrieveQnAList";
+        try{
+            List<GetFeedsQnAListResFeed> getFeedsQnAListResFeedList = feedDao.retrieveQnAList(cursor, noComment, sort);
+            List<GetFeedsQnAListRes> getFeedsQnAListResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAListResFeedList.size(); i++){
+                GetFeedsQnAListResFeed getFeedsQnAListResFeed = getFeedsQnAListResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAListResFeedList.get(i).getQnaId());
+                GetFeedsQnAListRes getFeedsQnAListRes = new GetFeedsQnAListRes(
+                        getFeedsQnAListResFeed.getFeedId(),
+                        getFeedsQnAListResFeed.getTitle(),
+                        getFeedsQnAListResFeed.getProfileImageUrl(),
+                        getFeedsQnAListResFeed.getNickname(),
+                        getFeedsQnAListResFeed.getUploadedAt(),
+                        getFeedsQnAListResFeed.getCommentCount(),
+                        getFeedsQnAListResFeed.getViewCount(),
+                        getFeedsQnAListResFeed.getThumbnailUrl(),
+                        getFeedsQnAListResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAListResList.add(getFeedsQnAListRes);
+            }
+            return getFeedsQnAListResList;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
@@ -612,4 +646,5 @@ public class FeedProvider {
         }
 
     }
+
 }

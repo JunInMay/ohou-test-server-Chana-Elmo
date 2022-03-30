@@ -181,6 +181,25 @@ public class FeedController {
         }
     }
 
+    /*
+    질문과답변 리스트 조회(정렬 및 필터) API
+    (GET) 127.0.0.1:9000/app/feeds/qnas?cursor={cursor}&sort={sort}&no-comment={noCommment}
+    */
+    @ResponseBody
+    @GetMapping(value = {"/qnas"})
+    public BaseResponse<List<GetFeedsQnAListRes>> getFeedsQnAsList(@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value="sort", required=false, defaultValue="1") Integer sort, @RequestParam(value="no-comment", required=false, defaultValue="0") Integer noComment) {
+        // 정렬 적용시 주의
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            List<GetFeedsQnAListRes> getFeedsQnAListResList = feedProvider.retrieveQnAList(cursor, sort, noComment);
+            return new BaseResponse<>(getFeedsQnAListResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 
 
     /*

@@ -50,6 +50,25 @@ public class KeywordDao {
                 ), feedId);
     }
 
+    // 특정 피드에 달린 키워드 리스트 가져오기
+    public List<QnAKeyword> getQnAKeywordListByQnAId(Long QnAId) {
+        String getQnAKeywordListByQnAIdQuery = ""
+                + "SELECT * "
+                + "FROM   qna_having_keyword "
+                + "       JOIN qna_keyword "
+                + "         ON qna_keyword.id = qna_having_keyword.qna_keyword_id "
+                + "WHERE  qna_having_keyword.qna_id = ? ";
+
+        return this.jdbcTemplate.query(getQnAKeywordListByQnAIdQuery,
+                (rs, rowNum) -> new QnAKeyword(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at")),
+                        rs.getString("status")
+                ), QnAId);
+    }
+
     // 사진에 가장 많이 달린 키워드 조회하기(reffered count 안씀)
     public Keyword getMostRefferedKeywordInPhoto() {
         String getMostRefferedKeywordInPhoto = ""
