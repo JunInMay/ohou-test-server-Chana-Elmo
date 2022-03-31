@@ -738,4 +738,42 @@ public class FeedProvider {
         }
 
     }
+
+    // 특정 유저가 업로드한 노하우 리스트 조회
+    public GetFeedsKnowhowsUserRes retrieveKnowhowsUser(Long userId, Long cursor) throws BaseException {
+        String methodName = "retrieveFeedKnowhowsUser";
+
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsKnowhowsUserResFeed> getFeedsKnowhowsUserResFeedList = feedDao.retrieveKnowhowsUser(userId, cursor);
+            Integer count = feedDao.getKnowhowsCountByUserId(userId);
+
+            return new GetFeedsKnowhowsUserRes(count, getFeedsKnowhowsUserResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetFeedsScrappedRes retrieveScrappedFeeds(Long userId) throws BaseException {
+        String methodName = "retrieveFeedScrappedFeeds";
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsScrappedResFeed> getFeedsScrappedResFeedList  = feedDao.retrieveScrappedFeeds(userId);
+            Integer count = feedDao.getScrappedFeedsCountByUserId(userId);
+
+            return new GetFeedsScrappedRes(count, getFeedsScrappedResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

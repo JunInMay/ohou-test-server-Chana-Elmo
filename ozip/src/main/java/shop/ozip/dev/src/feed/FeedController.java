@@ -747,6 +747,45 @@ public class FeedController {
     }
 
     /*
+    해당 유저가 업로드한 노하우 피드들 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/knowhows/user/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/knowhows/user/{userId}", "/knowhows/user/{userId}/{cursor}"})
+    public BaseResponse<GetFeedsKnowhowsUserRes> getFeedsKnowhowsUser(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            GetFeedsKnowhowsUserRes getFeedsKnowhowsUserRes = feedProvider.retrieveKnowhowsUser(userId, cursor);
+            return new BaseResponse<>(getFeedsKnowhowsUserRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    해당 유저가 북마크한 피드들 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/scrapped/:userId
+    */
+    @ResponseBody
+    @GetMapping(value = {"/scrapped/{userId}"})
+    public BaseResponse<GetFeedsScrappedRes> getFeedsScrapped(@PathVariable("userId") Long userId) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        try{
+            GetFeedsScrappedRes getFeedsScrappedRes = feedProvider.retrieveScrappedFeeds(userId);
+            return new BaseResponse<>(getFeedsScrappedRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     #################################################################################################################################################################
     아래는 업로드 관련
     #################################################################################################################################################################
