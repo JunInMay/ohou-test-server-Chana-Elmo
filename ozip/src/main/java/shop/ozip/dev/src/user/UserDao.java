@@ -92,19 +92,19 @@ public class UserDao {
 
 
 
-    // 유저 1명 조회
-    public GetUsersRes getUsers(Long userId){
-        String getUserQuery = "select * from user where id = ?";
-        Long getUserParams = userId;
-        return this.jdbcTemplate.queryForObject(getUserQuery,
-                (rs, rowNum) -> new GetUsersRes(
-                        rs.getLong("id"),
-                        rs.getString("email"),
-                        rs.getString("nickname"),
-                        rs.getString("description"),
-                        rs.getInt("point")),
-                getUserParams);
-    }
+//    // 유저 1명 조회
+//    public GetUsersRes getUsers(Long userId){
+//        String getUserQuery = "select * from user where id = ?";
+//        Long getUserParams = userId;
+//        return this.jdbcTemplate.queryForObject(getUserQuery,
+//                (rs, rowNum) -> new GetUsersRes(
+//                        rs.getLong("id"),
+//                        rs.getString("email"),
+//                        rs.getString("nickname"),
+//                        rs.getString("description"),
+//                        rs.getInt("point")),
+//                getUserParams);
+//    }
 
     
 
@@ -132,12 +132,7 @@ public class UserDao {
         return this.jdbcTemplate.queryForObject(checkNicknameQuery, int.class, checkNicknameParams);
     }
 
-    public int modifyUserName(PatchUserReq patchUserReq){
-        String modifyUserNameQuery = "update UserInfo set userName = ? where userIdx = ? ";
-        Object[] modifyUserNameParams = new Object[]{patchUserReq.getUserName(), patchUserReq.getUserIdx()};
 
-        return this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
-    }
 
     public UserPwd getPwd (PostLoginReq postLoginReq){
         String getPwdQuery = ""
@@ -207,5 +202,27 @@ public class UserDao {
                         rs.getInt("is_professional")
                 ), retrieveUsersFeedsParams
         );
+    }
+
+    // 유저 정보 수정하기
+    public int updateUser(Long userId, PatchUserReq patchUserReq) {
+
+        String updateUserQuery = ""
+                + "UPDATE user "
+                + "SET    " +
+                " profile_image_url = ?, "
+                + "       nickname = ?, "
+                + "       description = ?, "
+                + "       personal_url = ? "
+                + "WHERE  id = ? ";
+
+        Object[] updateUserParams = new Object[]{
+                patchUserReq.getProfileImageUrl(),
+                patchUserReq.getNickname(),
+                patchUserReq.getDescription(),
+                patchUserReq.getPersonalUrl(),
+                userId
+        };
+        return this.jdbcTemplate.update(updateUserQuery, updateUserParams);
     }
 }

@@ -112,6 +112,13 @@ public class FeedDao {
                         rs.getString("status")
                 ), feedId);
     }
+
+    // 조회수 올리기
+    public Integer updateViewCountByFeedId(Long FeedId){
+        String updateViewCountByFeedIdQuery = "update feed set view_count = view_count+1 where id = ? ";
+        return this.jdbcTemplate.update(updateViewCountByFeedIdQuery, FeedId);
+
+    }
     
     // 특정 미디어 피드에 담긴 미디어(사진)들 가져오기
     public List<GetFeedsMediaFeedsResMedia> retrieveMediaFeedMedias(Long userId, Long feedId){
@@ -834,6 +841,36 @@ public class FeedDao {
                 + "         ON feed.id = media.feed_id "
                 + "WHERE  feed.user_id = ?";
         return this.jdbcTemplate.queryForObject(retrieveFeedsMediasCountQuery, Integer.class, userId);
+    }
+    // 특정 유저가 업로드한 집들이 개수
+    public Integer getHomewarmingsCountByUserId(Long userId) {
+        String getHomewarmingsCountByUserIdQuery =""
+                + "SELECT Count(*) AS count "
+                + "FROM   feed "
+                + "WHERE  user_id = ? "
+                + "       AND is_homewarming = 1 ";
+        return this.jdbcTemplate.queryForObject(getHomewarmingsCountByUserIdQuery, Integer.class, userId);
+    }
+
+    // 특정 유저가 업로드한 노하우 개수
+    public Integer getKnowhowsCountByUserId(Long userId) {
+        String getKnowhowsCountByUserIdQuery =""
+                + "SELECT Count(*) AS count "
+                + "FROM   feed "
+                + "WHERE  user_id = ? "
+                + "       AND is_knowhow = 1 ";
+        return this.jdbcTemplate.queryForObject(getKnowhowsCountByUserIdQuery, Integer.class, userId);
+    }
+
+    // 특정 유저가 스크랩한 피드들 개수
+    public Integer getScrappedFeedsCountByUserId(Long userId) {
+        String getScrappedFeedsCountByUserIdQuery =""
+                + "SELECT Count(*) "
+                + "FROM   scrapbook_feed "
+                + "       JOIN scrapbook "
+                + "         ON scrapbook.id = scrapbook_feed.scrapbook_id "
+                + "WHERE  scrapbook.user_id = ?;";
+        return this.jdbcTemplate.queryForObject(getScrappedFeedsCountByUserIdQuery, Integer.class, userId);
     }
 
 
@@ -3021,7 +3058,12 @@ public class FeedDao {
                 + "                             qna.title, "
                 + "                             user.profile_image_url, "
                 + "                             user.nickname, "
-                + "                             Date_format(feed.created_at, '%Y.%m.%d') AS uploaded_at, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
                 + "                             IF (comment_count > 0, comment_count, 0) AS comment_count, "
                 + "                             view_count, "
                 + "                             url                                                                                                                                                                                AS thumbnail, "
@@ -3187,6 +3229,491 @@ public class FeedDao {
                         rs.getInt("comment_count"),
                         rs.getInt("share_count")
                 ), retrieveFeedFooterParams);
+    }
+
+    // 특정 유저가 올린 노하우 리스트 조회
+    public List<GetFeedsKnowhowsUserResFeed> retrieveKnowhowsUser(Long userId, Long cursor) {
+        String retrieveKnowhowsUserQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end "
+                + "       AS thumbnail, "
+                + "       Concat(knowhow_feed.description, \"\", knowhow_feed.title) "
+                + "       AS title, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0) "
+                + "       AS scrapped_count, "
+                + "       view_count, "
+                + "       Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER "
+                + "       ) AS "
+                + "       standard "
+                + "FROM   feed "
+                + "       JOIN user "
+                + "         ON user.id = feed.user_id "
+                + "       JOIN knowhow_feed "
+                + "         ON feed.id = knowhow_feed.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS scrapped_count, "
+                + "                         feed_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY feed_id) forScrappedCount "
+                + "              ON feed.id = forScrappedCount.feed_id "
+                + "WHERE  user_id = ? "
+                + "       AND Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed "
+                + "           INTEGER) < "
+                + "           ? "
+                + "ORDER  BY standard DESC "
+                + "LIMIT  10;";
+
+
+        Object[] retrieveKnowhowsUserParams = new Object[]{
+                userId,
+                cursor
+        };
+
+        return this.jdbcTemplate.query(retrieveKnowhowsUserQuery,
+                (rs, rowNum) -> new GetFeedsKnowhowsUserResFeed(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("view_count"),
+                        rs.getLong("standard")
+                ), retrieveKnowhowsUserParams);
+    }
+    // 특정 유저가 올린 집들이 리스트 조회
+    public List<GetFeedsHomewarmingsUserResFeed> retrieveHomewarmingsUser(Long userId, Long cursor) {
+        String retrieveHomewarmingsUserQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end "
+                + "       AS thumbnail, "
+                + "       Concat(homewarming_feed.description, \" \", homewarming_feed.title) "
+                + "       AS title, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0) "
+                + "       AS scrapped_count, "
+                + "       view_count, "
+                + "       Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER "
+                + "       ) AS "
+                + "       standard "
+                + "FROM   feed "
+                + "       JOIN user "
+                + "         ON user.id = feed.user_id "
+                + "       JOIN homewarming_feed "
+                + "         ON feed.id = homewarming_feed.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS scrapped_count, "
+                + "                         feed_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY feed_id) forScrappedCount "
+                + "              ON feed.id = forScrappedCount.feed_id "
+                + "WHERE  user_id = ? "
+                + "       AND Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed "
+                + "           INTEGER) < "
+                + "           ? "
+                + "ORDER  BY standard DESC "
+                + "LIMIT  10 ";
+        Object[] retrieveHomewarmingsUserParams = new Object[]{
+                userId,
+                cursor
+        };
+
+        return this.jdbcTemplate.query(retrieveHomewarmingsUserQuery,
+                (rs, rowNum) -> new GetFeedsHomewarmingsUserResFeed(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("view_count"),
+                        rs.getLong("standard")
+                ), retrieveHomewarmingsUserParams);
+
+    }
+
+    // 스크랩한 피드들 조회
+    public List<GetFeedsScrappedResFeed> retrieveScrappedFeeds(Long userId) {
+        String retrieveScrappedFeedsQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end AS thumbnail, "
+                + "       feed.is_media_feed, "
+                + "       feed.is_photo, "
+                + "       feed.is_video, "
+                + "       feed.is_homewarming, "
+                + "       feed.is_knowhow "
+                + "FROM   scrapbook_feed "
+                + "       JOIN scrapbook "
+                + "         ON scrapbook.id = scrapbook_feed.scrapbook_id "
+                + "       JOIN feed "
+                + "         ON feed.id = scrapbook_feed.feed_id "
+                + "WHERE  scrapbook.user_id = ? "
+                + "ORDER  BY scrapbook_feed.created_at DESC "
+                + "LIMIT  9 ";
+
+        return this.jdbcTemplate.query(retrieveScrappedFeedsQuery,
+                (rs, rowNum) -> new GetFeedsScrappedResFeed(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getInt("is_media_feed"),
+                        rs.getInt("is_photo"),
+                        rs.getInt("is_video"),
+                        rs.getInt("is_homewarming"),
+                        rs.getInt("is_knowhow")
+                ), userId);
+    }
+
+    // 특정 유저가 올린 질문 조회
+    public List<GetFeedsQnAUserResFeed> retrieveQnAUsers(Long cursor, Long userId) {
+        Object[] retrieveQnAUsersParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveQnAUsersQuery = ""
+                + "SELECT * "
+                + "FROM   ( "
+                + "                 SELECT    feed.id, "
+                + "                           qna_id, "
+                + "                           qna.title, "
+                + "                           user.profile_image_url, "
+                + "                           user.nickname, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
+                + "                           feed.created_at, "
+                + "                           IF (comment_count > 0, comment_count, 0) AS comment_count, "
+                + "                           view_count, "
+                + "                           url                                                                      AS thumbnail, "
+                + "                           Cast(Concat(feed.created_at+0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER) AS standard "
+                + "                 FROM      feed "
+                + "                 JOIN "
+                + "                           ( "
+                + "                                     SELECT    qna.id AS qna_id, "
+                + "                                               title, "
+                + "                                               qna.feed_id, "
+                + "                                               media_qn.url, "
+                + "                                               count AS comment_count "
+                + "                                     FROM      qna "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                      SELECT * "
+                + "                                                      FROM   ( "
+                + "                                                                      SELECT   feed_id, "
+                + "                                                                               url, "
+                + "                                                                               Row_number() over(partition BY media_qna.feed_id ORDER BY created_at DESC) AS rowidx "
+                + "                                                                      FROM     media_qna) a "
+                + "                                                      WHERE  rowidx = 1 ) media_qn "
+                + "                                     ON        media_qn.feed_id = qna.feed_id "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                        SELECT   count(*) AS count, "
+                + "                                                                 feed_id "
+                + "                                                        FROM     comment "
+                + "                                                        GROUP BY feed_id) forcomment "
+                + "                                     ON        forcomment.feed_id = qna.feed_id ) qna "
+                + "                 ON        feed.id = qna.feed_id "
+                + "                 JOIN      user "
+                + "                 ON        user.id = feed.user_id "
+                + "                 LEFT JOIN "
+                + "                           ( "
+                + "                                  SELECT * "
+                + "                                  FROM   ( "
+                + "                                                  SELECT   feed_id, "
+                + "                                                           created_at                                                                       AS comment_created_at, "
+                + "                                                           row_number() over(partition BY comment.feed_id ORDER BY comment.created_at DESC) AS rowidx "
+                + "                                                  FROM     comment) a "
+                + "                                  WHERE  rowidx = 1) forrecentcomment "
+                + "                 ON        forrecentcomment.feed_id = feed.id "
+                + "                 WHERE     user_id = ? "
+                + "                 ORDER BY  standard DESC ) main "
+                + "WHERE  standard < ? "
+                + "LIMIT  10;";
+
+        return this.jdbcTemplate.query(retrieveQnAUsersQuery,
+                (rs, rowNum) -> new GetFeedsQnAUserResFeed(
+                        rs.getLong("id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveQnAUsersParams);
+    }
+
+    public List<GetFeedsQnAUserCommentResFeed> retrieveQnAUserComments(Long cursor, Long userId) {
+        Object[] retrieveQnAUserCommentsParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveQnAUserCommentsQuery = ""
+                + "SELECT * "
+                + "FROM   ( "
+                + "                 SELECT    feed.id, "
+                + "                           qna_id, "
+                + "                           qna.title, "
+                + "                           user.profile_image_url, "
+                + "                           user.nickname, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
+                + "                           feed.created_at, "
+                + "                           IF (comment_count > 0, comment_count, 0) AS comment_count, "
+                + "                           view_count, "
+                + "                           url                                                                      AS thumbnail, "
+                + "                           Cast(Concat(feed.created_at+0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER) AS standard "
+                + "                 FROM      feed "
+                + "                 JOIN "
+                + "                           ( "
+                + "                                     SELECT    qna.id AS qna_id, "
+                + "                                               title, "
+                + "                                               qna.feed_id, "
+                + "                                               media_qn.url, "
+                + "                                               count AS comment_count "
+                + "                                     FROM      qna "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                      SELECT * "
+                + "                                                      FROM   ( "
+                + "                                                                      SELECT   feed_id, "
+                + "                                                                               url, "
+                + "                                                                               Row_number() over(partition BY media_qna.feed_id ORDER BY created_at DESC) AS rowidx "
+                + "                                                                      FROM     media_qna) a "
+                + "                                                      WHERE  rowidx = 1 ) media_qn "
+                + "                                     ON        media_qn.feed_id = qna.feed_id "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                        SELECT   count(*) AS count, "
+                + "                                                                 feed_id "
+                + "                                                        FROM     comment "
+                + "                                                        GROUP BY feed_id) forcomment "
+                + "                                     ON        forcomment.feed_id = qna.feed_id ) qna "
+                + "                 ON        feed.id = qna.feed_id "
+                + "                 JOIN      user "
+                + "                 ON        user.id = feed.user_id "
+                + "                 LEFT JOIN "
+                + "                           ( "
+                + "                                  SELECT * "
+                + "                                  FROM   ( "
+                + "                                                  SELECT   feed_id, "
+                + "                                                           created_at                                                                       AS comment_created_at, "
+                + "                                                           row_number() over(partition BY comment.feed_id ORDER BY comment.created_at DESC) AS rowidx "
+                + "                                                  FROM     comment) a "
+                + "                                  WHERE  rowidx = 1) forrecentcomment "
+                + "                 ON        forrecentcomment.feed_id = feed.id "
+                + "                 WHERE     feed.id IN "
+                + "                           ( "
+                + "                                  SELECT feed_id "
+                + "                                  FROM   comment "
+                + "                                  JOIN "
+                + "                                         ( "
+                + "                                                SELECT * "
+                + "                                                FROM   feed "
+                + "                                                WHERE  is_qna = 1) b "
+                + "                                  ON     feed.id = comment.feed_id "
+                + "                                  WHERE  comment.user_id = ?) "
+                + "                 ORDER BY  standard DESC ) main "
+                + "WHERE  standard < ? "
+                + "LIMIT  10 ";
+
+        return this.jdbcTemplate.query(retrieveQnAUserCommentsQuery,
+                (rs, rowNum) -> new GetFeedsQnAUserCommentResFeed(
+                        rs.getLong("id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveQnAUserCommentsParams);
+    }
+
+    // 질문과 답변 하단 비슷한 질문과 답변 조회
+    public List<GetFeedsQnASimilarResFeed> retrieveQnAsSimilar(Long feedId, Long cursor) {
+        Object[] retrieveQnAsSimilarParams = new Object[]{
+            feedId, cursor
+        };
+        String retrieveQnAsSimilarQuery = ""
+                + "SELECT   * "
+                + "FROM     ( "
+                + "                   SELECT    feed.id, "
+                + "                             qna_id, "
+                + "                             qna.title, "
+                + "                             user.profile_image_url, "
+                + "                             user.nickname, "
+                + "                             CASE "
+                + "                                       WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                       WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                       WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                       ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                             end                                      AS uploaded_at, "
+                + "                             IF (comment_count > 0, comment_count, 0) AS comment_count, "
+                + "                             view_count, "
+                + "                             url                                                      AS thumbnail, "
+                + "                             Cast(Concat(0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER) AS standard "
+                + "                   FROM      feed "
+                + "                   JOIN "
+                + "                             ( "
+                + "                                       SELECT    qna.id AS qna_id, "
+                + "                                                 title, "
+                + "                                                 qna.feed_id, "
+                + "                                                 media_qn.url, "
+                + "                                                 count AS comment_count "
+                + "                                       FROM      qna "
+                + "                                       LEFT JOIN "
+                + "                                                 ( "
+                + "                                                        SELECT * "
+                + "                                                        FROM   ( "
+                + "                                                                        SELECT   feed_id, "
+                + "                                                                                 url, "
+                + "                                                                                 Row_number() over(partition BY media_qna.feed_id ORDER BY created_at DESC) AS rowidx "
+                + "                                                                        FROM     media_qna) a "
+                + "                                                        WHERE  rowidx = 1 ) media_qn "
+                + "                                       ON        media_qn.feed_id = qna.feed_id "
+                + "                                       LEFT JOIN "
+                + "                                                 ( "
+                + "                                                          SELECT   count(*) AS count, "
+                + "                                                                   feed_id "
+                + "                                                          FROM     comment "
+                + "                                                          GROUP BY feed_id) forcomment "
+                + "                                       ON        forcomment.feed_id = qna.feed_id ) qna "
+                + "                   ON        feed.id = qna.feed_id "
+                + "                   JOIN      user "
+                + "                   ON        user.id = feed.user_id "
+                + "                   LEFT JOIN "
+                + "                             ( "
+                + "                                    SELECT * "
+                + "                                    FROM   ( "
+                + "                                                    SELECT   feed_id, "
+                + "                                                             created_at                                                                       AS comment_created_at, "
+                + "                                                             row_number() over(partition BY comment.feed_id ORDER BY comment.created_at DESC) AS rowidx "
+                + "                                                    FROM     comment) a "
+                + "                                    WHERE  rowidx = 1) forrecentcomment "
+                + "                   ON        forrecentcomment.feed_id = feed.id "
+                + "                   WHERE     feed.id != ? ) main "
+                + "WHERE    standard < ? "
+                + "ORDER BY standard DESC "
+                + "LIMIT    10 ";
+        return this.jdbcTemplate.query(retrieveQnAsSimilarQuery,
+                (rs, rowNum) -> new GetFeedsQnASimilarResFeed(
+                        rs.getLong("id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveQnAsSimilarParams);
     }
 
 
@@ -3359,4 +3886,107 @@ public class FeedDao {
     }
 
 
+    @Transactional
+    public QnA createQnAFeed(Long userId, PostFeedsQnAsReq postFeedsQnAsReq) {
+        String createFeedQuery = ""
+                + "INSERT INTO feed "
+                + "            (user_id, "
+                + "             is_qna) "
+                + "VALUES     (?, "
+                + "            1)";
+        this.jdbcTemplate.update(createFeedQuery, userId);
+        String lastInsertIdQuery = "select last_insert_id()";
+        Long feedId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String createQnAFeedQuery = ""
+                + "INSERT INTO qna "
+                + "            (feed_id, "
+                + "             title, "
+                + "             content) "
+                + "VALUES     (?, "
+                + "            ?, "
+                + "            ?) ";
+        Object[] createQnAFeedParams = new Object[]{
+                feedId,
+                postFeedsQnAsReq.getTitle(),
+                postFeedsQnAsReq.getContent()
+        };
+        this.jdbcTemplate.update(createQnAFeedQuery, createQnAFeedParams);
+        Long qnaId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+
+        String getQnAQuery = "select * from qna where id = ? ";
+
+
+
+        return this.jdbcTemplate.queryForObject(getQnAQuery,
+                (rs, rowNum) -> new QnA(
+                        rs.getLong("id"),
+                        rs.getLong("feed_id"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        rs.getInt("is_notice"),
+                        rs.getString("created_at"),
+                        rs.getString("updated_at"),
+                        rs.getString("status")
+                ), qnaId);
+
+    }
+
+    @Transactional
+    public Integer createMediaQnA(Long feedId, PostFeedsQnAsReqMediaQnA postFeedsQnAsReqMediaQnA) {
+        String createMediaQnAQuery = ""
+                + "INSERT INTO media_qna "
+                + "            (feed_id, "
+                + "             url, "
+                + "             description) "
+                + "VALUES     (?, "
+                + "            ?, "
+                + "            ?);";
+        Object[] createMediaQnAParams = new Object[]{
+                feedId,
+                postFeedsQnAsReqMediaQnA.getUrl(),
+                postFeedsQnAsReqMediaQnA.getDescription()
+        };
+
+        return this.jdbcTemplate.update(createMediaQnAQuery, createMediaQnAParams);
+    }
+
+    public String createQnAHavingKeyword(Long qnaId, Long keywordId) {
+        String createQnAHavingKeywordQuery = ""
+                + "INSERT INTO qna_having_keyword "
+                + "            (qna_id, "
+                + "             qna_keyword_id) "
+                + "VALUES     (?, "
+                + "            ?) ";
+        Object[] createQnAHavingKeywordParams = new Object[]{
+                qnaId, keywordId
+        };
+        this.jdbcTemplate.update(createQnAHavingKeywordQuery, createQnAHavingKeywordParams);
+
+        String getQnAKeywordNameQuery = "select name from qna_keyword where id = ? ";
+
+        return this.jdbcTemplate.queryForObject(getQnAKeywordNameQuery, String.class, keywordId);
+
+    }
+
+
+    public Integer deleteQnA(Long feedId, Long qnaId) {
+        String deleteFeedQuery = ""
+                + "DELETE FROM feed "
+                + "WHERE  id = ? ";
+        String deleteQnAQuery = ""
+                + "DELETE FROM qna "
+                + "WHERE  feed_id = ? ";
+        String deleteMediaQnAQuery = ""
+                + "DELETE FROM media_qna "
+                + "WHERE  feed_id = ? ";
+        String deleteQnAHavingKeywordQuery = ""
+                + "DELETE FROM qna_having_keyword "
+                + "WHERE  qna_id = ? ";
+        this.jdbcTemplate.update(deleteQnAHavingKeywordQuery, qnaId);
+        this.jdbcTemplate.update(deleteMediaQnAQuery, feedId);
+        this.jdbcTemplate.update(deleteQnAQuery, feedId);
+        return this.jdbcTemplate.update(deleteFeedQuery, feedId);
+    }
 }

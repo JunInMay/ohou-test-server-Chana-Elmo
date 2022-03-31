@@ -14,6 +14,7 @@ import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.src.keyword.model.QnAKeyword;
+import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -29,14 +30,16 @@ public class FeedProvider {
     private final JwtService jwtService;
     private final String fileName;
     private final KeywordDao keywordDao;
+    private final UserDao userDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public FeedProvider(FeedDao feedDao, JwtService jwtService, KeywordDao keywordDao) {
+    public FeedProvider(FeedDao feedDao, JwtService jwtService, KeywordDao keywordDao, UserDao userDao) {
         this.feedDao = feedDao;
         this.jwtService = jwtService;
+        this.userDao = userDao;
         this.fileName = "FeedProvider";
         this.keywordDao = keywordDao;
     }
@@ -114,6 +117,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsMediaFeedsResMedia> getFeedsMediaFeedsResMediaList = feedDao.retrieveMediaFeedMedias(userId, feedId);
             List<GetFeedsMediaFeedsResBase> getFeedsMediaFeedsResBaseList = new ArrayList();
             for (int i = 0; i < getFeedsMediaFeedsResMediaList.size(); i++) {
@@ -144,7 +148,9 @@ public class FeedProvider {
         if (feed.getIsPhoto() != 1) {
             throw new BaseException(IS_NOT_MEDIA);
         }
+
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             GetFeedsMediasResBase getFeedsMediasResBase = feedDao.retrieveMedia(feedId);
             List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
             GetFeedsMediasResMeta getFeedsMediasResMeta = feedDao.retrieveMediaMetaByRefferedFeedId(getFeedsMediasResBase.getReferredId(), getFeedsMediasResBase.getIsHomewarming());
@@ -521,6 +527,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_HOMEWARMING_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsHomewarmingsRes> getFeedsHomewarmingRes = feedDao.retrieveHomewarming(feedId, userId);
             return getFeedsHomewarmingRes;
         }
@@ -564,6 +571,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_KNOWHOW_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsKnowhowsResPhoto> getFeedsKnowhowsResPhotoList = feedDao.retrieveKnowhowPhoto(feedId);
             List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
             return new GetFeedsKnowhowsRes(getFeedsKnowhowsResPhotoList, keywordList);
@@ -710,6 +718,171 @@ public class FeedProvider {
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 업로드한 집들이 피드들 조회
+    public GetFeedsHomewarmingsUserRes retrieveHomewarmingsUser(Long userId, Long cursor) throws BaseException{
+        String methodName = "retrieveFeedHomewarmingUser";
+
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsHomewarmingsUserResFeed> getFeedsHomewarmingsUserResFeedList = feedDao.retrieveHomewarmingsUser(userId, cursor);
+            Integer count = feedDao.getHomewarmingsCountByUserId(userId);
+
+            return new GetFeedsHomewarmingsUserRes(count, getFeedsHomewarmingsUserResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+    }
+
+    // 특정 유저가 업로드한 노하우 리스트 조회
+    public GetFeedsKnowhowsUserRes retrieveKnowhowsUser(Long userId, Long cursor) throws BaseException {
+        String methodName = "retrieveFeedKnowhowsUser";
+
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsKnowhowsUserResFeed> getFeedsKnowhowsUserResFeedList = feedDao.retrieveKnowhowsUser(userId, cursor);
+            Integer count = feedDao.getKnowhowsCountByUserId(userId);
+
+            return new GetFeedsKnowhowsUserRes(count, getFeedsKnowhowsUserResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 스크랩한 피드들 9개 조회
+    public GetFeedsScrappedRes retrieveScrappedFeeds(Long userId) throws BaseException {
+        String methodName = "retrieveFeedScrappedFeeds";
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsScrappedResFeed> getFeedsScrappedResFeedList  = feedDao.retrieveScrappedFeeds(userId);
+            Integer count = feedDao.getScrappedFeedsCountByUserId(userId);
+
+            return new GetFeedsScrappedRes(count, getFeedsScrappedResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 업로드한 질문 조회 API
+    public List<GetFeedsQnAUserRes> retrieveQnAUsers(Long cursor, Long userId) throws BaseException{
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+
+        String methodName = "retrieveQnAUsers";
+        try{
+            List<GetFeedsQnAUserResFeed> getFeedsQnAUserResFeedList = feedDao.retrieveQnAUsers(cursor, userId);
+            List<GetFeedsQnAUserRes> getFeedsQnAUserResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAUserResFeedList.size(); i++){
+                GetFeedsQnAUserResFeed getFeedsQnAUserResFeed = getFeedsQnAUserResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAUserResFeed.getQnaId());
+                GetFeedsQnAUserRes getFeedsQnAUserRes = new GetFeedsQnAUserRes(
+                        getFeedsQnAUserResFeed.getFeedId(),
+                        getFeedsQnAUserResFeed.getTitle(),
+                        getFeedsQnAUserResFeed.getProfileImageUrl(),
+                        getFeedsQnAUserResFeed.getNickname(),
+                        getFeedsQnAUserResFeed.getUploadedAt(),
+                        getFeedsQnAUserResFeed.getCommentCount(),
+                        getFeedsQnAUserResFeed.getViewCount(),
+                        getFeedsQnAUserResFeed.getThumbnailUrl(),
+                        getFeedsQnAUserResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAUserResList.add(getFeedsQnAUserRes);
+            }
+            return getFeedsQnAUserResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    // 특정 유저가 답변한 질답 피드 조회 API
+    public List<GetFeedsQnAUserCommentRes> retrieveQnAUserComments(Long cursor, Long userId) throws BaseException {
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+
+        String methodName = "retrieveQnAUserComments";
+        try{
+            List<GetFeedsQnAUserCommentResFeed> getFeedsQnAUserCommentResFeedList = feedDao.retrieveQnAUserComments(cursor, userId);
+            List<GetFeedsQnAUserCommentRes> getFeedsQnAUserCommentResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAUserCommentResFeedList.size(); i++){
+                GetFeedsQnAUserCommentResFeed getFeedsQnAUserCommentResFeed = getFeedsQnAUserCommentResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAUserCommentResFeed.getQnaId());
+                GetFeedsQnAUserCommentRes getFeedsQnAUserCommentRes = new GetFeedsQnAUserCommentRes(
+                        getFeedsQnAUserCommentResFeed.getFeedId(),
+                        getFeedsQnAUserCommentResFeed.getTitle(),
+                        getFeedsQnAUserCommentResFeed.getProfileImageUrl(),
+                        getFeedsQnAUserCommentResFeed.getNickname(),
+                        getFeedsQnAUserCommentResFeed.getUploadedAt(),
+                        getFeedsQnAUserCommentResFeed.getCommentCount(),
+                        getFeedsQnAUserCommentResFeed.getViewCount(),
+                        getFeedsQnAUserCommentResFeed.getThumbnailUrl(),
+                        getFeedsQnAUserCommentResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAUserCommentResList.add(getFeedsQnAUserCommentRes);
+            }
+            return getFeedsQnAUserCommentResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    
+    // 관련된 질답 피드 조회
+    public List<GetFeedsQnASimilarRes> retrieveQnAsSimilar(Long feedId, Long cursor) throws BaseException {
+        try{
+            List<GetFeedsQnASimilarResFeed> getFeedsQnASimilarResFeedList = feedDao.retrieveQnAsSimilar(feedId, cursor);
+            List<GetFeedsQnASimilarRes> getFeedsQnASimilarResList = new ArrayList<>();
+            for (int i = 0; i<getFeedsQnASimilarResFeedList.size(); i++){
+                GetFeedsQnASimilarResFeed getFeedsQnASimilarResFeed = getFeedsQnASimilarResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnASimilarResFeed.getQnaId());
+                GetFeedsQnASimilarRes getFeedsQnASimilarRes = new GetFeedsQnASimilarRes(
+                        getFeedsQnASimilarResFeed.getFeedId(),
+                        getFeedsQnASimilarResFeed.getTitle(),
+                        getFeedsQnASimilarResFeed.getProfileImageUrl(),
+                        getFeedsQnASimilarResFeed.getNickname(),
+                        getFeedsQnASimilarResFeed.getUploadedAt(),
+                        getFeedsQnASimilarResFeed.getCommentCount(),
+                        getFeedsQnASimilarResFeed.getViewCount(),
+                        getFeedsQnASimilarResFeed.getThumbnailUrl(),
+                        getFeedsQnASimilarResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnASimilarResList.add(getFeedsQnASimilarRes);
+            }
+
+            return getFeedsQnASimilarResList;
+        }
+        catch (Exception exception) {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }

@@ -8,6 +8,23 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PatchUserReq {
-    private int userIdx;
-    private String userName;
+    private String profileImageUrl;
+    private String nickname;
+    private String description;
+    private String personalUrl;
+
+    public void checkNull(User user){
+        if (this.profileImageUrl == null){
+            this.setProfileImageUrl(user.getProfileImageUrl());
+        }
+        if (this.nickname == null){
+            this.setNickname(user.getNickname());
+        }
+        if (this.description == null){
+            this.setDescription(user.getDescription());
+        }
+        if (this.personalUrl == null){
+            this.setPersonalUrl(user.getPersonalUrl());
+        }
+    }
 }

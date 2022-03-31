@@ -10,8 +10,6 @@ import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.secret.Secret;
 import shop.ozip.dev.src.scrapbook.ScrapbookDao;
 import shop.ozip.dev.src.scrapbook.model.PostBookmarksRes;
-import shop.ozip.dev.src.user.UserDao;
-import shop.ozip.dev.src.user.UserProvider;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.JwtService;
 import shop.ozip.dev.utils.SHA256;
@@ -27,6 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import static shop.ozip.dev.config.BaseResponseStatus.KAKAO_INVALID_ACCESS_TOKEN;
+import static shop.ozip.dev.config.BaseResponseStatus.*;
 
 // Service Create, Update, Delete 의 로직 처리
 @Service
@@ -100,16 +99,35 @@ public class UserService {
         }
     }
 
-    public void modifyUserName(PatchUserReq patchUserReq) throws BaseException {
+    // 유저 정보 수정
+    public PatchUserRes updateUser(PatchUserReq patchUserReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        if (userProvider.checkNickname(patchUserReq.getNickname()) == 1) {
+            throw new BaseException(BaseResponseStatus.POST_USERS_EXISTS_NICKNAME);
+        }
+        User user = userDao.getUserById(userId);
+        patchUserReq.checkNull(user);
         try{
-            int result = userDao.modifyUserName(patchUserReq);
-            if(result == 0){
-                throw new BaseException(BaseResponseStatus.MODIFY_FAIL_USERNAME);
-            }
+
+            int result = userDao.updateUser(userId, patchUserReq);
+            user = userDao.getUserById(userId);
+
+            return new PatchUserRes(
+                    user.getProfileImageUrl(),
+                    user.getNickname(),
+                    user.getDescription(),
+                    user.getPersonalUrl()
+            );
+
         } catch(Exception exception){
             throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
+
+
     
     // 카카오 액세스 토큰 받기
     public String getKakaoAccessToken (String code) throws IOException {
@@ -202,7 +220,6 @@ public class UserService {
 
         return kakaoUserRes;
     }
-
 
 
 

@@ -417,4 +417,16 @@ public class CommentDao {
                         rs.getInt("recomment_is_liked")
                 ), retrieveCommentsListRecommentParams);
     }
+
+    public Integer deleteComment(Long userId, DeleteCommentsReq deleteCommentsReq) {
+        String deleteReCommentQuery = ""
+                + "DELETE FROM comment "
+                + "WHERE  recomment_id = ? ";
+        this.jdbcTemplate.update(deleteReCommentQuery, userId);
+        String deleteCommentQuery = ""
+                + "DELETE FROM comment "
+                + "WHERE  id = ? ";
+
+        return this.jdbcTemplate.update(deleteCommentQuery, userId);
+    }
 }

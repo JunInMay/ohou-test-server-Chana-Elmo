@@ -13,6 +13,8 @@ import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.utils.JwtService;
 
+import java.util.List;
+
 import static shop.ozip.dev.config.BaseResponseStatus.*;
 
 // Service Create, Update, Delete 의 로직 처리
@@ -124,6 +126,76 @@ public class FollowService {
                     deleteFollowsKeywordsReq.getKeywordId(),
                     result
             );
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 키워드를 팔로우했는지 체크
+    public GetFollowsKeywordsRes retrieveFollowsKeyword(Long keywordId) throws BaseException{
+
+        Long userId = jwtService.getUserId();
+        if (!keywordDao.checkKeywordExistById(keywordId)){
+            throw new BaseException(KEYWORD_NOT_EXIST);
+        }
+
+        try{
+            Boolean aBoolean = followDao.checkFollowKeywordExist(userId, keywordId);
+            Integer result = 0;
+            if(aBoolean){
+                result = 1;
+            }
+
+            return new GetFollowsKeywordsRes(
+                    keywordId,
+                    keywordDao.getKeywordNameByKeywordId(keywordId),
+                    result
+            );
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 팔로우한 키워드 리스트 조회
+    public List<GetFollowsKeywordsRes> retrieveFollowedKeywordList(Long userId) throws BaseException {
+        Long myId = jwtService.getUserId();
+
+        try{
+            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followDao.retrieveFollowKeywordList(myId, userId);
+            return getFollowsKeywordsResList;
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 팔로우한 유저들 리스트 조회
+    public List<GetFollowsFolloweesRes> retrieveFolloweesList(Long userId) throws BaseException {
+        Long myId = jwtService.getUserId();
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFollowsFolloweesRes> getFollowsFolloweesResList = followDao.retrieveFolloweesList(userId, myId);
+
+            return getFollowsFolloweesResList;
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public List<GetFollowsFollowersRes> retrieveFollowersList(Long userId) throws BaseException{
+        Long myId = jwtService.getUserId();
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFollowsFollowersRes> getFollowsFollowersResList = followDao.retrieveFollowersList(userId, myId);
+
+            return getFollowsFollowersResList;
         } catch(Exception exception){
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);

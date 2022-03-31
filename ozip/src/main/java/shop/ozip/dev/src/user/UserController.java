@@ -55,6 +55,22 @@ public class UserController {
         }
     }
     /*
+    다른 유저의 기본 정보 조회 API
+    (GET) 127.0.0.1:9000/app/users/:userId
+    */
+    @ResponseBody
+    @GetMapping("/{userId}")
+    public BaseResponse<GetUsersRes> getUsers(@PathVariable("userId") Long userId) {
+        try{
+            GetUsersRes getUsersRes = userProvider.getUser(userId);
+            return new BaseResponse<>(getUsersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
     해당 피드의 작성자 정보 조회 API
     (GET) 127.0.0.1:9000/app/users/feeds/:feedId
     */
@@ -71,24 +87,7 @@ public class UserController {
     }
 
 
-    /**
-     * 회원 1명 조회 API
-     * [GET] /users/:userIdx
-     * @return BaseResponse<GetUserRes>
-     */
-    // Path-variable
-    @ResponseBody
-    @GetMapping("/{userId}") // (GET) 127.0.0.1:9000/app/users/:userId
-    public BaseResponse<GetUsersRes> getUser(@PathVariable("userId") Long userId) {
-        // Get Users
-        try{
-            GetUsersRes getUsersRes = userProvider.getUser(userId);
-            return new BaseResponse<>(getUsersRes);
-        } catch(BaseException exception){
-            return new BaseResponse<>((exception.getStatus()));
-        }
 
-    }
     /**
      * 회원가입 API
      * [POST] /users
@@ -183,29 +182,19 @@ public class UserController {
 
     /**
      * 유저정보변경 API
-     * [PATCH] /users/:userIdx
+     * [PATCH] /users
      * @return BaseResponse<String>
      */
-//    @ResponseBody
-//    @PatchMapping("/{userIdx}")
-//    public BaseResponse<String> modifyUserName(@PathVariable("userIdx") int userIdx, @RequestBody User user){
-//        try {
-//            //jwt에서 idx 추출.
-//            int userIdxByJwt = jwtService.getUserIdx();
-//            //userIdx와 접근한 유저가 같은지 확인
-//            if(userIdx != userIdxByJwt){
-//                return new BaseResponse<>(BaseResponseStatus.INVALID_USER_JWT);
-//            }
-//            //같다면 유저네임 변경
-//            PatchUserReq patchUserReq = new PatchUserReq(userIdx,user.getUserName());
-//            userService.modifyUserName(patchUserReq);
-//
-//            String result = "";
-//        return new BaseResponse<>(result);
-//        } catch (BaseException exception) {
-//            return new BaseResponse<>((exception.getStatus()));
-//        }
-//    }
+    @ResponseBody
+    @PatchMapping("")
+    public BaseResponse<PatchUserRes> patchUser(@RequestBody PatchUserReq patchUserReq){
+        try {
+            PatchUserRes patchUserRes = userService.updateUser(patchUserReq);
+            return new BaseResponse<>(patchUserRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 
 }

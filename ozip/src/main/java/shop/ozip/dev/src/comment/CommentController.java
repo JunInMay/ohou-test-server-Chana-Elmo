@@ -105,4 +105,22 @@ public class CommentController {
     }
 
 
+    /*
+    댓글 삭제하기 API
+    (DELETE) 127.0.0.1:9000/app/comments
+    */
+    @ResponseBody
+    @DeleteMapping("")
+    public BaseResponse<DeleteCommentsRes> deleteComments(@RequestBody DeleteCommentsReq deleteCommentsReq) {
+        try{
+            DeleteCommentsRes deleteCommentsRes = commentService.deleteComment(deleteCommentsReq);
+            return new BaseResponse<>(deleteCommentsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+
+
 }

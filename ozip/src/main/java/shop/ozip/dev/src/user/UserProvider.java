@@ -46,35 +46,9 @@ public class UserProvider {
         this.scrapbookDao = scrapbookDao;
     }
 
-//    public List<GetUserRes> getUsers() throws BaseException {
-//        try{
-//            List<GetUserRes> getUserRes = userDao.getUsers();
-//            return getUserRes;
-//        }
-//        catch (Exception exception) {
-//            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-//        }
-//    }
-
-//    public List<GetUserRes> getUsersByEmail(String email) throws BaseException{
-//        try{
-//            List<GetUserRes> getUsersRes = userDao.getUsersByEmail(email);
-//            return getUsersRes;
-//        }
-//        catch (Exception exception) {
-//            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-//        }
-//                    }
 
 
-    public GetUsersRes getUser(Long userId) throws BaseException {
-        try {
-            GetUsersRes getUsersRes = userDao.getUsers(userId);
-            return getUsersRes;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+
 
     public int checkEmail(String email) throws BaseException{
         try{
@@ -132,7 +106,6 @@ public class UserProvider {
     }
 
     // 내 정보 가져오기
-    @Transactional
     public GetUsersMeRes getUsersMe() throws BaseException{
         String methodName = "getUsersMe";
         Long userId = jwtService.getUserId();
@@ -140,6 +113,33 @@ public class UserProvider {
             User user = userDao.getUserById(userId);
 
             return new GetUsersMeRes(
+                    user.getId(),
+                    user.getProfileImageUrl(),
+                    user.getEmail(),
+                    user.getNickname(),
+                    user.getDescription(),
+                    followDao.getCountFollowerByUserId(userId),
+                    followDao.getCountFollowUserByUserId(userId)+ followDao.getCountFollowKeywordByUserId(userId),
+                    likeDao.getCountLikeFeedByUserId(userId),
+                    scrapbookDao.getCountScrapbookFeedByUserId(userId)
+            );
+        } catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저의 정보 가져오기
+    public GetUsersRes getUser(Long userId) throws BaseException {
+        String methodName = "getUsers";
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try {
+            User user = userDao.getUserById(userId);
+
+            return new GetUsersRes(
                     user.getId(),
                     user.getProfileImageUrl(),
                     user.getEmail(),

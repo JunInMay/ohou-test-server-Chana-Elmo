@@ -5,11 +5,19 @@ package shop.ozip.dev.src.keyword;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import shop.ozip.dev.config.BaseException;
+import shop.ozip.dev.src.feed.model.PostFeedsMediasVideoRes;
+import shop.ozip.dev.src.feed.model.PostFeedsQnAsReq;
+import shop.ozip.dev.src.feed.model.PostFeedsQnAsRes;
+import shop.ozip.dev.src.feed.model.QnA;
 import shop.ozip.dev.src.keyword.model.*;
 import shop.ozip.dev.utils.Common;
 
 import javax.sql.DataSource;
 import java.util.List;
+
+import static shop.ozip.dev.config.BaseResponseStatus.DATABASE_ERROR;
 
 
 @Repository
@@ -35,6 +43,18 @@ public class KeywordDao {
                 + "WHERE  name = ? ";
 
         return this.jdbcTemplate.queryForObject(checkIdOrZeroKeywordExistByNameQuery, Long.class, name);
+    }
+    // 키워드 이름 가져오기
+    public String getKeywordNameByKeywordId(Long keywordId){
+
+        String getKeywordsNameByKeywordIdQuery = ""
+                + "SELECT name "
+                + "FROM   keyword "
+                + "WHERE  id = ? ";
+        return this.jdbcTemplate.queryForObject(
+                getKeywordsNameByKeywordIdQuery,
+                String.class,
+                keywordId);
     }
 
     // 특정 피드에 달린 키워드 리스트 가져오기
@@ -141,4 +161,23 @@ public class KeywordDao {
         return this.jdbcTemplate.update(createFeedHavingKeywordQuery, createFeedHavingKeywordParams);
     }
 
+
+    public List<GetKeywordsRecommendedKeywords> retrieveRecommendedKeywords() {
+        String retrieveRecommendedKeywordsQuery = ""
+                + "SELECT qna_keyword_id, "
+                + "       name, "
+                + "       Count(*) AS count "
+                + "FROM   qna_having_keyword "
+                + "       JOIN qna_keyword "
+                + "         ON qna_keyword.id = qna_having_keyword.qna_keyword_id "
+                + "GROUP  BY qna_keyword_id "
+                + "ORDER  BY count DESC "
+                + "LIMIT  4 ";
+        return this.jdbcTemplate.query(retrieveRecommendedKeywordsQuery,
+                (rs, rowNum) -> new GetKeywordsRecommendedKeywords(
+                        rs.getLong("qna_keyword_id"),
+                        rs.getString("name"),
+                        rs.getInt("count")
+                ));
+    }
 }
