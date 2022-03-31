@@ -127,6 +127,7 @@ public class KeywordDao {
     }
 
     // 키워드 만들기
+    @Transactional
     public Long createKeyword(String name) {
         String createKeywordQuery = ""
                 + "INSERT INTO keyword "
@@ -150,6 +151,7 @@ public class KeywordDao {
     }
 
     // 키워드 관계 설정
+    @Transactional
     public Integer createFeedHavingKeyword(Long feedId, Long keywordId){
         String createFeedHavingKeywordQuery = ""
                 + "INSERT INTO feed_having_keyword "

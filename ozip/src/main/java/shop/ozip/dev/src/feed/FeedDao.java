@@ -114,6 +114,7 @@ public class FeedDao {
     }
 
     // 조회수 올리기
+    @Transactional
     public Integer updateViewCountByFeedId(Long FeedId){
         String updateViewCountByFeedIdQuery = "update feed set view_count = view_count+1 where id = ? ";
         return this.jdbcTemplate.update(updateViewCountByFeedIdQuery, FeedId);
@@ -3952,6 +3953,8 @@ public class FeedDao {
         return this.jdbcTemplate.update(createMediaQnAQuery, createMediaQnAParams);
     }
 
+
+    @Transactional
     public String createQnAHavingKeyword(Long qnaId, Long keywordId) {
         String createQnAHavingKeywordQuery = ""
                 + "INSERT INTO qna_having_keyword "
@@ -3971,6 +3974,7 @@ public class FeedDao {
     }
 
 
+    @Transactional
     public Integer deleteQnA(Long feedId, Long qnaId) {
         String deleteFeedQuery = ""
                 + "DELETE FROM feed "
