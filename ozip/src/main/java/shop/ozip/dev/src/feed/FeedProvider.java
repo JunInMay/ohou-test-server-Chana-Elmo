@@ -14,6 +14,7 @@ import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.keyword.model.Keyword;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.src.keyword.model.QnAKeyword;
+import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.ArrayList;
@@ -29,14 +30,16 @@ public class FeedProvider {
     private final JwtService jwtService;
     private final String fileName;
     private final KeywordDao keywordDao;
+    private final UserDao userDao;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public FeedProvider(FeedDao feedDao, JwtService jwtService, KeywordDao keywordDao) {
+    public FeedProvider(FeedDao feedDao, JwtService jwtService, KeywordDao keywordDao, UserDao userDao) {
         this.feedDao = feedDao;
         this.jwtService = jwtService;
+        this.userDao = userDao;
         this.fileName = "FeedProvider";
         this.keywordDao = keywordDao;
     }
@@ -713,5 +716,26 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+
+    // 특정 유저가 업로드한 집들이 피드들 조회
+    public GetFeedsHomewarmingsUserRes retrieveHomewarmingsUser(Long userId, Long cursor) throws BaseException{
+        String methodName = "retrieveFeedHomewarmingUser";
+
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFeedsHomewarmingsUserResFeed> getFeedsHomewarmingsUserResFeedList = feedDao.retrieveHomewarmingsUser(userId, cursor);
+            Integer count = feedDao.getHomewarmingsCountByUserId(userId);
+
+            return new GetFeedsHomewarmingsUserRes(count, getFeedsHomewarmingsUserResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+
     }
 }

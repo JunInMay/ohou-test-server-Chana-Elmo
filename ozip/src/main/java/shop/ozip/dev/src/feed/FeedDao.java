@@ -835,6 +835,15 @@ public class FeedDao {
                 + "WHERE  feed.user_id = ?";
         return this.jdbcTemplate.queryForObject(retrieveFeedsMediasCountQuery, Integer.class, userId);
     }
+    // 특정 유저가 업로드한 집들이 개수
+    public Integer getHomewarmingsCountByUserId(Long userId) {
+        String getHomewarmingsCountByUserIdQuery =""
+                + "SELECT Count(*) AS count "
+                + "FROM   feed "
+                + "WHERE  user_id = ? "
+                + "       AND is_homewarming = 1 ";
+        return this.jdbcTemplate.queryForObject(getHomewarmingsCountByUserIdQuery, Integer.class, userId);
+    }
 
 
     public List<GetFeedsFollowsListRes> retrieveFeedsFollowsList(Long userId, Long cursor) {
@@ -3189,6 +3198,89 @@ public class FeedDao {
                 ), retrieveFeedFooterParams);
     }
 
+    public List<GetFeedsHomewarmingsUserResFeed> retrieveHomewarmingsUser(Long userId, Long cursor) {
+        String retrieveHomewarmingsUserQuery = ""
+                + "SELECT feed.id, "
+                + "       CASE "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_photo "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     ORDER  BY feed_having_media.created_at "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_media_feed = 1 "
+                + "              AND (SELECT media_feed.is_video "
+                + "                   FROM   media_feed "
+                + "                   WHERE  media_feed.feed_id = feed.id) = 1 THEN (SELECT "
+                + "         thumbnail_url "
+                + "                                                                  FROM   media "
+                + "                                                                  WHERE "
+                + "         media.id = (SELECT media_id "
+                + "                     FROM   feed_having_media "
+                + "                     WHERE  feed_having_media.feed_id = feed.id "
+                + "                     LIMIT  1)) "
+                + "         WHEN feed.is_photo = 1 THEN (SELECT url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_video = 1 THEN (SELECT thumbnail_url "
+                + "                                      FROM   media "
+                + "                                      WHERE  media.feed_id = feed.id) "
+                + "         WHEN feed.is_homewarming = 1 THEN feed.thumbnail_url "
+                + "         WHEN feed.is_knowhow = 1 THEN feed.thumbnail_url "
+                + "         ELSE NULL "
+                + "       end "
+                + "       AS thumbnail, "
+                + "       Concat(homewarming_feed.description, \" \", homewarming_feed.title) "
+                + "       AS title, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0) "
+                + "       AS scrapped_count, "
+                + "       view_count, "
+                + "       Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER "
+                + "       ) AS "
+                + "       standard "
+                + "FROM   feed "
+                + "       JOIN user "
+                + "         ON user.id = feed.user_id "
+                + "       JOIN homewarming_feed "
+                + "         ON feed.id = homewarming_feed.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS scrapped_count, "
+                + "                         feed_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY feed_id) forScrappedCount "
+                + "              ON feed.id = forScrappedCount.feed_id "
+                + "WHERE  user_id = ? "
+                + "       AND Cast(Concat(feed.created_at + 0, Lpad(feed.id, 5, \"0\")) AS signed "
+                + "           INTEGER) < "
+                + "           ? "
+                + "ORDER  BY standard DESC "
+                + "LIMIT  10 ";
+        Object[] retrieveHomewarmingsUserParams = new Object[]{
+                userId,
+                cursor
+        };
+
+        return this.jdbcTemplate.query(retrieveHomewarmingsUserQuery,
+                (rs, rowNum) -> new GetFeedsHomewarmingsUserResFeed(
+                        rs.getLong("id"),
+                        rs.getString("thumbnail"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("view_count"),
+                        rs.getLong("standard")
+                ), retrieveHomewarmingsUserParams);
+
+    }
+
+
 
     /*
     #################################################################################################################################################################
@@ -3357,6 +3449,7 @@ public class FeedDao {
 
         return new PostFeedsMediasVideoRes(feedId);
     }
+
 
 
 }

@@ -726,6 +726,27 @@ public class FeedController {
     }
 
     /*
+    해당 유저가 업로드한 집들이 피드들 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/homewarmings/user/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/homewarmings/user/{userId}", "/homewarmings/user/{userId}/{cursor}"})
+    public BaseResponse<GetFeedsHomewarmingsUserRes> getFeedsHomewarmingsUser(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            GetFeedsHomewarmingsUserRes getFeedsHomewarmingsUserRes = feedProvider.retrieveHomewarmingsUser(userId, cursor);
+            return new BaseResponse<>(getFeedsHomewarmingsUserRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     #################################################################################################################################################################
     아래는 업로드 관련
     #################################################################################################################################################################
