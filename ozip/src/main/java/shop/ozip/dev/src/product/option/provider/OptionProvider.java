@@ -7,8 +7,8 @@ import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.product.option.Repository.MachineOptionRepository;
 import shop.ozip.dev.src.product.option.entity.MachineOption;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @ResponseBody
@@ -21,5 +21,11 @@ public class OptionProvider {
         List<MachineOption> machineOptions = machineOptionRepository.findAllByProductId(productId);
 
         return machineOptions;
+    }
+
+    public MachineOption getOption(Long optionId) {
+        return machineOptionRepository.findById(optionId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 아이디의 옵션을 찾을 수 없습니다"));
     }
 }
