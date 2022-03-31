@@ -5,6 +5,7 @@ package shop.ozip.dev.src.comment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.comment.model.*;
 import shop.ozip.dev.utils.Common;
 
@@ -69,6 +70,7 @@ public class CommentDao {
 
     
     // 피드에 댓글 달기
+    @Transactional
     public PostCommentsRes createComment(PostCommentsReq postCommentsReq, Long userId) {
         String createMediaFeedCommentQuery;
         Object[] createMediaFeedCommentParams;
@@ -418,6 +420,7 @@ public class CommentDao {
                 ), retrieveCommentsListRecommentParams);
     }
 
+    @Transactional
     public Integer deleteComment(Long userId, DeleteCommentsReq deleteCommentsReq) {
         String deleteReCommentQuery = ""
                 + "DELETE FROM comment "

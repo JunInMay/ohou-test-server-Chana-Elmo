@@ -5,6 +5,7 @@ package shop.ozip.dev.src.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.user.model.*;
 import shop.ozip.dev.utils.Common;
 
@@ -106,8 +107,9 @@ public class UserDao {
 //                getUserParams);
 //    }
 
-    
 
+
+    @Transactional
     public Long createUser(PostUsersReq postUsersReq){
         String createUserQuery = "insert into user (email, password, nickname, provider, profile_image_url) VALUES (?,?,?,?,?)";
         Object[] createUserParams = new Object[]{postUsersReq.getEmail(), postUsersReq.getPassword(), postUsersReq.getNickname(), postUsersReq.getProvider(), postUsersReq.getProfileImageUrl()};
@@ -205,6 +207,7 @@ public class UserDao {
     }
 
     // 유저 정보 수정하기
+    @Transactional
     public int updateUser(Long userId, PatchUserReq patchUserReq) {
 
         String updateUserQuery = ""

@@ -132,6 +132,7 @@ public class ScrapbookDao {
         );
     }
     // 북마크한 피드 다시 해제하기
+    @Transactional
     public DeleteBookmarksFeedRes deleteBookmarkFeed(Long userId, Long feedId) {
         String deleteBookMarkFeedQuery = ""
                 + "DELETE scrapbook_feed "
@@ -148,6 +149,8 @@ public class ScrapbookDao {
         return new DeleteBookmarksFeedRes(feedId, result);
 
     }
+    // 스크랩한 피드 다른 스크랩북으로 옮기기
+    @Transactional
     public PatchBookmarksFeedRes updateBookmarkFeed(Long userId, PatchBookmarksFeedReq patchBookmarksFeedReq) {
         String updateBookmarkFeedQuery = ""
                 + "UPDATE scrapbook_feed "

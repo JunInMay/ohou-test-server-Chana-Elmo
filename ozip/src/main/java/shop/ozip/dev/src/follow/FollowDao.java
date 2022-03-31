@@ -5,6 +5,7 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.follow.model.*;
 
 import javax.sql.DataSource;
@@ -81,6 +82,7 @@ public class FollowDao {
     }
 
     // 팔로우하기
+    @Transactional
     public int createFollowsUsers(Long userId, PostFollowsUsersReq postFollowsUsersReq) {
         String createFollowsUsersQuery = ""
                 + "INSERT INTO follow_user "
@@ -99,6 +101,7 @@ public class FollowDao {
     }
 
     // 언팔로우하기
+    @Transactional
     public int deleteFollowsUsers(Long userId, DeleteFollowsUsersReq deleteFollowsUsersReq) {
         String deleteFollowsUsersQuery = ""
                 + "DELETE FROM follow_user "
@@ -115,6 +118,7 @@ public class FollowDao {
     }
 
     // 키워드 팔로우
+    @Transactional
     public int createFollowsKeywords(Long userId, PostFollowsKeywordsReq postFollowsKeywordsReq) {
 
         String createFollowsKeywordsQuery = ""
@@ -133,6 +137,7 @@ public class FollowDao {
                 createFollowsKeywordsParams);
     }
 
+    @Transactional
     public int deleteFollowsKeywords(Long userId, DeleteFollowsKeywordsReq deleteFollowsKeywordsReq) {
         String deleteFollowsUsersQuery = ""
                 + "DELETE FROM follow_keyword "

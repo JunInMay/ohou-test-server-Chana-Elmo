@@ -5,6 +5,7 @@ package shop.ozip.dev.src.like;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.like.model.DeleteLikesCommentsReq;
 import shop.ozip.dev.src.like.model.DeleteLikesFeedsReq;
 import shop.ozip.dev.src.like.model.PostLikesCommentsReq;
@@ -63,6 +64,7 @@ public class LikeDao {
 
 
     // 댓글 좋아요하기
+    @Transactional
     public Integer createLikesComment(Long userId, PostLikesCommentsReq postLikesCommentsReq) {
         String createLikesCommentQuery = ""
                 + "INSERT INTO like_comment "
@@ -79,6 +81,7 @@ public class LikeDao {
     }
 
     // 댓글 좋아요 취소
+    @Transactional
     public Integer deleteLikesComment(Long userId, DeleteLikesCommentsReq deleteLikesCommentsReq) {
         String deleteLikesCommentQuery = ""
                 + "DELETE FROM like_comment "
@@ -93,6 +96,7 @@ public class LikeDao {
 
 
     // 피드 좋아요하기
+    @Transactional
     public Integer createLikesFeed(Long userId, PostLikesFeedsReq postLikesFeedsReq) {
         String createLikesCommentQuery = ""
                 + "INSERT INTO like_feed "
@@ -107,6 +111,7 @@ public class LikeDao {
         return this.jdbcTemplate.update(createLikesCommentQuery, createLikesCommentParams);
     }
 
+    @Transactional
     public Integer deleteLikesFeed(Long userId, DeleteLikesFeedsReq deleteLikesFeedsReq) {
 
         String deleteLikesCommentQuery = ""
