@@ -159,14 +159,28 @@ public class FollowService {
     }
 
     // 특정 유저가 팔로우한 키워드 리스트 조회
-    public List<GetFollowsKeywordsRes> retrieveFollowsKeywordList() throws BaseException {
-        Long userId = jwtService.getUserId();
+    public List<GetFollowsKeywordsRes> retrieveFollowedKeywordList(Long userId) throws BaseException {
+        Long myId = jwtService.getUserId();
 
         try{
-
-            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followDao.retrieveFollowKeywordList(userId);
-
+            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followDao.retrieveFollowKeywordList(myId, userId);
             return getFollowsKeywordsResList;
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 팔로우한 유저들 리스트 조회
+    public List<GetFollowsFolloweesRes> retrieveFolloweesList(Long userId) throws BaseException {
+        Long myId = jwtService.getUserId();
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFollowsFolloweesRes> getFollowsFolloweesResList = followDao.retrieveFolloweesList(userId, myId);
+
+            return getFollowsFolloweesResList;
         } catch(Exception exception){
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);

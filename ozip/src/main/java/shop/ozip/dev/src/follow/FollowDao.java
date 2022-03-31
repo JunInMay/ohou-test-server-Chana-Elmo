@@ -5,7 +5,6 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import shop.ozip.dev.src.feed.model.GetFeedsFooterRes;
 import shop.ozip.dev.src.follow.model.*;
 
 import javax.sql.DataSource;
@@ -151,20 +150,57 @@ public class FollowDao {
 
 
     // 특정유저가 팔료우한 키워드 리스트 가져오기
-    public List<GetFollowsKeywordsRes> retrieveFollowKeywordList(Long userId) {
+    public List<GetFollowsKeywordsRes> retrieveFollowKeywordList(Long myId, Long userId) {
         String retrieveFollowKeywordListQuery = ""
                 + "SELECT keyword.id, "
-                + "       Concat(\"#\", keyword.name) as name, "
-                + "       1 AS is_followed "
-                + "FROM   follow_keyword "
+                + "       Concat(\"#\", keyword.name)                           AS name, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   follow_keyword "
+                + "                WHERE  user_id = ? "
+                + "                       AND keyword_id = main.keyword_id) ) AS is_followed "
+                + "FROM   follow_keyword main "
                 + "       JOIN keyword "
-                + "         ON follow_keyword.keyword_id = keyword.id "
+                + "         ON main.keyword_id = keyword.id "
                 + "WHERE  user_id = ? ";
+        Object[] retrieveFollowKeywordListParams = new Object[]{
+                myId, userId
+        };
         return this.jdbcTemplate.query(retrieveFollowKeywordListQuery,
                 (rs, rowNum) -> new GetFollowsKeywordsRes(
                         rs.getLong("id"),
                         rs.getString("name"),
                         rs.getInt("is_followed")
-                ), userId);
+                ), retrieveFollowKeywordListParams);
+    }
+
+    // 내가 팔로우한 유저 조회
+    public List<GetFollowsFolloweesRes> retrieveFolloweesList(Long userId, Long myId) {
+        String retrieveFolloweesListQuery = ""
+                + "SELECT user.id, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       user.description, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   follow_user "
+                + "                WHERE  user_id = ? "
+                + "                       AND following_id = user.id) ) AS is_followed "
+                + "FROM   follow_user "
+                + "       JOIN user "
+                + "         ON user.id = follow_user.following_id "
+                + "WHERE  follow_user.user_id = ? "
+                + "ORDER  BY follow_user.created_at ASC;";
+        Object[] retrieveFolloweesListParams = new Object[]{
+                myId, userId
+        };
+
+
+        return this.jdbcTemplate.query(retrieveFolloweesListQuery,
+                (rs, rowNum) -> new GetFollowsFolloweesRes(
+                        rs.getLong("id"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("description"),
+                        rs.getInt("is_followed")
+                ), retrieveFolloweesListParams);
     }
 }

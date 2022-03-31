@@ -4,17 +4,16 @@ package shop.ozip.dev.src.follow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
-import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
-import shop.ozip.dev.src.follow.FollowProvider;
-import shop.ozip.dev.src.follow.FollowService;
 import shop.ozip.dev.src.follow.model.*;
-import shop.ozip.dev.src.user.model.PostUsersReq;
 import shop.ozip.dev.utils.JwtService;
 
 import java.util.List;
+
+import static shop.ozip.dev.config.BaseResponseStatus.*;
 
 @RestController
 @RequestMapping("/app/follows")
@@ -97,11 +96,11 @@ public class FollowController {
 
     /*
     특정 키워드를 팔로우했는지 여부 조회 API
-    (GET) 127.0.0.1:9000/app/follows/keywords/:keywordId
+    (GET) 127.0.0.1:9000/app/follows/keywords?keywordId={keywordId}
     */
     @ResponseBody
-    @GetMapping("/keywords/{keywordId}")
-    public BaseResponse<GetFollowsKeywordsRes> getFollowsKeywords(@PathVariable("keywordId") Long keywordId) {
+    @GetMapping("/keywords")
+    public BaseResponse<GetFollowsKeywordsRes> getFollowsKeywordsCheck(@RequestParam(value = "keywordId") Long keywordId) {
         try{
             GetFollowsKeywordsRes getFollowsKeywordsRes = followService.retrieveFollowsKeyword(keywordId);
             return new BaseResponse<>(getFollowsKeywordsRes);
@@ -111,15 +110,33 @@ public class FollowController {
     }
 
     /*
-    내가 팔로우한 키워드 조회 API
-    (GET) 127.0.0.1:9000/app/follows/keywords
+    특정 유저가 팔로우한 키워드 조회 API
+    (GET) 127.0.0.1:9000/app/follows/keywords/:userId
     */
     @ResponseBody
-    @GetMapping("/keywords")
-    public BaseResponse<List<GetFollowsKeywordsRes>> getFollowsKeywords() {
+    @GetMapping("/keywords/{userId}")
+    public BaseResponse<List<GetFollowsKeywordsRes>> getFollowsKeywords(@PathVariable("userId") Long userId) {
         try{
-            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followService.retrieveFollowsKeywordList();
+            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followService.retrieveFollowedKeywordList(userId);
             return new BaseResponse<>(getFollowsKeywordsResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 유저가 팔로우한 유저 조회 API
+    (GET) 127.0.0.1:9000/app/follows/followees/:userId
+    */
+    @ResponseBody
+    @GetMapping("/followees/{userId}")
+    public BaseResponse<List<GetFollowsFolloweesRes>> getFollowsFollowees(@PathVariable("userId") Long userId) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        try{
+            List<GetFollowsFolloweesRes> getFollowsFolloweesResList = followService.retrieveFolloweesList(userId);
+            return new BaseResponse<>(getFollowsFolloweesResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
