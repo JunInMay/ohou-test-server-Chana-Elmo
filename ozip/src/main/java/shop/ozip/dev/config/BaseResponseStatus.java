@@ -83,7 +83,13 @@ public enum BaseResponseStatus {
     EMPTY_BOOKMARK_NAME(false, 2370, "북마크의 이름을 입력해주세요."),
     TOO_LONG_BOOKMARK_DESCRIPTION(false, 2371, "북마크의 한 줄 설명은 30자 이내여야 합니다."),
 
+    // 2400 : homewarming, knowhow, qna 관련
 
+
+    EMPTY_QNA_TITLE(false, 2460, "질문의 제목을 입력해주세요."),
+    QNA_KEYWORD_MISSING(false, 2461, "질문에는 하나 이상 다섯개 이하의 키워드가 입력되어야 합니다."),
+    QNA_MEDIA_EMPTY_URL(false, 2462, "사진의 URL을 입력해주세요."),
+    QNA_SHORT_TITLE(false, 2463, "제목은 7글지 이상이어야 합니다."),
 
 
     /**
@@ -106,6 +112,7 @@ public enum BaseResponseStatus {
 
 
     COMMENT_NOT_EXIST(false,3150,"해당 댓글이 존재하지 않습니다."),
+    NOT_COMMENT_OWNER(false,3151,"해당 댓글의 작성자가 아닙니다."),
     RECOMMENT_NOT_EXIST(false,3160,"답글을 달 댓글이 존재하지 않습니다."),
     POST_RECOMMENT_FEED_NOT_MATCH(false,3161,"답글의 피드 idx와 답글을 달 댓글의 피드 idx가 일치하지 않습니다."),
 

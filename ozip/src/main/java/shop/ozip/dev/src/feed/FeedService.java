@@ -12,6 +12,7 @@ import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.utils.JwtService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
@@ -129,6 +130,67 @@ public class FeedService {
             }
 
             return postFeedsMediasVideoRes;
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 질문과 답변 만들기
+    @Transactional
+    public PostFeedsQnAsRes createQnA(PostFeedsQnAsReq postFeedsQnAsReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+
+        try{
+            QnA qna = feedDao.createQnAFeed(userId, postFeedsQnAsReq);
+            if (postFeedsQnAsReq.getMedias() != null) {
+                for (int i = 0; i < postFeedsQnAsReq.getMedias().size(); i++) {
+                    Integer mediaQnAResult = feedDao.createMediaQnA(qna.getFeedId(), postFeedsQnAsReq.getMedias().get(i));
+                }
+            }
+            List<String> keywordNames = new ArrayList<>();
+            for (int i=0; i<postFeedsQnAsReq.getKeywordIds().size(); i++){
+                String keywordName = feedDao.createQnAHavingKeyword(qna.getId(), postFeedsQnAsReq.getKeywordIds().get(i));
+                keywordNames.add(keywordName);
+            }
+
+
+            return new PostFeedsQnAsRes(
+                    qna.getFeedId(),
+                    postFeedsQnAsReq.getTitle(),
+                    postFeedsQnAsReq.getContent(),
+                    postFeedsQnAsReq.getMedias(),
+                    keywordNames
+            );
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public DeleteFeedsQnAsRes deleteQnA(DeleteFeedsQnAsReq deleteFeedsQnAsReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        if(!feedDao.checkFeedExistById(deleteFeedsQnAsReq.getFeedId())){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(deleteFeedsQnAsReq.getFeedId());
+        if (userId != feed.getUserId()){
+            throw new BaseException(NOT_FEED_OWNER);
+        }
+        if (feed.getIsQna() != 1){
+            throw new BaseException(IS_NOT_QNA_FEED);
+        }
+
+        try{
+            QnA qna = feedDao.getQnAByFeedId(deleteFeedsQnAsReq.getFeedId());
+            Integer result = feedDao.deleteQnA(deleteFeedsQnAsReq.getFeedId(), qna.getId());
+            return new DeleteFeedsQnAsRes(
+                    feed.getId(),
+                    qna.getId(),
+                    result
+            );
         }
         catch (Exception exception) {
             exception.printStackTrace();

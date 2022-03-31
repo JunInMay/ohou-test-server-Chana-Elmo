@@ -855,4 +855,36 @@ public class FeedProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    
+    // 관련된 질답 피드 조회
+    public List<GetFeedsQnASimilarRes> retrieveQnAsSimilar(Long feedId, Long cursor) throws BaseException {
+        try{
+            List<GetFeedsQnASimilarResFeed> getFeedsQnASimilarResFeedList = feedDao.retrieveQnAsSimilar(feedId, cursor);
+            List<GetFeedsQnASimilarRes> getFeedsQnASimilarResList = new ArrayList<>();
+            for (int i = 0; i<getFeedsQnASimilarResFeedList.size(); i++){
+                GetFeedsQnASimilarResFeed getFeedsQnASimilarResFeed = getFeedsQnASimilarResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnASimilarResFeed.getQnaId());
+                GetFeedsQnASimilarRes getFeedsQnASimilarRes = new GetFeedsQnASimilarRes(
+                        getFeedsQnASimilarResFeed.getFeedId(),
+                        getFeedsQnASimilarResFeed.getTitle(),
+                        getFeedsQnASimilarResFeed.getProfileImageUrl(),
+                        getFeedsQnASimilarResFeed.getNickname(),
+                        getFeedsQnASimilarResFeed.getUploadedAt(),
+                        getFeedsQnASimilarResFeed.getCommentCount(),
+                        getFeedsQnASimilarResFeed.getViewCount(),
+                        getFeedsQnASimilarResFeed.getThumbnailUrl(),
+                        getFeedsQnASimilarResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnASimilarResList.add(getFeedsQnASimilarRes);
+            }
+
+            return getFeedsQnASimilarResList;
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

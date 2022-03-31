@@ -203,4 +203,33 @@ public class FollowDao {
                         rs.getInt("is_followed")
                 ), retrieveFolloweesListParams);
     }
+
+    // 특정 유저를 팔로우하고있는 유저들 조회
+    public List<GetFollowsFollowersRes> retrieveFollowersList(Long userId, Long myId) {
+        Object[] retrieveFollowersListParams = new Object[]{
+                myId, userId
+        };
+        String retrieveFollowersListQuery = ""
+                + "SELECT user.id, "
+                + "       user.profile_image_url, "
+                + "       user.nickname, "
+                + "       user.description, "
+                + "       ( EXISTS(SELECT * "
+                + "                FROM   follow_user "
+                + "                WHERE  user_id = ? "
+                + "                       AND following_id = user.id) ) AS is_followed "
+                + "FROM   follow_user "
+                + "       JOIN user "
+                + "         ON user.id = follow_user.user_id "
+                + "WHERE  follow_user.following_id = ? "
+                + "ORDER  BY follow_user.created_at ASC;";
+        return this.jdbcTemplate.query(retrieveFollowersListQuery,
+                (rs, rowNum) -> new GetFollowsFollowersRes(
+                        rs.getLong("id"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("description"),
+                        rs.getInt("is_followed")
+                ), retrieveFollowersListParams);
+    }
 }

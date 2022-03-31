@@ -142,5 +142,23 @@ public class FollowController {
         }
     }
 
+    /*
+    특정 유저를 팔로우한 유저 조회 API
+    (GET) 127.0.0.1:9000/app/follows/followers/:userId
+    */
+    @ResponseBody
+    @GetMapping("/followers/{userId}")
+    public BaseResponse<List<GetFollowsFollowersRes>> getFollowsFollowers(@PathVariable("userId") Long userId) {
+        if (userId == null){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+        try{
+            List<GetFollowsFollowersRes> getFollowsFollowersResList = followService.retrieveFollowersList(userId);
+            return new BaseResponse<>(getFollowsFollowersResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 
 }

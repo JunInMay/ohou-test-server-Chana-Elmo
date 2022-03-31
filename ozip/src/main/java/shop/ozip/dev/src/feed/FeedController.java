@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.config.BaseResponse;
+import shop.ozip.dev.src.comment.model.DeleteCommentsRes;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
@@ -234,6 +235,9 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+
+
 
     /*
     홈-인기 인기 사진 묶음 TOP 10 API
@@ -708,6 +712,25 @@ public class FeedController {
     }
 
     /*
+    질문과 답변 하단 비슷한 질문과 답변 조회 API
+
+    (GET) 127.0.0.1:9000/app/feeds/qnas/similar/:feedId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/qnas/similar/{feedId}","/qnas/similar/{feedId}/{cursor}"})
+    public BaseResponse<List<GetFeedsQnASimilarRes>> getFeedsQnAsSimilar(@PathVariable(value="feedId") Long feedId, @PathVariable(value="cursor", required = false) Long cursor) {
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            List<GetFeedsQnASimilarRes> getFeedsQnASimilarResList = feedProvider.retrieveQnAsSimilar(feedId, cursor);
+            return new BaseResponse<>(getFeedsQnASimilarResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     특정 피드의 footer영역 정보 조회 API
     (GET) 127.0.0.1:9000/app/feeds/footer/:feedId
     */
@@ -831,7 +854,7 @@ public class FeedController {
 
     /*
     미디어 피드(사진 or 동영상 묶음) 업로드 API
-    (GET) 127.0.0.1:9000/app/feeds/media-feeds
+    (POST) 127.0.0.1:9000/app/feeds/media-feeds
     */
     @ResponseBody
     @PostMapping("/media-feeds")
@@ -865,7 +888,7 @@ public class FeedController {
 
     /*
     사진 업로드 API
-    (GET) 127.0.0.1:9000/app/feeds/medias/photo
+    (POST) 127.0.0.1:9000/app/feeds/medias/photo
     */
     @ResponseBody
     @PostMapping("/medias/photo")
@@ -899,7 +922,7 @@ public class FeedController {
 
     /*
     동영상 업로드 API
-    (GET) 127.0.0.1:9000/app/feeds/medias/video
+    (POST) 127.0.0.1:9000/app/feeds/medias/video
     */
     @ResponseBody
     @PostMapping("/medias/video")
@@ -932,6 +955,61 @@ public class FeedController {
         try{
             PostFeedsMediasVideoRes postFeedsMediasVideoRes= feedService.createMediaVideo(postFeedsMediasVideoReq);
             return new BaseResponse<>(postFeedsMediasVideoRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
+    질문과 답변 피드 올리기 API
+    (POST) 127.0.0.1:9000/app/feeds/qnas
+    */
+    @ResponseBody
+    @PostMapping("/qnas")
+    public BaseResponse<PostFeedsQnAsRes> postFeedsQnAs (@RequestBody PostFeedsQnAsReq postFeedsQnAsReq) {
+        if (postFeedsQnAsReq.getTitle() == null){
+            return new BaseResponse<>(EMPTY_QNA_TITLE);
+        }
+        if (postFeedsQnAsReq.getTitle() == null){
+            return new BaseResponse<>(QNA_SHORT_TITLE);
+        }
+        List<PostFeedsQnAsReqMediaQnA> medias = postFeedsQnAsReq.getMedias();
+        List<Long> keywordIds = postFeedsQnAsReq.getKeywordIds();
+
+        postFeedsQnAsReq.checkNullContent();
+
+        if (postFeedsQnAsReq.getKeywordIds() == null || postFeedsQnAsReq.getKeywordIds().size()==0 || postFeedsQnAsReq.getKeywordIds().size()>5){
+            return new BaseResponse<>(QNA_KEYWORD_MISSING);
+        }
+        if (medias != null) {
+            for (int i = 0; i < medias.size(); i++) {
+                if (medias.get(i).getUrl() == null) {
+                    return new BaseResponse<>(QNA_MEDIA_EMPTY_URL);
+                }
+                medias.get(i).nullCheck();
+            }
+        }
+        try{
+            PostFeedsQnAsRes postFeedsQnAsRes = feedService.createQnA(postFeedsQnAsReq);
+            return new BaseResponse<>(postFeedsQnAsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    질문과 답변 피드 삭제하기 API
+    (DELETE) 127.0.0.1:9000/app/feeds/qnas
+    */
+    @ResponseBody
+    @DeleteMapping("/qnas")
+    public BaseResponse<DeleteFeedsQnAsRes> deleteFeedsQnAs (@RequestBody DeleteFeedsQnAsReq deleteFeedsQnAsReq) {
+        if (deleteFeedsQnAsReq.getFeedId() == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            DeleteFeedsQnAsRes deleteFeedsQnAsRes = feedService.deleteQnA(deleteFeedsQnAsReq);
+            return new BaseResponse<>(deleteFeedsQnAsRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

@@ -186,4 +186,19 @@ public class FollowService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    public List<GetFollowsFollowersRes> retrieveFollowersList(Long userId) throws BaseException{
+        Long myId = jwtService.getUserId();
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+        try{
+            List<GetFollowsFollowersRes> getFollowsFollowersResList = followDao.retrieveFollowersList(userId, myId);
+
+            return getFollowsFollowersResList;
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

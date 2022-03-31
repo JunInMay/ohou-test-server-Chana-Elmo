@@ -2,6 +2,7 @@
 package shop.ozip.dev.src.comment;
 
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,30 @@ public class CommentService {
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 댓글 삭제하기
+    public DeleteCommentsRes deleteComment(DeleteCommentsReq deleteCommentsReq) throws BaseException{
+        Long userId = jwtService.getUserId();
+        if (!commentDao.checkCommentExistById(deleteCommentsReq.getCommentId())){
+            throw new BaseException(COMMENT_NOT_EXIST);
+        }
+        Comment comment = commentDao.getCommentById(deleteCommentsReq.getCommentId());
+        if (comment.getUserId() != userId){
+            throw new BaseException(NOT_COMMENT_OWNER);
+        }
+        try{
+            Integer result = commentDao.deleteComment(userId, deleteCommentsReq);
+
+            return new DeleteCommentsRes(
+                    deleteCommentsReq.getCommentId(),
+                    result
+            );
+        }
+        catch (Exception exception) {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
