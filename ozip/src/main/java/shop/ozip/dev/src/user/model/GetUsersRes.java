@@ -10,9 +10,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class GetUsersRes {
-    private Long userId;
+    private Long id;
+    private String profileImageUrl;
     private String email;
     private String nickname;
     private String description;
-    private int point;
+    private Integer follower;
+    private Integer followee;
+    private Integer likeFeed;
+    private Integer scrapBookFeeds;
 }

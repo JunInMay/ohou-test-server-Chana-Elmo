@@ -3051,7 +3051,12 @@ public class FeedDao {
                 + "                             qna.title, "
                 + "                             user.profile_image_url, "
                 + "                             user.nickname, "
-                + "                             Date_format(feed.created_at, '%Y.%m.%d') AS uploaded_at, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
                 + "                             IF (comment_count > 0, comment_count, 0) AS comment_count, "
                 + "                             view_count, "
                 + "                             url                                                                                                                                                                                AS thumbnail, "
@@ -3385,6 +3390,7 @@ public class FeedDao {
 
     }
 
+    // 스크랩한 피드들 조회
     public List<GetFeedsScrappedResFeed> retrieveScrappedFeeds(Long userId) {
         String retrieveScrappedFeedsQuery = ""
                 + "SELECT feed.id, "
@@ -3447,6 +3453,180 @@ public class FeedDao {
                 ), userId);
     }
 
+    // 특정 유저가 올린 질문 조회
+    public List<GetFeedsQnAUserResFeed> retrieveQnAUsers(Long cursor, Long userId) {
+        Object[] retrieveQnAUsersParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveQnAUsersQuery = ""
+                + "SELECT * "
+                + "FROM   ( "
+                + "                 SELECT    feed.id, "
+                + "                           qna_id, "
+                + "                           qna.title, "
+                + "                           user.profile_image_url, "
+                + "                           user.nickname, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
+                + "                           feed.created_at, "
+                + "                           IF (comment_count > 0, comment_count, 0) AS comment_count, "
+                + "                           view_count, "
+                + "                           url                                                                      AS thumbnail, "
+                + "                           Cast(Concat(feed.created_at+0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER) AS standard "
+                + "                 FROM      feed "
+                + "                 JOIN "
+                + "                           ( "
+                + "                                     SELECT    qna.id AS qna_id, "
+                + "                                               title, "
+                + "                                               qna.feed_id, "
+                + "                                               media_qn.url, "
+                + "                                               count AS comment_count "
+                + "                                     FROM      qna "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                      SELECT * "
+                + "                                                      FROM   ( "
+                + "                                                                      SELECT   feed_id, "
+                + "                                                                               url, "
+                + "                                                                               Row_number() over(partition BY media_qna.feed_id ORDER BY created_at DESC) AS rowidx "
+                + "                                                                      FROM     media_qna) a "
+                + "                                                      WHERE  rowidx = 1 ) media_qn "
+                + "                                     ON        media_qn.feed_id = qna.feed_id "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                        SELECT   count(*) AS count, "
+                + "                                                                 feed_id "
+                + "                                                        FROM     comment "
+                + "                                                        GROUP BY feed_id) forcomment "
+                + "                                     ON        forcomment.feed_id = qna.feed_id ) qna "
+                + "                 ON        feed.id = qna.feed_id "
+                + "                 JOIN      user "
+                + "                 ON        user.id = feed.user_id "
+                + "                 LEFT JOIN "
+                + "                           ( "
+                + "                                  SELECT * "
+                + "                                  FROM   ( "
+                + "                                                  SELECT   feed_id, "
+                + "                                                           created_at                                                                       AS comment_created_at, "
+                + "                                                           row_number() over(partition BY comment.feed_id ORDER BY comment.created_at DESC) AS rowidx "
+                + "                                                  FROM     comment) a "
+                + "                                  WHERE  rowidx = 1) forrecentcomment "
+                + "                 ON        forrecentcomment.feed_id = feed.id "
+                + "                 WHERE     user_id = ? "
+                + "                 ORDER BY  standard DESC ) main "
+                + "WHERE  standard < ? "
+                + "LIMIT  10;";
+
+        return this.jdbcTemplate.query(retrieveQnAUsersQuery,
+                (rs, rowNum) -> new GetFeedsQnAUserResFeed(
+                        rs.getLong("id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveQnAUsersParams);
+    }
+
+    public List<GetFeedsQnAUserCommentResFeed> retrieveQnAUserComments(Long cursor, Long userId) {
+        Object[] retrieveQnAUserCommentsParams = new Object[]{
+                userId, cursor
+        };
+        String retrieveQnAUserCommentsQuery = ""
+                + "SELECT * "
+                + "FROM   ( "
+                + "                 SELECT    feed.id, "
+                + "                           qna_id, "
+                + "                           qna.title, "
+                + "                           user.profile_image_url, "
+                + "                           user.nickname, "
+                + "                           CASE "
+                + "                                     WHEN Timestampdiff(second, feed.created_at, Now()) < 60 THEN Concat(Timestampdiff(second, feed.created_at, Now()),\"초 전\") "
+                + "                                     WHEN Round(Timestampdiff(second, feed.created_at, Now())/60) < 60 THEN Concat(Round(Timestampdiff(second, feed.created_at, Now())/60),\"분 전\") "
+                + "                                     WHEN Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60) < 24 THEN Concat(Round(Round(Timestampdiff(second, feed.created_at, Now())/60)/60),\"시간 전\") "
+                + "                                     ELSE Date_format(feed.created_at, '%Y.%m.%d') "
+                + "                           end AS uploaded_at, "
+                + "                           feed.created_at, "
+                + "                           IF (comment_count > 0, comment_count, 0) AS comment_count, "
+                + "                           view_count, "
+                + "                           url                                                                      AS thumbnail, "
+                + "                           Cast(Concat(feed.created_at+0, Lpad(feed.id, 5, \"0\")) AS signed INTEGER) AS standard "
+                + "                 FROM      feed "
+                + "                 JOIN "
+                + "                           ( "
+                + "                                     SELECT    qna.id AS qna_id, "
+                + "                                               title, "
+                + "                                               qna.feed_id, "
+                + "                                               media_qn.url, "
+                + "                                               count AS comment_count "
+                + "                                     FROM      qna "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                      SELECT * "
+                + "                                                      FROM   ( "
+                + "                                                                      SELECT   feed_id, "
+                + "                                                                               url, "
+                + "                                                                               Row_number() over(partition BY media_qna.feed_id ORDER BY created_at DESC) AS rowidx "
+                + "                                                                      FROM     media_qna) a "
+                + "                                                      WHERE  rowidx = 1 ) media_qn "
+                + "                                     ON        media_qn.feed_id = qna.feed_id "
+                + "                                     LEFT JOIN "
+                + "                                               ( "
+                + "                                                        SELECT   count(*) AS count, "
+                + "                                                                 feed_id "
+                + "                                                        FROM     comment "
+                + "                                                        GROUP BY feed_id) forcomment "
+                + "                                     ON        forcomment.feed_id = qna.feed_id ) qna "
+                + "                 ON        feed.id = qna.feed_id "
+                + "                 JOIN      user "
+                + "                 ON        user.id = feed.user_id "
+                + "                 LEFT JOIN "
+                + "                           ( "
+                + "                                  SELECT * "
+                + "                                  FROM   ( "
+                + "                                                  SELECT   feed_id, "
+                + "                                                           created_at                                                                       AS comment_created_at, "
+                + "                                                           row_number() over(partition BY comment.feed_id ORDER BY comment.created_at DESC) AS rowidx "
+                + "                                                  FROM     comment) a "
+                + "                                  WHERE  rowidx = 1) forrecentcomment "
+                + "                 ON        forrecentcomment.feed_id = feed.id "
+                + "                 WHERE     feed.id IN "
+                + "                           ( "
+                + "                                  SELECT feed_id "
+                + "                                  FROM   comment "
+                + "                                  JOIN "
+                + "                                         ( "
+                + "                                                SELECT * "
+                + "                                                FROM   feed "
+                + "                                                WHERE  is_qna = 1) b "
+                + "                                  ON     feed.id = comment.feed_id "
+                + "                                  WHERE  comment.user_id = ?) "
+                + "                 ORDER BY  standard DESC ) main "
+                + "WHERE  standard < ? "
+                + "LIMIT  10 ";
+
+        return this.jdbcTemplate.query(retrieveQnAUserCommentsQuery,
+                (rs, rowNum) -> new GetFeedsQnAUserCommentResFeed(
+                        rs.getLong("id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title"),
+                        rs.getString("profile_image_url"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("view_count"),
+                        rs.getString("thumbnail"),
+                        rs.getLong("standard")
+                ), retrieveQnAUserCommentsParams);
+    }
 
 
     /*

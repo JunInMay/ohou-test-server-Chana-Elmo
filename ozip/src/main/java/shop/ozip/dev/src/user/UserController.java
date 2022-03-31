@@ -55,6 +55,22 @@ public class UserController {
         }
     }
     /*
+    다른 유저의 기본 정보 조회 API
+    (GET) 127.0.0.1:9000/app/users/:userId
+    */
+    @ResponseBody
+    @GetMapping("/{userId}")
+    public BaseResponse<GetUsersRes> getUsers(@PathVariable("userId") Long userId) {
+        try{
+            GetUsersRes getUsersRes = userProvider.getUser(userId);
+            return new BaseResponse<>(getUsersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /*
     해당 피드의 작성자 정보 조회 API
     (GET) 127.0.0.1:9000/app/users/feeds/:feedId
     */
@@ -71,24 +87,7 @@ public class UserController {
     }
 
 
-    /**
-     * 회원 1명 조회 API
-     * [GET] /users/:userIdx
-     * @return BaseResponse<GetUserRes>
-     */
-    // Path-variable
-    @ResponseBody
-    @GetMapping("/{userId}") // (GET) 127.0.0.1:9000/app/users/:userId
-    public BaseResponse<GetUsersRes> getUser(@PathVariable("userId") Long userId) {
-        // Get Users
-        try{
-            GetUsersRes getUsersRes = userProvider.getUser(userId);
-            return new BaseResponse<>(getUsersRes);
-        } catch(BaseException exception){
-            return new BaseResponse<>((exception.getStatus()));
-        }
 
-    }
     /**
      * 회원가입 API
      * [POST] /users

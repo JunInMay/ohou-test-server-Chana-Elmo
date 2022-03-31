@@ -92,19 +92,19 @@ public class UserDao {
 
 
 
-    // 유저 1명 조회
-    public GetUsersRes getUsers(Long userId){
-        String getUserQuery = "select * from user where id = ?";
-        Long getUserParams = userId;
-        return this.jdbcTemplate.queryForObject(getUserQuery,
-                (rs, rowNum) -> new GetUsersRes(
-                        rs.getLong("id"),
-                        rs.getString("email"),
-                        rs.getString("nickname"),
-                        rs.getString("description"),
-                        rs.getInt("point")),
-                getUserParams);
-    }
+//    // 유저 1명 조회
+//    public GetUsersRes getUsers(Long userId){
+//        String getUserQuery = "select * from user where id = ?";
+//        Long getUserParams = userId;
+//        return this.jdbcTemplate.queryForObject(getUserQuery,
+//                (rs, rowNum) -> new GetUsersRes(
+//                        rs.getLong("id"),
+//                        rs.getString("email"),
+//                        rs.getString("nickname"),
+//                        rs.getString("description"),
+//                        rs.getInt("point")),
+//                getUserParams);
+//    }
 
     
 

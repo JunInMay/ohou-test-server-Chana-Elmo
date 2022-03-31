@@ -786,6 +786,44 @@ public class FeedController {
     }
 
     /*
+    해당 유저가 업로드한 질문과 답변 피드들 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/qnas/user/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/qnas/user/{userId}", "/qnas/user/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsQnAUserRes>> getFeedsQnAsUser(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        // 정렬 적용시 주의
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            List<GetFeedsQnAUserRes> getFeedsQnAUserResList = feedProvider.retrieveQnAUsers(cursor, userId);
+            return new BaseResponse<>(getFeedsQnAUserResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    해당 유저가 답변한 질문과 답변 피드들 조회 API
+    (GET) 127.0.0.1:9000/app/users/qnas/user-comment/:userId/:cursor
+    */
+    @ResponseBody
+    @GetMapping(value = {"/qnas/user-comment/{userId}", "/qnas/user-comment/{userId}/{cursor}"})
+    public BaseResponse<List<GetFeedsQnAUserCommentRes>> getFeedsQnAsUserComment(@PathVariable("userId") Long userId, @PathVariable(value = "cursor", required = false) Long cursor) {
+        // 정렬 적용시 주의
+        if (cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+        try{
+            List<GetFeedsQnAUserCommentRes> getFeedsQnAUserCommentResList = feedProvider.retrieveQnAUserComments(cursor, userId);
+            return new BaseResponse<>(getFeedsQnAUserCommentResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
     #################################################################################################################################################################
     아래는 업로드 관련
     #################################################################################################################################################################
@@ -898,4 +936,6 @@ public class FeedController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+
 }

@@ -759,6 +759,7 @@ public class FeedProvider {
         }
     }
 
+    // 특정 유저가 스크랩한 피드들 9개 조회
     public GetFeedsScrappedRes retrieveScrappedFeeds(Long userId) throws BaseException {
         String methodName = "retrieveFeedScrappedFeeds";
         if (!userDao.checkUserExistById(userId)){
@@ -769,6 +770,79 @@ public class FeedProvider {
             Integer count = feedDao.getScrappedFeedsCountByUserId(userId);
 
             return new GetFeedsScrappedRes(count, getFeedsScrappedResFeedList);
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 특정 유저가 업로드한 질문 조회 API
+    public List<GetFeedsQnAUserRes> retrieveQnAUsers(Long cursor, Long userId) throws BaseException{
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+
+        String methodName = "retrieveQnAUsers";
+        try{
+            List<GetFeedsQnAUserResFeed> getFeedsQnAUserResFeedList = feedDao.retrieveQnAUsers(cursor, userId);
+            List<GetFeedsQnAUserRes> getFeedsQnAUserResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAUserResFeedList.size(); i++){
+                GetFeedsQnAUserResFeed getFeedsQnAUserResFeed = getFeedsQnAUserResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAUserResFeed.getQnaId());
+                GetFeedsQnAUserRes getFeedsQnAUserRes = new GetFeedsQnAUserRes(
+                        getFeedsQnAUserResFeed.getFeedId(),
+                        getFeedsQnAUserResFeed.getTitle(),
+                        getFeedsQnAUserResFeed.getProfileImageUrl(),
+                        getFeedsQnAUserResFeed.getNickname(),
+                        getFeedsQnAUserResFeed.getUploadedAt(),
+                        getFeedsQnAUserResFeed.getCommentCount(),
+                        getFeedsQnAUserResFeed.getViewCount(),
+                        getFeedsQnAUserResFeed.getThumbnailUrl(),
+                        getFeedsQnAUserResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAUserResList.add(getFeedsQnAUserRes);
+            }
+            return getFeedsQnAUserResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    // 특정 유저가 답변한 질답 피드 조회 API
+    public List<GetFeedsQnAUserCommentRes> retrieveQnAUserComments(Long cursor, Long userId) throws BaseException {
+        if (!userDao.checkUserExistById(userId)){
+            throw new BaseException(USER_NOT_EXIST);
+        }
+
+        String methodName = "retrieveQnAUserComments";
+        try{
+            List<GetFeedsQnAUserCommentResFeed> getFeedsQnAUserCommentResFeedList = feedDao.retrieveQnAUserComments(cursor, userId);
+            List<GetFeedsQnAUserCommentRes> getFeedsQnAUserCommentResList = new ArrayList<>();
+            for (int i=0; i<getFeedsQnAUserCommentResFeedList.size(); i++){
+                GetFeedsQnAUserCommentResFeed getFeedsQnAUserCommentResFeed = getFeedsQnAUserCommentResFeedList.get(i);
+                List<QnAKeyword> qnAKeywordList = keywordDao.getQnAKeywordListByQnAId(getFeedsQnAUserCommentResFeed.getQnaId());
+                GetFeedsQnAUserCommentRes getFeedsQnAUserCommentRes = new GetFeedsQnAUserCommentRes(
+                        getFeedsQnAUserCommentResFeed.getFeedId(),
+                        getFeedsQnAUserCommentResFeed.getTitle(),
+                        getFeedsQnAUserCommentResFeed.getProfileImageUrl(),
+                        getFeedsQnAUserCommentResFeed.getNickname(),
+                        getFeedsQnAUserCommentResFeed.getUploadedAt(),
+                        getFeedsQnAUserCommentResFeed.getCommentCount(),
+                        getFeedsQnAUserCommentResFeed.getViewCount(),
+                        getFeedsQnAUserCommentResFeed.getThumbnailUrl(),
+                        getFeedsQnAUserCommentResFeed.getCursor(),
+                        qnAKeywordList
+                );
+                getFeedsQnAUserCommentResList.add(getFeedsQnAUserCommentRes);
+            }
+            return getFeedsQnAUserCommentResList;
         }
         catch (Exception exception) {
             System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
