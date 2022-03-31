@@ -8,12 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shop.ozip.dev.config.BaseException;
 import shop.ozip.dev.src.feed.FeedDao;
-import shop.ozip.dev.src.follow.FollowDao;
-import shop.ozip.dev.src.follow.FollowProvider;
-import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
-import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
-import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
-import shop.ozip.dev.src.follow.model.PostFollowsUsersRes;
+import shop.ozip.dev.src.follow.model.*;
+import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.user.UserDao;
 import shop.ozip.dev.utils.JwtService;
 
@@ -30,14 +26,16 @@ public class FollowService {
     private final JwtService jwtService;
     private final String fileName;
     private final UserDao userDao;
+    private final KeywordDao keywordDao;
 
 
     @Autowired
-    public FollowService(FollowDao followDao, FollowProvider followProvider, JwtService jwtService, FeedDao feedDao, UserDao userDao) {
+    public FollowService(FollowDao followDao, FollowProvider followProvider, JwtService jwtService, FeedDao feedDao, UserDao userDao, KeywordDao keywordDao) {
         this.followDao = followDao;
         this.followProvider = followProvider;
         this.jwtService = jwtService;
         this.userDao = userDao;
+        this.keywordDao = keywordDao;
         this.fileName = "FeedService";
         this.feedDao = feedDao;
 
@@ -78,6 +76,52 @@ public class FollowService {
             int result = followDao.deleteFollowsUsers(userId, deleteFollowsUsersReq);
             return new DeleteFollowsUsersRes(
                     deleteFollowsUsersReq.getUserId(),
+                    result
+            );
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 키워드 팔로우하기
+    public PostFollowsKeywordsRes createFollowsKeywords(PostFollowsKeywordsReq postFollowsKeywordsReq) throws BaseException{
+
+        Long userId = jwtService.getUserId();
+        if (!keywordDao.checkKeywordExistById(postFollowsKeywordsReq.getKeywordId())){
+            throw new BaseException(KEYWORD_NOT_EXIST);
+        }
+        if (followDao.checkFollowKeywordExist(userId, postFollowsKeywordsReq.getKeywordId())){
+            throw new BaseException(POST_FOLLOW_ALREADY_FOLLOW);
+        }
+
+        try{
+            int result = followDao.createFollowsKeywords(userId, postFollowsKeywordsReq);
+            return new PostFollowsKeywordsRes(
+                    postFollowsKeywordsReq.getKeywordId(),
+                    result
+            );
+        } catch(Exception exception){
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 키워드 언팔로우하기
+    public DeleteFollowsKeywordsRes deleteFollowsKeywords(DeleteFollowsKeywordsReq deleteFollowsKeywordsReq) throws BaseException {
+
+        Long userId = jwtService.getUserId();
+        if (!keywordDao.checkKeywordExistById(deleteFollowsKeywordsReq.getKeywordId())){
+            throw new BaseException(KEYWORD_NOT_EXIST);
+        }
+        if (!followDao.checkFollowKeywordExist(userId, deleteFollowsKeywordsReq.getKeywordId())){
+            throw new BaseException(DELETE_FOLLOW_NOT_EXIST);
+        }
+
+        try{
+            int result = followDao.deleteFollowsKeywords(userId, deleteFollowsKeywordsReq);
+            return new DeleteFollowsKeywordsRes(
+                    deleteFollowsKeywordsReq.getKeywordId(),
                     result
             );
         } catch(Exception exception){

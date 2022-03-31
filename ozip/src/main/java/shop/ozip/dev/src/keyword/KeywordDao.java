@@ -5,7 +5,6 @@ package shop.ozip.dev.src.keyword;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import shop.ozip.dev.src.comment.model.Comment;
 import shop.ozip.dev.src.keyword.model.*;
 import shop.ozip.dev.utils.Common;
 
@@ -27,6 +26,16 @@ public class KeywordDao {
     존재 여부를 체크하는 메소드명을 check로 함
     그 외 실제 응답을 만드는 메소드는 retrieve로 함
     */
+
+    // 특정 키워드의 id를 이름으로 가져옴
+    public Long getKeywordIdByName(String name) {
+        String checkIdOrZeroKeywordExistByNameQuery = ""
+                + "SELECT id "
+                + "FROM   keyword "
+                + "WHERE  name = ? ";
+
+        return this.jdbcTemplate.queryForObject(checkIdOrZeroKeywordExistByNameQuery, Long.class, name);
+    }
 
     // 특정 피드에 달린 키워드 리스트 가져오기
     public List<Keyword> getKeywordListByFeedId(Long feedId) {
@@ -95,6 +104,41 @@ public class KeywordDao {
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
                 ));
+    }
+
+    // 키워드 만들기
+    public Long createKeyword(String name) {
+        String createKeywordQuery = ""
+                + "INSERT INTO keyword "
+                + "            (name) "
+                + "VALUES     (?) ";
+        this.jdbcTemplate.update(createKeywordQuery, name);
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+    }
+    // 키워드 존재 확인
+    public Boolean checkKeywordExistByName(String name) {
+        String createKeywordQuery = ""
+                + "select (EXISTS(select * from keyword where name = ? )) ";
+        return this.jdbcTemplate.queryForObject(createKeywordQuery,boolean.class, name);
+    }
+    // 키워드 존재 확인
+    public Boolean checkKeywordExistById(Long keywordId) {
+        String createKeywordQuery = ""
+                + "select (EXISTS(select * from keyword where id = ? )) ";
+        return this.jdbcTemplate.queryForObject(createKeywordQuery,boolean.class, keywordId);
+    }
+
+    // 키워드 관계 설정
+    public Integer createFeedHavingKeyword(Long feedId, Long keywordId){
+        String createFeedHavingKeywordQuery = ""
+                + "INSERT INTO feed_having_keyword "
+                + "            (feed_id, keyword_id) "
+                + "VALUES     (?, ?) ";
+        Object[] createFeedHavingKeywordParams = new Object[]{
+                feedId, keywordId
+        };
+        return this.jdbcTemplate.update(createFeedHavingKeywordQuery, createFeedHavingKeywordParams);
     }
 
 }

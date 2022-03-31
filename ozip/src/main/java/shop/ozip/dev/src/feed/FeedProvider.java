@@ -262,6 +262,21 @@ public class FeedProvider {
         }
     }
 
+    // 질문과 답변 공지사항 리스트 조회
+    public List<GetFeedsQnANoticeRes> retrieveQnANoticeList() throws BaseException{
+
+        String methodName = "retrieveQnANoticeList";
+        try{
+            List<GetFeedsQnANoticeRes> getFeedsQnANoticeResList = feedDao.retrieveQnANoticeList();
+            return getFeedsQnANoticeResList;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     // 인기 섹션 번호별 조회
     public List<GetFeedsHotsRes> retrieveHotsFeedSection(Integer i) throws BaseException{
         String methodName = "retrieveHotsFeedSectionOne";
@@ -331,7 +346,7 @@ public class FeedProvider {
         String methodName = "retrieveFeedsMediasNine";
         try {
             List<GetFeedsMediasNineRes> getFeedsMediasNineResList = new ArrayList<>();
-            int[] types = {0, 1, 2, 3, 7, 8, 4, 6, 11};
+            int[] types = {0, 2, 3, 4, 8, 9, 5, 7, 12};
             for (int i = 0; i < 9; i++) {
                 getFeedsMediasNineResList.add(feedDao.retrieveFeedsMediasForNine(userId, types[i]));
             }
@@ -644,7 +659,59 @@ public class FeedProvider {
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
         }
-
     }
 
+    
+    // 질문과 답변 피드 상단 정보 조회
+    public GetFeedsQnARes retrieveQnATop(Long feedId) throws BaseException{
+
+        String methodName = "retrieveQnATop";
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        Feed feed = feedDao.getFeedById(feedId);
+        if (feed.getIsQna() != 1){
+            throw new BaseException(IS_NOT_QNA_FEED);
+        }
+        try{
+            GetFeedsQnAResTop getFeedsQnAResTop = feedDao.retrieveQnATop(feedId);
+            QnA qna = feedDao.getQnAByFeedId(feedId);
+            List<GetFeedsQnAResPhoto> getFeedsQnAResPhotoList = feedDao.retrieveQnAPhotos(feedId);
+            List<QnAKeyword> keywords = keywordDao.getQnAKeywordListByQnAId(qna.getId());
+            GetFeedsQnARes getFeedsQnARes = new GetFeedsQnARes(
+                    getFeedsQnAResTop.getTitle(),
+                    getFeedsQnAResTop.getUserId(),
+                    getFeedsQnAResTop.getNickname(),
+                    getFeedsQnAResTop.getUploadedAt(),
+                    getFeedsQnAResTop.getContent(),
+                    getFeedsQnAResPhotoList,
+                    keywords
+            );
+
+            return getFeedsQnARes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetFeedsFooterRes retrieveFeedFooter(Long feedId) throws BaseException{
+        String methodName = "retrieveFeedFooter";
+        Long userId = jwtService.getUserId();
+        if (!feedDao.checkFeedExistById(feedId)){
+            throw new BaseException(FEED_NOT_EXIST);
+        }
+        try{
+            GetFeedsFooterRes getFeedsFooterRes = feedDao.retrieveFeedFooter(feedId, userId);
+
+            return getFeedsFooterRes;
+        }
+        catch (Exception exception) {
+            System.out.println("["+ fileName +":"+methodName+"]"+exception.getMessage());
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }
