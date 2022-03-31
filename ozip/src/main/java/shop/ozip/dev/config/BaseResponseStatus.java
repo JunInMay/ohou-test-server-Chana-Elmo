@@ -47,7 +47,9 @@ public enum BaseResponseStatus {
     POST_MEDIA_FEED_WRONG_TYPE_INDEX(false, 2111, "미디어피드 타입 ID가 부적절합니다."),
 
 
+
     AMBIGUOUS_RECOMMENT(false, 2150, "대댓글 여부와 대댓글 ID를 확인해주세요."),
+    EMPTY_COMMENT_ID(false, 2151, "댓글 ID를 입력해주세요."),
 
     // [POST] 댓글달기
     EMPTY_COMMENT_CONTENT(false, 2160, "댓글 내용을 입력해주세요."),
@@ -102,6 +104,8 @@ public enum BaseResponseStatus {
     NOT_FEED_OWNER(false,3101,"해당 피드의 주인이 아닙니다."),
 
 
+
+    COMMENT_NOT_EXIST(false,3150,"해당 댓글이 존재하지 않습니다."),
     RECOMMENT_NOT_EXIST(false,3160,"답글을 달 댓글이 존재하지 않습니다."),
     POST_RECOMMENT_FEED_NOT_MATCH(false,3161,"답글의 피드 idx와 답글을 달 댓글의 피드 idx가 일치하지 않습니다."),
 
@@ -141,6 +145,9 @@ public enum BaseResponseStatus {
 
     // 3500 : 그외 + 서드파티
     KEYWORD_NOT_EXIST(false,3500,"키워드가 존재하지 않습니다."),
+
+    ALREADY_LIKED(false,3530,"이미 좋아요 처리됐습니다."),
+    NOT_LIKED(false,3531,"좋아요 처리되지 않았습니다."),
 
     NAVER_API_ERROR(false, 3550, "네이버 API 응답에 오류가 있습니다."),
 

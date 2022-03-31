@@ -117,6 +117,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_MEDIA_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsMediaFeedsResMedia> getFeedsMediaFeedsResMediaList = feedDao.retrieveMediaFeedMedias(userId, feedId);
             List<GetFeedsMediaFeedsResBase> getFeedsMediaFeedsResBaseList = new ArrayList();
             for (int i = 0; i < getFeedsMediaFeedsResMediaList.size(); i++) {
@@ -147,7 +148,9 @@ public class FeedProvider {
         if (feed.getIsPhoto() != 1) {
             throw new BaseException(IS_NOT_MEDIA);
         }
+
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             GetFeedsMediasResBase getFeedsMediasResBase = feedDao.retrieveMedia(feedId);
             List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
             GetFeedsMediasResMeta getFeedsMediasResMeta = feedDao.retrieveMediaMetaByRefferedFeedId(getFeedsMediasResBase.getReferredId(), getFeedsMediasResBase.getIsHomewarming());
@@ -524,6 +527,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_HOMEWARMING_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsHomewarmingsRes> getFeedsHomewarmingRes = feedDao.retrieveHomewarming(feedId, userId);
             return getFeedsHomewarmingRes;
         }
@@ -567,6 +571,7 @@ public class FeedProvider {
             throw new BaseException(IS_NOT_KNOWHOW_FEED);
         }
         try{
+            feedDao.updateViewCountByFeedId(feedId);
             List<GetFeedsKnowhowsResPhoto> getFeedsKnowhowsResPhotoList = feedDao.retrieveKnowhowPhoto(feedId);
             List<Keyword> keywordList = keywordDao.getKeywordListByFeedId(feedId);
             return new GetFeedsKnowhowsRes(getFeedsKnowhowsResPhotoList, keywordList);

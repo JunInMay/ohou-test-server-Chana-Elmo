@@ -5,6 +5,10 @@ package shop.ozip.dev.src.like;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import shop.ozip.dev.src.like.model.DeleteLikesCommentsReq;
+import shop.ozip.dev.src.like.model.DeleteLikesFeedsReq;
+import shop.ozip.dev.src.like.model.PostLikesCommentsReq;
+import shop.ozip.dev.src.like.model.PostLikesFeedsReq;
 
 import javax.sql.DataSource;
 
@@ -36,5 +40,83 @@ public class LikeDao {
                 userId);
     }
 
+    // 유저가 특정 댓글 좋아요했는지 체크
+    public Boolean checkLikeCommentExist(Long userId, Long commentId){
+        String checkLikeCommentExistQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   like_comment "
+                + "               WHERE  user_id = ? and comment_id = ?) AS exist;";
+        Object[] checkLikeCommentExistParams = new Object[]{userId, commentId};
 
+        return this.jdbcTemplate.queryForObject(checkLikeCommentExistQuery, Boolean.class, checkLikeCommentExistParams);
+    }
+    // 유저가 특정 피드 좋아요했는지 체크
+    public Boolean checkLikeFeedExist(Long userId, Long feedId){
+        String checkLikeFeedExistQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   like_feed "
+                + "               WHERE  user_id = ? and feed_id = ?) AS exist;";
+        Object[] checkLikeFeedExistParams = new Object[]{userId, feedId};
+
+        return this.jdbcTemplate.queryForObject(checkLikeFeedExistQuery, Boolean.class, checkLikeFeedExistParams);
+    }
+
+
+    // 댓글 좋아요하기
+    public Integer createLikesComment(Long userId, PostLikesCommentsReq postLikesCommentsReq) {
+        String createLikesCommentQuery = ""
+                + "INSERT INTO like_comment "
+                + "            (user_id, "
+                + "             comment_id) "
+                + "VALUES     (?, "
+                + "            ?) ";
+        Object[] createLikesCommentParams = new Object[]{
+                userId,
+                postLikesCommentsReq.getCommentId()};
+
+        return this.jdbcTemplate.update(createLikesCommentQuery, createLikesCommentParams);
+
+    }
+
+    // 댓글 좋아요 취소
+    public Integer deleteLikesComment(Long userId, DeleteLikesCommentsReq deleteLikesCommentsReq) {
+        String deleteLikesCommentQuery = ""
+                + "DELETE FROM like_comment "
+                + "WHERE  user_id = ? "
+                + "       AND comment_id = ? ";
+        Object[] deleteLikesCommentParams = new Object[]{
+                userId,
+                deleteLikesCommentsReq.getCommentId()};
+
+        return this.jdbcTemplate.update(deleteLikesCommentQuery, deleteLikesCommentParams);
+    }
+
+
+    // 피드 좋아요하기
+    public Integer createLikesFeed(Long userId, PostLikesFeedsReq postLikesFeedsReq) {
+        String createLikesCommentQuery = ""
+                + "INSERT INTO like_feed "
+                + "            (user_id, "
+                + "             feed_id) "
+                + "VALUES     (?, "
+                + "            ?) ";
+        Object[] createLikesCommentParams = new Object[]{
+                userId,
+                postLikesFeedsReq.getFeedId()};
+
+        return this.jdbcTemplate.update(createLikesCommentQuery, createLikesCommentParams);
+    }
+
+    public Integer deleteLikesFeed(Long userId, DeleteLikesFeedsReq deleteLikesFeedsReq) {
+
+        String deleteLikesCommentQuery = ""
+                + "DELETE FROM like_feed "
+                + "WHERE  user_id = ? "
+                + "       AND feed_id = ? ";
+        Object[] deleteLikesCommentParams = new Object[]{
+                userId,
+                deleteLikesFeedsReq.getFeedId()};
+
+        return this.jdbcTemplate.update(deleteLikesCommentQuery, deleteLikesCommentParams);
+    }
 }

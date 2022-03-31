@@ -112,6 +112,13 @@ public class FeedDao {
                         rs.getString("status")
                 ), feedId);
     }
+
+    // 조회수 올리기
+    public Integer updateViewCountByFeedId(Long FeedId){
+        String updateViewCountByFeedIdQuery = "update feed set view_count = view_count+1 where id = ? ";
+        return this.jdbcTemplate.update(updateViewCountByFeedIdQuery, Integer.class, FeedId);
+
+    }
     
     // 특정 미디어 피드에 담긴 미디어(사진)들 가져오기
     public List<GetFeedsMediaFeedsResMedia> retrieveMediaFeedMedias(Long userId, Long feedId){
