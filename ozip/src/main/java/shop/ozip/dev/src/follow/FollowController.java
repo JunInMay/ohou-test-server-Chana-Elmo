@@ -14,6 +14,8 @@ import shop.ozip.dev.src.follow.model.*;
 import shop.ozip.dev.src.user.model.PostUsersReq;
 import shop.ozip.dev.utils.JwtService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/app/follows")
 public class FollowController {
@@ -65,7 +67,6 @@ public class FollowController {
 
     /*
     키워드 팔로우 하기 API
-
     (POST) 127.0.0.1:9000/app/follows/keywords
     */
     @ResponseBody
@@ -89,6 +90,36 @@ public class FollowController {
         try{
             DeleteFollowsKeywordsRes deleteFollowsKeywordsRes = followService.deleteFollowsKeywords(deleteFollowsKeywordsReq);
             return new BaseResponse<>(deleteFollowsKeywordsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 키워드를 팔로우했는지 여부 조회 API
+    (GET) 127.0.0.1:9000/app/follows/keywords/:keywordId
+    */
+    @ResponseBody
+    @GetMapping("/keywords/{keywordId}")
+    public BaseResponse<GetFollowsKeywordsRes> getFollowsKeywords(@PathVariable("keywordId") Long keywordId) {
+        try{
+            GetFollowsKeywordsRes getFollowsKeywordsRes = followService.retrieveFollowsKeyword(keywordId);
+            return new BaseResponse<>(getFollowsKeywordsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    내가 팔로우한 키워드 조회 API
+    (GET) 127.0.0.1:9000/app/follows/keywords
+    */
+    @ResponseBody
+    @GetMapping("/keywords")
+    public BaseResponse<List<GetFollowsKeywordsRes>> getFollowsKeywords() {
+        try{
+            List<GetFollowsKeywordsRes> getFollowsKeywordsResList = followService.retrieveFollowsKeywordList();
+            return new BaseResponse<>(getFollowsKeywordsResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

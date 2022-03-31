@@ -5,12 +5,11 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import shop.ozip.dev.src.follow.model.DeleteFollowsKeywordsReq;
-import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
-import shop.ozip.dev.src.follow.model.PostFollowsKeywordsReq;
-import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
+import shop.ozip.dev.src.feed.model.GetFeedsFooterRes;
+import shop.ozip.dev.src.follow.model.*;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 
 @Repository
@@ -148,5 +147,24 @@ public class FollowDao {
         return this.jdbcTemplate.update(
                 deleteFollowsUsersQuery,
                 deleteFollowsUsersParams);
+    }
+
+
+    // 특정유저가 팔료우한 키워드 리스트 가져오기
+    public List<GetFollowsKeywordsRes> retrieveFollowKeywordList(Long userId) {
+        String retrieveFollowKeywordListQuery = ""
+                + "SELECT keyword.id, "
+                + "       Concat(\"#\", keyword.name) as name, "
+                + "       1 AS is_followed "
+                + "FROM   follow_keyword "
+                + "       JOIN keyword "
+                + "         ON follow_keyword.keyword_id = keyword.id "
+                + "WHERE  user_id = ? ";
+        return this.jdbcTemplate.query(retrieveFollowKeywordListQuery,
+                (rs, rowNum) -> new GetFollowsKeywordsRes(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getInt("is_followed")
+                ), userId);
     }
 }

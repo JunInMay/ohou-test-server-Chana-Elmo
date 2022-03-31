@@ -36,6 +36,18 @@ public class KeywordDao {
 
         return this.jdbcTemplate.queryForObject(checkIdOrZeroKeywordExistByNameQuery, Long.class, name);
     }
+    // 키워드 이름 가져오기
+    public String getKeywordNameByKeywordId(Long keywordId){
+
+        String getKeywordsNameByKeywordIdQuery = ""
+                + "SELECT name "
+                + "FROM   keyword "
+                + "WHERE  id = ? ";
+        return this.jdbcTemplate.queryForObject(
+                getKeywordsNameByKeywordIdQuery,
+                String.class,
+                keywordId);
+    }
 
     // 특정 피드에 달린 키워드 리스트 가져오기
     public List<Keyword> getKeywordListByFeedId(Long feedId) {
