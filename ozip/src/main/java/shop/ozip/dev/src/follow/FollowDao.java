@@ -5,7 +5,9 @@ package shop.ozip.dev.src.follow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import shop.ozip.dev.src.follow.model.DeleteFollowsKeywordsReq;
 import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
+import shop.ozip.dev.src.follow.model.PostFollowsKeywordsReq;
 import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
 
 import javax.sql.DataSource;
@@ -70,6 +72,16 @@ public class FollowDao {
         return this.jdbcTemplate.queryForObject(checkFollowUserExistQuery, Boolean.class, checkFollowUserExistParams);
     }
 
+    public Boolean checkFollowKeywordExist(Long userId, Long keywordId){
+        String checkFollowUserExistQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   follow_keyword "
+                + "               WHERE  user_id = ? and keyword_id = ?) AS exist;";
+        Object[] checkFollowUserExistParams = new Object[]{userId, keywordId};
+
+        return this.jdbcTemplate.queryForObject(checkFollowUserExistQuery, Boolean.class, checkFollowUserExistParams);
+    }
+
     // 팔로우하기
     public int createFollowsUsers(Long userId, PostFollowsUsersReq postFollowsUsersReq) {
         String createFollowsUsersQuery = ""
@@ -97,6 +109,40 @@ public class FollowDao {
         Object[] deleteFollowsUsersParams = new Object[]{
                 userId,
                 deleteFollowsUsersReq.getUserId()
+        };
+
+        return this.jdbcTemplate.update(
+                deleteFollowsUsersQuery,
+                deleteFollowsUsersParams);
+    }
+
+    // 키워드 팔로우
+    public int createFollowsKeywords(Long userId, PostFollowsKeywordsReq postFollowsKeywordsReq) {
+
+        String createFollowsKeywordsQuery = ""
+                + "INSERT INTO follow_keyword "
+                + "            (user_id, "
+                + "             keyword_id) "
+                + "VALUES     (?, "
+                + "            ?)";
+        Object[] createFollowsKeywordsParams = new Object[]{
+                userId,
+                postFollowsKeywordsReq.getKeywordId()
+        };
+
+        return this.jdbcTemplate.update(
+                createFollowsKeywordsQuery,
+                createFollowsKeywordsParams);
+    }
+
+    public int deleteFollowsKeywords(Long userId, DeleteFollowsKeywordsReq deleteFollowsKeywordsReq) {
+        String deleteFollowsUsersQuery = ""
+                + "DELETE FROM follow_keyword "
+                + "WHERE  user_id = ? "
+                + "       AND keyword_id = ?";
+        Object[] deleteFollowsUsersParams = new Object[]{
+                userId,
+                deleteFollowsKeywordsReq.getKeywordId()
         };
 
         return this.jdbcTemplate.update(

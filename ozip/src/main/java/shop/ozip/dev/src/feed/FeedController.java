@@ -11,6 +11,7 @@ import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
 import shop.ozip.dev.utils.JwtService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static shop.ozip.dev.config.BaseResponseStatus.*;
@@ -195,6 +196,20 @@ public class FeedController {
         try{
             List<GetFeedsQnAListRes> getFeedsQnAListResList = feedProvider.retrieveQnAList(cursor, sort, noComment);
             return new BaseResponse<>(getFeedsQnAListResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+    /*
+    질문과답변 공지사항 리스트 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/qnas/notice
+    */
+    @ResponseBody
+    @GetMapping("/qnas/notice")
+    public BaseResponse<List<GetFeedsQnANoticeRes>> getFeedsQnAsNotice() {
+        try{
+            List<GetFeedsQnANoticeRes> getFeedsQnANoticeResList = feedProvider.retrieveQnANoticeList();
+            return new BaseResponse<>(getFeedsQnANoticeResList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -669,6 +684,156 @@ public class FeedController {
         try{
             List<GetFeedsKnowhowsSimilarRes> getFeedsKnowhowsSimilarResList = feedProvider.retrieveKnowhowsSimilar(feedId, cursor);
             return new BaseResponse<>(getFeedsKnowhowsSimilarResList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    질문과 답변 피드 상세 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/qnas/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/qnas/{feedId}")
+    public BaseResponse<GetFeedsQnARes> getFeedsQnAsTop(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetFeedsQnARes getFeedsQnAResTop = feedProvider.retrieveQnATop(feedId);
+            return new BaseResponse<>(getFeedsQnAResTop);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    특정 피드의 footer영역 정보 조회 API
+    (GET) 127.0.0.1:9000/app/feeds/footer/:feedId
+    */
+    @ResponseBody
+    @GetMapping("/footer/{feedId}")
+    public BaseResponse<GetFeedsFooterRes> getFeedsFooter(@PathVariable("feedId") Long feedId) {
+        if (feedId == null){
+            return new BaseResponse<>(EMPTY_FEED_ID);
+        }
+        try{
+            GetFeedsFooterRes getFeedsFooterRes = feedProvider.retrieveFeedFooter(feedId);
+            return new BaseResponse<>(getFeedsFooterRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    #################################################################################################################################################################
+    아래는 업로드 관련
+    #################################################################################################################################################################
+     */
+
+    /*
+    미디어 피드(사진 or 동영상 묶음) 업로드 API
+    (GET) 127.0.0.1:9000/app/feeds/media-feeds
+    */
+    @ResponseBody
+    @PostMapping("/media-feeds")
+    public BaseResponse<PostFeedsMediaFeedsRes> postMediaFeeds(@RequestBody PostFeedsMediaFeedsReq postFeedsMediaFeedsReq) {
+        if (postFeedsMediaFeedsReq.getIsPhoto() == null){
+            postFeedsMediaFeedsReq.setIsPhoto(0);
+        }
+        if (postFeedsMediaFeedsReq.getIsVideo() == null){
+            postFeedsMediaFeedsReq.setIsVideo(0);
+        }
+        if ((postFeedsMediaFeedsReq.getIsPhoto() >= 1 && postFeedsMediaFeedsReq.getIsVideo() >= 1) || (postFeedsMediaFeedsReq.getIsVideo()== postFeedsMediaFeedsReq.getIsPhoto())){
+            return new BaseResponse<>(POST_MEDIA_FEED_TYPE_AMBIGUOUS);
+        }
+        if (postFeedsMediaFeedsReq.getAcreageId()!=null && (postFeedsMediaFeedsReq.getAcreageId() > 6 || postFeedsMediaFeedsReq.getAcreageId() <= 0)){
+            return new BaseResponse<>(POST_MEDIA_FEED_WRONG_TYPE_INDEX);
+        }
+        if (postFeedsMediaFeedsReq.getHomeId()!=null && (postFeedsMediaFeedsReq.getHomeId() > 7 || postFeedsMediaFeedsReq.getHomeId() <= 0)){
+            return new BaseResponse<>(POST_MEDIA_FEED_WRONG_TYPE_INDEX);
+        }
+        if (postFeedsMediaFeedsReq.getStyleId()!=null && (postFeedsMediaFeedsReq.getStyleId() > 9 || postFeedsMediaFeedsReq.getStyleId() <= 0)){
+            return new BaseResponse<>(POST_MEDIA_FEED_WRONG_TYPE_INDEX);
+        }
+
+        try{
+            PostFeedsMediaFeedsRes postFeedsMediaFeedsRes = feedService.createMediaFeed(postFeedsMediaFeedsReq);
+            return new BaseResponse<>(postFeedsMediaFeedsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    사진 업로드 API
+    (GET) 127.0.0.1:9000/app/feeds/medias/photo
+    */
+    @ResponseBody
+    @PostMapping("/medias/photo")
+    public BaseResponse<PostFeedsMediasPhotoRes> postFeedsMediasPhoto(@RequestBody PostFeedsMediasPhotoReq postFeedsMediasPhotoReq) {
+        if (postFeedsMediasPhotoReq.getOwnerFeedId() == null){
+            return new BaseResponse<>(EMPTY_OWNER_FEED);
+        }
+        if (postFeedsMediasPhotoReq.getUrl() == null){
+            return new BaseResponse<>(EMPTY_MEDIA_URL);
+        }
+        if (postFeedsMediasPhotoReq.getDescription() == null){
+            postFeedsMediasPhotoReq.setDescription("");
+        }
+        if (postFeedsMediasPhotoReq.getSpaceId() == null){
+            return new BaseResponse<>(EMPTY_SPACE_ID);
+        }
+        if (postFeedsMediasPhotoReq.getSpaceId() > 14 || postFeedsMediasPhotoReq.getSpaceId() <= 0){
+            return new BaseResponse<>(INVALID_SPACE_ID);
+        }
+        if (postFeedsMediasPhotoReq.getKeywords() == null){
+            List<String> s = new ArrayList<String>();
+            postFeedsMediasPhotoReq.setKeywords(s);
+        }
+        try{
+            PostFeedsMediasPhotoRes postFeedsMediasPhotoRes = feedService.createMediaPhoto(postFeedsMediasPhotoReq);
+            return new BaseResponse<>(postFeedsMediasPhotoRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    동영상 업로드 API
+    (GET) 127.0.0.1:9000/app/feeds/medias/video
+    */
+    @ResponseBody
+    @PostMapping("/medias/video")
+    public BaseResponse<PostFeedsMediasVideoRes> postFeedsMediasVideo (@RequestBody PostFeedsMediasVideoReq postFeedsMediasVideoReq) {
+        if (postFeedsMediasVideoReq.getOwnerFeedId() == null){
+            return new BaseResponse<>(EMPTY_OWNER_FEED);
+        }
+        if (postFeedsMediasVideoReq.getUrl() == null){
+            return new BaseResponse<>(EMPTY_MEDIA_URL);
+        }
+        if (postFeedsMediasVideoReq.getThumbnailUrl() == null){
+            return new BaseResponse<>(EMPTY_THUMBNAIL_URL);
+        }
+        if (postFeedsMediasVideoReq.getTime() == null){
+            return new BaseResponse<>(EMPTY_VIDEO_TIME);
+        }
+        if (postFeedsMediasVideoReq.getDescription() == null){
+            postFeedsMediasVideoReq.setDescription("");
+        }
+        if (postFeedsMediasVideoReq.getSpaceId() == null){
+            return new BaseResponse<>(EMPTY_SPACE_ID);
+        }
+        if (postFeedsMediasVideoReq.getSpaceId() > 14 || postFeedsMediasVideoReq.getSpaceId() <= 0){
+            return new BaseResponse<>(INVALID_SPACE_ID);
+        }
+        if (postFeedsMediasVideoReq.getKeywords() == null){
+            List<String> s = new ArrayList<String>();
+            postFeedsMediasVideoReq.setKeywords(s);
+        }
+        try{
+            PostFeedsMediasVideoRes postFeedsMediasVideoRes= feedService.createMediaVideo(postFeedsMediasVideoReq);
+            return new BaseResponse<>(postFeedsMediasVideoRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

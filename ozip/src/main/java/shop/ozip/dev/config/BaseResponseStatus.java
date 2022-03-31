@@ -42,6 +42,10 @@ public enum BaseResponseStatus {
     // 2100 : feeds, comment
     EMPTY_FEED_ID(false, 2100, "피드 ID를 입력해주세요."),
 
+    // 2110 [POST] Mediafeed
+    POST_MEDIA_FEED_TYPE_AMBIGUOUS(false, 2110, "해당 미디어피드가 사진 묶음인지, 동영상 미디어피드인지 알 수 없습니다."),
+    POST_MEDIA_FEED_WRONG_TYPE_INDEX(false, 2111, "미디어피드 타입 ID가 부적절합니다."),
+
 
     AMBIGUOUS_RECOMMENT(false, 2150, "대댓글 여부와 대댓글 ID를 확인해주세요."),
 
@@ -49,11 +53,21 @@ public enum BaseResponseStatus {
     EMPTY_COMMENT_CONTENT(false, 2160, "댓글 내용을 입력해주세요."),
     EMPTY_COMMENT_FEED_ID(false, 2161, "댓글 달 피드의 id를 입력해주세요."),
 
+    // 2200 : media
+    // [POST] media 2210~
+    EMPTY_OWNER_FEED(false, 2210, "사진 또는 동영상이 속할 미디어피드의 idx를 입력해주세요"),
+    EMPTY_MEDIA_URL(false, 2211, "사진 또는 동영상의 주소를 입력해주세요."),
+    EMPTY_SPACE_ID(false, 2212, "사진 또는 동영상의 공간 정보를 입력해주세요."),
+    INVALID_SPACE_ID(false, 2213, "공간 정보가 부적절합니다."),
+    EMPTY_THUMBNAIL_URL(false, 2214, "동영상의 썸네일 URL을 입력해주세요."),
+    EMPTY_VIDEO_TIME(false, 2215, "동영상의 재생시간을 입력해주세요."),
+
     // 2300 : follow, bookmark
 
     // bookmark(2350~
     EMPTY_SCRAPBOOK_ID(false, 2350, "스크랩북 ID를 입력해주세요."),
     WRONG_SCRAPBOOK_ID(false, 2351, "잘못된 스크랩북 ID 입니다."),
+
 
     //[POST / DELETE / PATCH] app/bookmarks/feed
 
@@ -85,6 +99,7 @@ public enum BaseResponseStatus {
 
     // 3100 : feed, comment
     FEED_NOT_EXIST(false,3100,"존재하지 않는 피드입니다."),
+    NOT_FEED_OWNER(false,3101,"해당 피드의 주인이 아닙니다."),
 
 
     RECOMMENT_NOT_EXIST(false,3160,"답글을 달 댓글이 존재하지 않습니다."),
@@ -93,15 +108,17 @@ public enum BaseResponseStatus {
     // 3200 : media , media-feed
     IS_NOT_MEDIA_FEED(false,3200,"해당 피드는 미디어 피드가 아닙니다."),
     IS_NOT_MEDIA(false,3201,"해당 피드는 사진 피드가 아닙니다."),
+    MEDIA_FEED_NOT_EXIST(false,3202,"미디어피드가 존재하지 않습니다."),
+    MEDIA_FEED_NOT_PHOTO(false,3203,"해당 미디어피드는 사진 묶음이 아닙니다."),
+
+    // [POST] media 3210~
+
 
     // 3300 : follow, bookmark
 
     POST_FOLLOW_ALREADY_FOLLOW(false,3310,"이미 팔로우한 관계입니다."),
     DELETE_FOLLOW_NOT_EXIST(false,3320,"팔로우되지 않은 관계입니다."),
 
-    // 3400 : homewarming, knowhow 관련
-    IS_NOT_HOMEWARMING_FEED(false,3400,"해당 피드는 집들이 피드가 아닙니다."),
-    IS_NOT_KNOWHOW_FEED(false,3401,"해당 피드는 노하우 피드가 아닙니다."),
 
     // bookmark 3350~
     ALREADY_SCRAPPED(false, 3350, "이미 스크랩된 피드입니다."),
@@ -112,10 +129,20 @@ public enum BaseResponseStatus {
     MAIN_CANT_PATCHED(false, 3370, "메인 스크랩북은 수정할 수 없습니다."),
     NOT_SCRAPBOOK_OWNER(false, 3371, "해당 스크랩북의 주인이 아닙니다."),
 
+
     // [DELETED] /app/bookmarks
     MAIN_CANT_DELETED(false, 3380, "메인 스크랩북은 삭제할 수 없습니다."),
 
-    NAVER_API_ERROR(false, 3500, "네이버 API 응답에 오류가 있습니다."),
+    // 3400 : homewarming, knowhow, qna 관련
+    IS_NOT_HOMEWARMING_FEED(false,3400,"해당 피드는 집들이 피드가 아닙니다."),
+    IS_NOT_KNOWHOW_FEED(false,3401,"해당 피드는 노하우 피드가 아닙니다."),
+    IS_NOT_QNA_FEED(false,3402,"해당 피드는 질문과 답변 피드가 아닙니다."),
+    //
+
+    // 3500 : 그외 + 서드파티
+    KEYWORD_NOT_EXIST(false,3500,"키워드가 존재하지 않습니다."),
+
+    NAVER_API_ERROR(false, 3550, "네이버 API 응답에 오류가 있습니다."),
 
 
     /**

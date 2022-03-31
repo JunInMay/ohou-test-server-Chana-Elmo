@@ -10,10 +10,7 @@ import shop.ozip.dev.config.BaseResponse;
 import shop.ozip.dev.src.feed.model.GetFeedsHotsKeywordRes;
 import shop.ozip.dev.src.follow.FollowProvider;
 import shop.ozip.dev.src.follow.FollowService;
-import shop.ozip.dev.src.follow.model.DeleteFollowsUsersReq;
-import shop.ozip.dev.src.follow.model.DeleteFollowsUsersRes;
-import shop.ozip.dev.src.follow.model.PostFollowsUsersReq;
-import shop.ozip.dev.src.follow.model.PostFollowsUsersRes;
+import shop.ozip.dev.src.follow.model.*;
 import shop.ozip.dev.src.user.model.PostUsersReq;
 import shop.ozip.dev.utils.JwtService;
 
@@ -61,6 +58,37 @@ public class FollowController {
         try{
             DeleteFollowsUsersRes deleteFollowsUsersRes = followService.deleteFollowsUsers(deleteFollowsUsersReq);
             return new BaseResponse<>(deleteFollowsUsersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    키워드 팔로우 하기 API
+
+    (POST) 127.0.0.1:9000/app/follows/keywords
+    */
+    @ResponseBody
+    @PostMapping("/keywords")
+    public BaseResponse<PostFollowsKeywordsRes> postFollowsKeywords(@RequestBody PostFollowsKeywordsReq postFollowsKeywordsReq) {
+        try{
+            PostFollowsKeywordsRes postFollowsKeywordsRes = followService.createFollowsKeywords(postFollowsKeywordsReq);
+            return new BaseResponse<>(postFollowsKeywordsRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /*
+    키워드 언팔로우 하기 API
+    (DELETE) 127.0.0.1:9000/app/follows/keywords
+    */
+    @ResponseBody
+    @DeleteMapping("/keywords")
+    public BaseResponse<DeleteFollowsKeywordsRes> deleteFollowsKeywords(@RequestBody DeleteFollowsKeywordsReq deleteFollowsKeywordsReq) {
+        try{
+            DeleteFollowsKeywordsRes deleteFollowsKeywordsRes = followService.deleteFollowsKeywords(deleteFollowsKeywordsReq);
+            return new BaseResponse<>(deleteFollowsKeywordsRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }

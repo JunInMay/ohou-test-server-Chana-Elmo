@@ -5,6 +5,7 @@ package shop.ozip.dev.src.feed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import shop.ozip.dev.src.feed.model.*;
 import shop.ozip.dev.src.keyword.KeywordDao;
 import shop.ozip.dev.src.feed.model.GetFeedsMediasNineRes;
@@ -83,6 +84,32 @@ public class FeedDao {
                         rs.getLong("media_feed_style_type_id"),
                         Common.formatTimeStamp(rs.getTimestamp("created_at")),
                         Common.formatTimeStamp(rs.getTimestamp("updated_at"))
+                ), feedId);
+    }
+
+    // 특정 미디어 피드 존재하는지 체크
+    public boolean checkMediaFeedExistByFeedId(Long feedId) {
+        String checkMediaFeedExistByFeedIdQuery = ""
+                + "SELECT EXISTS (SELECT * "
+                + "               FROM   media_feed "
+                + "               WHERE  feed_id = ?) AS exist;";
+
+        return this.jdbcTemplate.queryForObject(checkMediaFeedExistByFeedIdQuery, Boolean.class, feedId);
+    }
+
+    // 질문과 답변 테이블에서 하나 가져오기
+    public QnA getQnAByFeedId(Long feedId){
+        String getQnAByFeedIdQuery = "select * from qna where feed_id = ? ";
+        return this.jdbcTemplate.queryForObject(getQnAByFeedIdQuery,
+                (rs, rowNum) -> new QnA(
+                        rs.getLong("id"),
+                        rs.getLong("feed_id"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        rs.getInt("is_notice"),
+                        Common.formatTimeStamp(rs.getTimestamp("created_at")),
+                        Common.formatTimeStamp(rs.getTimestamp("updated_at")),
+                        rs.getString("status")
                 ), feedId);
     }
     
@@ -3058,4 +3085,278 @@ public class FeedDao {
                         rs.getLong(finalStandard)
                 ), cursor);
     }
+
+    // 질문과 답변 공지사항 리스트 조회
+    public List<GetFeedsQnANoticeRes> retrieveQnANoticeList() {
+        String retrieveQnANoticeListQuery = ""
+                + "SELECT feed_id, "
+                + "       id AS qna_id, "
+                + "       title "
+                + "FROM   qna "
+                + "WHERE  is_notice = 1 "
+                + "ORDER  BY created_at DESC "
+                + "LIMIT  3 ";
+        return this.jdbcTemplate.query(retrieveQnANoticeListQuery,
+                (rs, rowNum) -> new GetFeedsQnANoticeRes(
+                        rs.getLong("feed_id"),
+                        rs.getLong("qna_id"),
+                        rs.getString("title")
+                ));
+    }
+
+    // 특정 질문과 답변 피드의 내용 + 초기 텍스트
+    public GetFeedsQnAResTop retrieveQnATop(Long feedId) {
+        String retrieveQnATopQuery = ""
+                + "SELECT qna.title, "
+                + "       user.id                                                 AS user_id, "
+                + "       user.nickname, "
+                + "       Date_format(feed.created_at, '%Y년 %m월 %d일 %H:%i') AS uploaded_at, "
+                + "       qna.content "
+                + "FROM   feed "
+                + "       JOIN qna "
+                + "         ON qna.feed_id = feed.id "
+                + "       JOIN user "
+                + "         ON user.id = feed.user_id "
+                + "WHERE  feed.id = ? ";
+
+        return this.jdbcTemplate.queryForObject(retrieveQnATopQuery,
+                (rs, rowNum) -> new GetFeedsQnAResTop(
+                        rs.getString("title"),
+                        rs.getLong("user_id"),
+                        rs.getString("nickname"),
+                        rs.getString("uploaded_at"),
+                        rs.getString("content")
+                ), feedId);
+    }
+
+    // 특정 질문과 답변 피드의 사진+내용들
+    public List<GetFeedsQnAResPhoto> retrieveQnAPhotos(Long feedId) {
+        String retrieveQnAPhotosQuery = ""
+                + "SELECT url, "
+                + "       description "
+                + "FROM   media_qna "
+                + "WHERE  feed_id = ? "
+                + "ORDER  BY created_at ";
+        return this.jdbcTemplate.query(retrieveQnAPhotosQuery,
+                (rs, rowNum) -> new GetFeedsQnAResPhoto(
+                        rs.getString("url"),
+                        rs.getString("description")
+                ), feedId);
+    }
+    // 특정 피드의 푸터 영역
+    public GetFeedsFooterRes retrieveFeedFooter(Long feedId, Long userId) {
+        String retrieveFeedFooterQuery = ""
+                + "SELECT IF (like_count > 0, like_count, 0)         AS like_count, "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   like_feed "
+                + "                   WHERE  user_id = ?)            AS is_liked, "
+                + "       IF (scrapped_count > 0, scrapped_count, 0) AS scrapped_count, "
+                + "       feed.id IN (SELECT feed_id "
+                + "                   FROM   scrapbook_feed "
+                + "                          JOIN scrapbook "
+                + "                            ON scrapbook_feed.scrapbook_id = scrapbook.id "
+                + "                   WHERE  user_id = ?)            AS is_bookmarked, "
+                + "       IF (comment_count > 0, comment_count, 0)   AS comment_count, "
+                + "       share_count "
+                + "FROM   feed "
+                + "       LEFT JOIN (SELECT Count(*) AS like_count, "
+                + "                         feed_id "
+                + "                  FROM   like_feed "
+                + "                  GROUP  BY feed_id) forLikeCount "
+                + "              ON feed.id = forLikeCount.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS scrapped_count, "
+                + "                         feed_id "
+                + "                  FROM   scrapbook_feed "
+                + "                  GROUP  BY feed_id) forScrappedCount "
+                + "              ON feed.id = forScrappedCount.feed_id "
+                + "       LEFT JOIN (SELECT Count(*) AS comment_count, "
+                + "                         feed_id "
+                + "                  FROM   comment "
+                + "                  GROUP  BY feed_id) forCommentCount "
+                + "              ON feed.id = forCommentCount.feed_id "
+                + "WHERE  id = ? ";
+        Object[] retrieveFeedFooterParams = new Object[]{
+                userId, userId, feedId
+        };
+        return this.jdbcTemplate.queryForObject(retrieveFeedFooterQuery,
+                (rs, rowNum) -> new GetFeedsFooterRes(
+                        rs.getInt("like_count"),
+                        rs.getInt("is_liked"),
+                        rs.getInt("scrapped_count"),
+                        rs.getInt("is_bookmarked"),
+                        rs.getInt("comment_count"),
+                        rs.getInt("share_count")
+                ), retrieveFeedFooterParams);
+    }
+
+
+    /*
+    #################################################################################################################################################################
+    아래는 업로드 관련
+    #################################################################################################################################################################
+     */
+    @Transactional
+    public PostFeedsMediaFeedsRes createMediaFeed(Long userId, PostFeedsMediaFeedsReq postFeedsMediaFeedsReq) {
+        String createFeedQuery = ""
+                + "INSERT INTO feed "
+                + "            (user_id, "
+                + "             is_media_feed) "
+                + "VALUES     (?, "
+                + "            1)";
+        this.jdbcTemplate.update(createFeedQuery, userId);
+        String lastInsertIdQuery = "select last_insert_id()";
+        Long feedId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String acreageInsert = "";
+        String acreageParam = "";
+        String homeInsert = "";
+        String homeParam = "";
+        String styleInsert = "";
+        String styleParam = "";
+
+        ArrayList<Object> createMediaFeedParamsArrayList = new ArrayList<Object>();
+        createMediaFeedParamsArrayList.add(feedId);
+        createMediaFeedParamsArrayList.add(postFeedsMediaFeedsReq.getIsPhoto());
+
+        if (postFeedsMediaFeedsReq.getAcreageId() != null){
+            acreageInsert = " media_feed_acreage_type_id, ";
+            acreageParam = " ?, ";
+            createMediaFeedParamsArrayList.add(postFeedsMediaFeedsReq.getAcreageId());
+        }
+        if (postFeedsMediaFeedsReq.getHomeId() != null){
+            homeInsert = " media_feed_home_type_id, ";
+            homeParam = " ?, ";
+            createMediaFeedParamsArrayList.add(postFeedsMediaFeedsReq.getHomeId());
+        }
+        if (postFeedsMediaFeedsReq.getStyleId() != null){
+            styleInsert = " media_feed_style_type_id, ";
+            styleParam = " ?, ";
+            createMediaFeedParamsArrayList.add(postFeedsMediaFeedsReq.getStyleId());
+        }
+
+
+        createMediaFeedParamsArrayList.add(postFeedsMediaFeedsReq.getIsVideo());
+
+        String createMediaFeedQuery = ""
+                + "INSERT INTO media_feed "
+                + "            (feed_id, "
+                + "             is_photo, "
+                + acreageInsert
+                + homeInsert
+                + styleInsert
+                + "             is_video) "
+                + "VALUES      (?, "
+                + acreageParam
+                + homeParam
+                + styleParam
+                + "             ?, "
+                + "             ? )";
+
+        Object[] createMediaFeedParams = createMediaFeedParamsArrayList.toArray();
+
+        this.jdbcTemplate.update(createMediaFeedQuery, createMediaFeedParams);
+
+        return new PostFeedsMediaFeedsRes(feedId, postFeedsMediaFeedsReq.getIsPhoto(), postFeedsMediaFeedsReq.getIsVideo());
+    }
+
+    // 사진 업로드하기 + 미디어 피드와 관계 맺기 + 키워드 주기
+    @Transactional
+    public PostFeedsMediasPhotoRes createMediaPhoto(Long userId, PostFeedsMediasPhotoReq postFeedsMediasPhotoReq) {
+        String createFeedQuery = ""
+                + "INSERT INTO feed "
+                + "            (user_id, "
+                + "             is_photo) "
+                + "VALUES     (?, "
+                + "            1)";
+        this.jdbcTemplate.update(createFeedQuery, userId);
+        String lastInsertIdQuery = "select last_insert_id()";
+        Long feedId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String createMediaPhotoQuery = ""
+                + "INSERT INTO media "
+                + "            (feed_id, "
+                + "             description, "
+                + "             url, "
+                + "             media_space_type_id, "
+                + "             is_photo ) "
+                + "VALUES      ( ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              1 )";
+
+        Object[] createMediaPhotoParams = new Object[]{
+                feedId, postFeedsMediasPhotoReq.getDescription(),
+                postFeedsMediasPhotoReq.getUrl(), postFeedsMediasPhotoReq.getSpaceId()
+        };
+        this.jdbcTemplate.update(createMediaPhotoQuery, createMediaPhotoParams);
+        Long mediaId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String createFeedHavingMediaQuery = ""
+                + "INSERT INTO feed_having_media "
+                + "            (feed_id, "
+                + "             media_id) "
+                + "VALUES     (?, "
+                + "            ?) ";
+        Object[] createFeedHavingMediaParams = new Object[]{
+                postFeedsMediasPhotoReq.getOwnerFeedId(), mediaId
+        };
+        this.jdbcTemplate.update(createFeedHavingMediaQuery, createFeedHavingMediaParams);
+
+        return new PostFeedsMediasPhotoRes(feedId);
+
+    }
+
+    @Transactional
+    public PostFeedsMediasVideoRes createMediaVideo(Long userId, PostFeedsMediasVideoReq postFeedsMediasVideoReq) {
+        String createFeedQuery = ""
+                + "INSERT INTO feed "
+                + "            (user_id, "
+                + "             is_video) "
+                + "VALUES     (?, "
+                + "            1)";
+        this.jdbcTemplate.update(createFeedQuery, userId);
+        String lastInsertIdQuery = "select last_insert_id()";
+        Long feedId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String createMediaPhotoQuery = ""
+                + "INSERT INTO media "
+                + "            (feed_id, "
+                + "             thumbnail_url, "
+                + "             time, "
+                + "             description, "
+                + "             url, "
+                + "             media_space_type_id, "
+                + "             is_photo ) "
+                + "VALUES      ( ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              ?, "
+                + "              1 )";
+
+        Object[] createMediaPhotoParams = new Object[]{
+                feedId, postFeedsMediasVideoReq.getThumbnailUrl(),
+                postFeedsMediasVideoReq.getTime(), postFeedsMediasVideoReq.getDescription(),
+                postFeedsMediasVideoReq.getUrl(), postFeedsMediasVideoReq.getSpaceId()
+        };
+        this.jdbcTemplate.update(createMediaPhotoQuery, createMediaPhotoParams);
+        Long mediaId = this.jdbcTemplate.queryForObject(lastInsertIdQuery,long.class);
+
+        String createFeedHavingMediaQuery = ""
+                + "INSERT INTO feed_having_media "
+                + "            (feed_id, "
+                + "             media_id) "
+                + "VALUES     (?, "
+                + "            ?) ";
+        Object[] createFeedHavingMediaParams = new Object[]{
+                postFeedsMediasVideoReq.getOwnerFeedId(), mediaId
+        };
+        this.jdbcTemplate.update(createFeedHavingMediaQuery, createFeedHavingMediaParams);
+
+        return new PostFeedsMediasVideoRes(feedId);
+    }
+
+
 }
