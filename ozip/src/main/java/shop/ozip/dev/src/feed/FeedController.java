@@ -971,7 +971,7 @@ public class FeedController {
         if (postFeedsQnAsReq.getTitle() == null){
             return new BaseResponse<>(EMPTY_QNA_TITLE);
         }
-        if (postFeedsQnAsReq.getTitle() == null){
+        if (postFeedsQnAsReq.getTitle().length() < 7){
             return new BaseResponse<>(QNA_SHORT_TITLE);
         }
         List<PostFeedsQnAsReqMediaQnA> medias = postFeedsQnAsReq.getMedias();

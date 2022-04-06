@@ -89,7 +89,7 @@ public enum BaseResponseStatus {
     EMPTY_QNA_TITLE(false, 2460, "질문의 제목을 입력해주세요."),
     QNA_KEYWORD_MISSING(false, 2461, "질문에는 하나 이상 다섯개 이하의 키워드가 입력되어야 합니다."),
     QNA_MEDIA_EMPTY_URL(false, 2462, "사진의 URL을 입력해주세요."),
-    QNA_SHORT_TITLE(false, 2463, "제목은 7글지 이상이어야 합니다."),
+    QNA_SHORT_TITLE(false, 2463, "제목은 7글자 이상이어야 합니다."),
 
 
     /**

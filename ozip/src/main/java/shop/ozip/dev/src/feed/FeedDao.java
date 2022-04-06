@@ -3993,4 +3993,5 @@ public class FeedDao {
         this.jdbcTemplate.update(deleteQnAQuery, feedId);
         return this.jdbcTemplate.update(deleteFeedQuery, feedId);
     }
+
 }
